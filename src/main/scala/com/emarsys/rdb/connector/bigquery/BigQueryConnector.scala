@@ -1,4 +1,4 @@
-package com.emarsys.rdb.connector.mysql
+package com.emarsys.rdb.connector.bigquery
 
 import akka.NotUsed
 import akka.actor.ActorSystem
@@ -6,7 +6,7 @@ import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
 import com.emarsys.rdb.connector.common.models._
-import com.emarsys.rdb.connector.mysql.BigQueryConnector.BigQueryConnectionConfig
+import com.emarsys.rdb.connector.bigquery.BigQueryConnector.BigQueryConnectionConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 

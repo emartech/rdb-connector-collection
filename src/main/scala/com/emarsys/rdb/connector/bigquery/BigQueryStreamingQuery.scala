@@ -1,4 +1,4 @@
-package com.emarsys.rdb.connector.mysql
+package com.emarsys.rdb.connector.bigquery
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source

@@ -1,4 +1,4 @@
-package com.emarsys.rdb.connector.bigquery.stream
+package com.emarsys.rdb.connector.bigquery.stream.sendrequest
 
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FanInShape2, Inlet, Outlet}

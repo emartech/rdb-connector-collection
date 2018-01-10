@@ -1,4 +1,4 @@
-package com.emarsys.rdb.connector.bigquery.stream
+package com.emarsys.rdb.connector.bigquery.stream.sendrequest
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
@@ -7,7 +7,7 @@ import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.{TestKit, TestProbe}
 import akka.util.Timeout
 import com.emarsys.rdb.connector.bigquery.GoogleTokenActor.{TokenError, TokenRequest, TokenResponse}
-import com.emarsys.rdb.connector.bigquery.stream.EnrichRequestWithOauth.TokenErrorException
+import com.emarsys.rdb.connector.bigquery.stream.sendrequest.EnrichRequestWithOauth.TokenErrorException
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await

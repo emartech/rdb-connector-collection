@@ -1,15 +1,13 @@
-package com.emarsys.rdb.connector.bigquery.stream
+package com.emarsys.rdb.connector.bigquery.stream.sendrequest
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{GraphDSL, RunnableGraph, Sink, Source}
-import akka.stream.testkit.{TestPublisher, TestSubscriber}
-import akka.stream.testkit.scaladsl.{TestSink, TestSource}
+import akka.stream.testkit.scaladsl.TestSink
 import akka.stream.{ActorMaterializer, ClosedShape}
 import akka.testkit.TestKit
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-import scala.collection.immutable
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
 

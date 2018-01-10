@@ -12,6 +12,10 @@ class PageTokenGeneratorSpec extends TestKit(ActorSystem("PageTokenGeneratorSpec
   with Matchers
   with BeforeAndAfterAll {
 
+  override def afterAll {
+    TestKit.shutdownActorSystem(system)
+  }
+
   "PageTokenGenerator" should {
 
     implicit val materializer = ActorMaterializer()
@@ -26,7 +30,7 @@ class PageTokenGeneratorSpec extends TestKit(ActorSystem("PageTokenGeneratorSpec
         .via(PageTokenGenerator[String]())
         .runWith(sinkProbe)
 
-      probe.requestNext() should be (None)
+      probe.requestNext() should be(None)
     }
 
     "return a page token on second pull when there is a new page token sent" in {
@@ -36,8 +40,8 @@ class PageTokenGeneratorSpec extends TestKit(ActorSystem("PageTokenGeneratorSpec
         .via(PageTokenGenerator[String]())
         .toMat(sinkProbe)(Keep.both).run
 
-      sink.requestNext() should be (None)
-      sink.requestNext() should be (pageToken)
+      sink.requestNext() should be(None)
+      sink.requestNext() should be(pageToken)
     }
 
     "return no page token and close graph when there are no more page tokens sent" in {
@@ -45,10 +49,10 @@ class PageTokenGeneratorSpec extends TestKit(ActorSystem("PageTokenGeneratorSpec
 
       val probe = Source(List[Option[String]](pageToken, None))
         .via(PageTokenGenerator[String]())
-          .runWith(sinkProbe)
+        .runWith(sinkProbe)
 
-      probe.requestNext() should be (None)
-      probe.requestNext() should be (pageToken)
+      probe.requestNext() should be(None)
+      probe.requestNext() should be(pageToken)
       probe.expectComplete()
 
     }

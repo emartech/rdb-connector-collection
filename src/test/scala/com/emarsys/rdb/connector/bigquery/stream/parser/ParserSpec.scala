@@ -20,6 +20,10 @@ class ParserSpec extends TestKit(ActorSystem("ParserSpec"))
   implicit val ec = system.dispatcher
   implicit val materializer = ActorMaterializer()
 
+  override def afterAll {
+    TestKit.shutdownActorSystem(system)
+  }
+
   val data = "dummy data"
   val response = HttpResponse(entity = HttpEntity(s"""{"nextPageToken": "$data" }"""))
 

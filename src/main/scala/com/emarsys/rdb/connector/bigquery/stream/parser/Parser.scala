@@ -18,7 +18,9 @@ object Parser {
       val parseMap = builder.add(Flow[JsObject].map(parseFunction(_)))
 
       val bodyJsonParse = builder.add(Flow[HttpResponse].mapAsync(1)(request => {
-        request.entity.dataBytes.runFold(ByteString(""))(_ ++ _).map(_.utf8String.parseJson.asJsObject)
+        request.entity.dataBytes
+          .runFold(ByteString(""))(_ ++ _)
+          .map(_.utf8String.parseJson.asJsObject)
       }))
 
       val findPageToken = builder.add(Flow[JsObject].map(getPageTokenFromResponse))

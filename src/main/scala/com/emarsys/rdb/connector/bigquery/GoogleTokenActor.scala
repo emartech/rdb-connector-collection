@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.bigquery
 
 import akka.actor.{ActorRef, FSM, Props}
-import akka.http.scaladsl.Http
+import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model.{FormData, HttpMethods, HttpRequest, HttpResponse}
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
@@ -12,7 +12,7 @@ import scala.concurrent.Future
 import scala.util.Success
 
 object GoogleTokenActor {
-  def props(clientEmail: String, privateKey: Array[Byte])(implicit materializer: ActorMaterializer) = Props(new GoogleTokenActor(clientEmail, privateKey))
+  def props(clientEmail: String, privateKey: Array[Byte], http: HttpExt)(implicit materializer: ActorMaterializer) = Props(new GoogleTokenActor(clientEmail, privateKey, http))
 
   sealed trait Message
   case class TokenRequest(force: Boolean) extends Message
@@ -31,7 +31,7 @@ object GoogleTokenActor {
   case class Token(token: String) extends Data
 }
 
-class GoogleTokenActor(clientEmail: String, privateKey: Array[Byte])(implicit val materializer: ActorMaterializer) extends FSM[State, Data] {
+class GoogleTokenActor(clientEmail: String, privateKey: Array[Byte], http: HttpExt)(implicit val materializer: ActorMaterializer) extends FSM[State, Data] {
   startWith(Starting, SenderList(Seq.empty))
 
   when(Starting) {
@@ -79,15 +79,10 @@ class GoogleTokenActor(clientEmail: String, privateKey: Array[Byte])(implicit va
 
   import context.dispatcher
 
-  def httpCall(request: HttpRequest): Future[HttpResponse] = {
-    implicit val sys = context.system
-    Http().singleRequest(request)
-  }
-
   def doRefresh(): Unit = {
     val jwt = GoogleJwt.create(clientEmail, privateKey)
     val request = createTokenRequest(jwt)
-    val response = httpCall(request)
+    val response = http.singleRequest(request)
     handleResponse(response)
   }
 

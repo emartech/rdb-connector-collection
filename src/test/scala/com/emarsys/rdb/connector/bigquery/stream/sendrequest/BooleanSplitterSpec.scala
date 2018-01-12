@@ -43,10 +43,10 @@ class BooleanSplitterSpec extends TestKit(ActorSystem("BooleanSplitterSpec"))
     "input splitting" in {
       val testGraph = createTestGraph(Source(0 until 10), Sink.seq, Sink.seq)
 
-      val (trueResult, falseResult) = testGraph.run()
+      val (trueResult, allResult) = testGraph.run()
 
       Await.result(trueResult, 1.second) shouldEqual (0 until 3)
-      Await.result(falseResult, 1.second) shouldEqual (3 until 10)
+      Await.result(allResult, 1.second) shouldEqual (0 until 10)
     }
 
 

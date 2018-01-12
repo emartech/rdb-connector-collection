@@ -7,7 +7,6 @@ import akka.stream.{ActorMaterializer, ClosedShape}
 import akka.testkit.TestKit
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class SignalBasedRepeaterSpec extends TestKit(ActorSystem("SignalBasedRepeaterSpec"))
@@ -20,8 +19,9 @@ class SignalBasedRepeaterSpec extends TestKit(ActorSystem("SignalBasedRepeaterSp
   }
 
   implicit val materializer = ActorMaterializer()
+    val timeout = 300.millis
 
-    def createTestGraph[A, B, C](source: Source[Int, A], errorSignalSource: Source[Unit, B], sink: Sink[(Int, Boolean), C]): RunnableGraph[(A, B, C)] = {
+    def createTestGraph[A, B, C](source: Source[Int, A], errorSignalSource: Source[Boolean, B], sink: Sink[(Int, Boolean), C]): RunnableGraph[(A, B, C)] = {
       RunnableGraph.fromGraph(GraphDSL.create(source, errorSignalSource, sink)((_, _, _)) { implicit builder =>
         (source, errorSignalSource, sink) =>
           import GraphDSL.Implicits._
@@ -39,52 +39,104 @@ class SignalBasedRepeaterSpec extends TestKit(ActorSystem("SignalBasedRepeaterSp
 
   "SignalBasedRepeater" must {
 
-    "without signal" in {
-      val testGraph = createTestGraph(Source(0 until 4), TestSource.probe[Unit], Sink.seq[(Int, Boolean)])
-      val (_, _, sink) = testGraph.run()
+    "when started, pull on both inputs" in {
+      val testGraph = createTestGraph(TestSource.probe[Int], TestSource.probe[Boolean], TestSink.probe[(Int, Boolean)])
+      val (dataIn, signalIn, _) = testGraph.run()
 
-      Await.result(sink, 1.second) shouldEqual (0 until 4).map((_, false))
+      dataIn.expectRequest() should be > 1L
+      signalIn.expectRequest() should be > 1L
     }
 
-    "replay source when got signal" in {
-      val testGraph = createTestGraph(Source(1 until 4), TestSource.probe[Unit], TestSink.probe[(Int, Boolean)])
-      val (_, errorSignal, sink) = testGraph.run()
+    "when both inputs are ready and out is getting backpressued, produce an element" in {
+      val testGraph = createTestGraph(TestSource.probe[Int], TestSource.probe[Boolean], TestSink.probe[(Int, Boolean)])
+      val (dataIn, signalIn, sink) = testGraph.run()
 
-      sink.requestNext((1, false))
-      sink.requestNext((2, false))
-
-      errorSignal.sendNext({})
-      sink.requestNext((2, true))
-
-      errorSignal.sendNext({})
-      sink.requestNext((2, true))
-
-      sink.requestNext((3, false))
+      dataIn.sendNext(0)
+      signalIn.sendNext(true)
+      sink.requestNext() shouldBe (0, false)
     }
 
-    "illegal state exception if first was signal" in {
-      val testGraph = createTestGraph(TestSource.probe[Int], TestSource.probe[Unit], Sink.last[(Int, Boolean)])
+    "when in is ready and out is backpressued and signal is pushed, produce an element" in {
+      val testGraph = createTestGraph(TestSource.probe[Int], TestSource.probe[Boolean], TestSink.probe[(Int, Boolean)])
+      val (dataIn, signalIn, sink) = testGraph.run()
 
-      val (_, errorSignal, sink) = testGraph.run()
-      errorSignal.sendNext({})
-
-      assertThrows[IllegalStateException] {
-        Await.result(sink, 1.second)
-      }
+      dataIn.sendNext(0)
+      sink.request(1)
+      sink.expectNoMessage(timeout)
+      signalIn.sendNext(true)
+      sink.expectNext() shouldBe (0, false)
     }
 
-    "illegal state exception if multiple signal" in {
-      val testGraph = createTestGraph(TestSource.probe[Int], TestSource.probe[Unit], Sink.last[(Int, Boolean)])
+    "when signal is ready and out is backpressued and in is pushed, produce an element" in {
+      val testGraph = createTestGraph(TestSource.probe[Int], TestSource.probe[Boolean], TestSink.probe[(Int, Boolean)])
+      val (dataIn, signalIn, sink) = testGraph.run()
 
-      val (source, errorSignal, sink) = testGraph.run()
+      signalIn.sendNext(true)
+      sink.request(1)
+      sink.expectNoMessage(timeout)
+      dataIn.sendNext(0)
+      sink.expectNext() shouldBe (0, false)
+    }
 
-      source.sendNext(1)
-      errorSignal.sendNext({})
-      errorSignal.sendNext({})
+    "when signal is true, grab element from input, cache it and provide it" in {
+      val testGraph = createTestGraph(TestSource.probe[Int], TestSource.probe[Boolean], TestSink.probe[(Int, Boolean)])
+      val (dataIn, signalIn, sink) = testGraph.run()
 
-      assertThrows[IllegalStateException] {
-        Await.result(sink, 1.second)
-      }
+      signalIn.sendNext(true)
+      dataIn.sendNext(0)
+      sink.requestNext() shouldBe (0, false)
+    }
+
+    "when signal is false, provide cached" in {
+      val testGraph = createTestGraph(TestSource.probe[Int], TestSource.probe[Boolean], TestSink.probe[(Int, Boolean)])
+      val (dataIn, signalIn, sink) = testGraph.run()
+
+      dataIn.sendNext(0)
+      signalIn.sendNext(true)
+      sink.requestNext() shouldBe (0, false)
+
+      signalIn.sendNext(false)
+      sink.requestNext() shouldBe (0, true)
+    }
+
+    "when signal is false and cache is empty, throw illegal state exception" in {
+      val testGraph = createTestGraph(TestSource.probe[Int], TestSource.probe[Boolean], TestSink.probe[(Int, Boolean)])
+      val (dataIn, signalIn, sink) = testGraph.run()
+
+      dataIn.sendNext(0)
+      signalIn.sendNext(false)
+      sink.request(1)
+      sink.expectError() shouldBe a [IllegalStateException]
+    }
+
+    "when in is completed, complete the stage" in {
+      val testGraph = createTestGraph(TestSource.probe[Int], TestSource.probe[Boolean], TestSink.probe[(Int, Boolean)])
+      val (dataIn, signalIn, sink) = testGraph.run()
+
+      dataIn.sendNext(0)
+      signalIn.sendNext(true)
+      sink.requestNext() shouldBe (0, false)
+
+      dataIn.sendComplete()
+      signalIn.sendNext(true)
+      sink.request(1)
+
+      signalIn.expectCancellation()
+      sink.expectComplete()
+    }
+
+    "when fail signal is sent twice, throw exception" in {
+      val testGraph = createTestGraph(TestSource.probe[Int], TestSource.probe[Boolean], TestSink.probe[(Int, Boolean)])
+      val (dataIn, signalIn, sink) = testGraph.run()
+
+      signalIn.sendNext(true)
+      dataIn.sendNext(0)
+      sink.requestNext()
+
+      signalIn.sendNext(false)
+      signalIn.sendNext(false)
+
+      sink.expectError() shouldBe a [IllegalStateException]
     }
 
   }

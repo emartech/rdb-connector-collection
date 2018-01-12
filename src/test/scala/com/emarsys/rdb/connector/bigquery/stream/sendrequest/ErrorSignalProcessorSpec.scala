@@ -3,7 +3,8 @@ package com.emarsys.rdb.connector.bigquery.stream.sendrequest
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.scaladsl.{Keep, Sink, Source}
+import akka.stream.testkit.scaladsl.{TestSink, TestSource}
 import akka.testkit.TestKit
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
@@ -24,29 +25,42 @@ class ErrorSignalProcessorSpec extends TestKit(ActorSystem("ErrorSignalProcessor
 
   "ErrorSignalProcessor" must {
 
-    "Send signal if auth error" in {
+    "Send true at beginning" in {
       val resultF = Source.single(HttpResponse(status = StatusCodes.Unauthorized))
         .via(ErrorSignalProcessor())
-        .runWith(Sink.last)
+        .runWith(Sink.seq)
 
-      Await.result(resultF, 1.second) shouldEqual ()
+      Await.result(resultF, 1.second) shouldEqual List(true, false)
     }
 
-    "Not send signal if auth error" in {
-      val resultF = Source.single(HttpResponse(status = StatusCodes.Forbidden))
+    "Send true if OK" in {
+      val resultF = Source.single(HttpResponse(status = StatusCodes.OK))
         .via(ErrorSignalProcessor())
         .runWith(Sink.seq)
 
-      Await.result(resultF, 1.second) shouldEqual Seq.empty
+      Await.result(resultF, 1.second) shouldEqual List(true, true)
     }
 
-    "Not send signal if success" in {
-      val resultF = Source.single(HttpResponse())
+    "Send false if auth error" in {
+      val resultF = Source.single(HttpResponse(status = StatusCodes.Unauthorized))
         .via(ErrorSignalProcessor())
         .runWith(Sink.seq)
 
-      Await.result(resultF, 1.second) shouldEqual Seq.empty
+      Await.result(resultF, 1.second) shouldEqual List(true, false)
     }
 
+    "Throw exepction if other error" in {
+      val ts = TestSource.probe[HttpResponse]
+      val (source, sink) = ts
+        .via(ErrorSignalProcessor())
+        .toMat(TestSink.probe[Boolean])(Keep.both)
+        .run
+
+
+      sink.requestNext() shouldBe true
+      source.sendNext(HttpResponse(status = StatusCodes.Forbidden))
+      sink.request(0)
+      sink.expectError() shouldBe a[IllegalStateException]
+    }
   }
 }

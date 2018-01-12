@@ -11,12 +11,11 @@ object BooleanSplitter {
 
     val broadcast = builder.add(Broadcast[T](2))
     val filterTrue = builder.add(Flow[T].filter(f(_)))
-    val filterFalse = builder.add(Flow[T].filter(!f(_)))
 
     broadcast.out(0) ~> filterTrue.in
-    broadcast.out(1) ~> filterFalse.in
+    broadcast.out(1)
 
-    UniformFanOutShape(broadcast.in, filterTrue.out, filterFalse.out)
+    UniformFanOutShape(broadcast.in, filterTrue.out, broadcast.out(1))
   }
 
 }

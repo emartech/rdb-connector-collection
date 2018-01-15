@@ -3,7 +3,7 @@ package com.emarsys.rdb.connector.bigquery.stream.parser
 import akka.NotUsed
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL}
-import akka.stream.{FanOutShape2, Graph, Materializer}
+import akka.stream.{FanOutShape2, FlowShape, Graph, Materializer}
 import akka.util.ByteString
 import spray.json._
 
@@ -17,10 +17,15 @@ object Parser {
       val broadcast = builder.add(Broadcast[JsObject](2))
       val parseMap = builder.add(Flow[JsObject].map(parseFunction(_)))
 
-      val bodyJsonParse = builder.add(Flow[HttpResponse].mapAsync(1)(request => {
+      val bodyJsonParse: FlowShape[HttpResponse, JsObject] = builder.add(Flow[HttpResponse].mapAsync(1)(request => {
         request.entity.dataBytes
           .runFold(ByteString(""))(_ ++ _)
-          .map(_.utf8String.parseJson.asJsObject)
+          .map {
+            _.utf8String match {
+              case "" => JsObject()
+              case nonEmptyString => nonEmptyString.parseJson.asJsObject
+            }
+          }
       }))
 
       val findPageToken = builder.add(Flow[JsObject].map(getPageTokenFromResponse))

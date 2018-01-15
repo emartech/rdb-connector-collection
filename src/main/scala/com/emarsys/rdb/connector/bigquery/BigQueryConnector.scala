@@ -17,7 +17,7 @@ class BigQueryConnector(protected val actorSystem: ActorSystem)(implicit val exe
       Future.successful(Left(TableNotFound(table)))
   }
 
-  override def close(): Future[Unit] = ???
+  override def close(): Future[Unit] = Future.successful()
 
   override def testConnection(): ConnectorResponse[Unit] = ???
 
@@ -54,7 +54,7 @@ object BigQueryConnector extends BigQueryConnectorTrait {
 trait BigQueryConnectorTrait extends ConnectorCompanion {
 
   def apply(config: BigQueryConnectionConfig)(actorSystem: ActorSystem): ConnectorResponse[BigQueryConnector] = {
-    ???
+    Future.successful(Right(new BigQueryConnector(actorSystem)(actorSystem.dispatcher)))
   }
 
   override def meta() = MetaData("`", "'", "\\")

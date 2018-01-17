@@ -24,10 +24,12 @@ class ParserSpec extends TestKit(ActorSystem("ParserSpec"))
     TestKit.shutdownActorSystem(system)
   }
 
-  val data = "dummy data"
-  val response = HttpResponse(entity = HttpEntity(s"""{"nextPageToken": "$data" }"""))
+  val pageToken = "dummyToken"
+  val jobId = "dummyJobId"
+  val response = HttpResponse(entity = HttpEntity(s"""{"pageToken": "$pageToken", "jobReference": { "jobId": "$jobId" } }"""))
+  val responseWithoutJobId = HttpResponse(entity = HttpEntity(s"""{"pageToken": "$pageToken"}"""))
 
-  def createTestGraph[Data, S1, S2](source: Source[HttpResponse, _], dataSink: Sink[Data, S1], pageSink: Sink[Option[String], S2], parseFunction: JsObject => Data): RunnableGraph[(S1, S2)] = {
+  def createTestGraph[Data, S1, S2](source: Source[HttpResponse, _], dataSink: Sink[Data, S1], pageSink: Sink[PagingInfo, S2], parseFunction: JsObject => Data): RunnableGraph[(S1, S2)] = {
     RunnableGraph.fromGraph(GraphDSL.create(dataSink, pageSink)((_, _)) { implicit builder =>
       (s1, s2) =>
         import GraphDSL.Implicits._
@@ -45,7 +47,7 @@ class ParserSpec extends TestKit(ActorSystem("ParserSpec"))
   "Parser" should {
 
     "output the value returned by the parse function" in {
-      val testGraph = createTestGraph(Source.single(response), TestSink.probe[String], TestSink.probe[Option[String]], _ => data)
+      val testGraph = createTestGraph(Source.single(response), TestSink.probe[String], TestSink.probe[PagingInfo], _ => pageToken)
 
       val (dataSink, pageSink) = testGraph.run()
 
@@ -54,11 +56,24 @@ class ParserSpec extends TestKit(ActorSystem("ParserSpec"))
 
       val result = Await.result(parseResultFuture, 3.seconds)
 
-      result should be(data)
+      result should be(pageToken)
+    }
+
+    "output the page token and jobid parsed from the http response" in {
+      val testGraph = createTestGraph(Source.single(response), TestSink.probe[JsObject], TestSink.probe[PagingInfo], identity)
+
+      val (dataSink, pageSink) = testGraph.run()
+
+      Future(dataSink.requestNext())
+      val parsePageTokenFuture = Future(pageSink.requestNext())
+
+      val result = Await.result(parsePageTokenFuture, 3.seconds)
+
+      result should be(PagingInfo(Some(pageToken), Some(jobId)))
     }
 
     "output the page token parsed from the http response" in {
-      val testGraph = createTestGraph(Source.single(response), TestSink.probe[JsObject], TestSink.probe[Option[String]], identity)
+      val testGraph = createTestGraph(Source.single(responseWithoutJobId), TestSink.probe[JsObject], TestSink.probe[PagingInfo], identity)
 
       val (dataSink, pageSink) = testGraph.run()
 
@@ -67,11 +82,11 @@ class ParserSpec extends TestKit(ActorSystem("ParserSpec"))
 
       val result = Await.result(parsePageTokenFuture, 3.seconds)
 
-      result should be(Some(data))
+      result should be(PagingInfo(Some(pageToken), None))
     }
 
     "output none for page token when http response does not contain page token" in {
-      val testGraph = createTestGraph(Source.single(HttpResponse(entity = HttpEntity("{}"))), TestSink.probe[JsObject], TestSink.probe[Option[String]], identity)
+      val testGraph = createTestGraph(Source.single(HttpResponse(entity = HttpEntity("{}"))), TestSink.probe[JsObject], TestSink.probe[PagingInfo], identity)
 
       val (dataSink, pageSink) = testGraph.run()
 
@@ -80,7 +95,7 @@ class ParserSpec extends TestKit(ActorSystem("ParserSpec"))
 
       val result = Await.result(parsePageTokenFuture, 3.seconds)
 
-      result should be(None)
+      result should be(PagingInfo(None, None))
     }
 
   }

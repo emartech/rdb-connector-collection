@@ -41,6 +41,7 @@ class BigQueryStreamSourceSpec extends TestKit(ActorSystem("BigQueryStreamSource
       }
     }
 
+
   "BigQueryStreamSource" should {
 
     trait BigQuerySourceScope {
@@ -62,13 +63,15 @@ class BigQueryStreamSourceSpec extends TestKit(ActorSystem("BigQueryStreamSource
 
     "return two page request" in new BigQuerySourceScope {
 
-      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success", testTokenActorProbe.ref, mockHttp)
       mockHttp.responseFn = { request =>
         request.uri.toString() match {
-          case "/" => Future.successful(HttpResponse(entity = HttpEntity("""{ "nextPageToken": "nextPage" }""")))
-          case "/?pageToken=nextPage" => Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
+          case "/" =>
+            Future.successful(HttpResponse(entity = HttpEntity("""{ "pageToken": "nextPage", "jobReference": { "jobId": "job123"} }""")))
+          case "/job123?pageToken=nextPage" =>
+            Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
         }
       }
+      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success", testTokenActorProbe.ref, mockHttp)
 
       val resultF = bigQuerySource.runWith(Sink.seq)
       testTokenActorProbe.expectMsg(TokenRequest(false))
@@ -104,6 +107,27 @@ class BigQueryStreamSourceSpec extends TestKit(ActorSystem("BigQueryStreamSource
       testTokenActorProbe.reply(TokenResponse("TOKEN"))
 
       Await.result(resultF, 1.second) shouldBe Seq("success")
+      mockHttp.usedToken shouldBe "TOKEN"
+    }
+
+    "url encode page token" in new BigQuerySourceScope {
+
+      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success", testTokenActorProbe.ref, mockHttp)
+      mockHttp.responseFn = { request =>
+        request.uri.toString() match {
+          case "/" => Future.successful(HttpResponse(entity = HttpEntity("""{ "pageToken": "===", "jobReference": { "jobId": "job123"} }""")))
+          case "/job123?pageToken=%3D%3D%3D" => Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
+        }
+      }
+
+      val resultF = bigQuerySource.runWith(Sink.seq)
+      testTokenActorProbe.expectMsg(TokenRequest(false))
+      testTokenActorProbe.reply(TokenResponse("TOKEN"))
+
+      testTokenActorProbe.expectMsg(TokenRequest(false))
+      testTokenActorProbe.reply(TokenResponse("TOKEN"))
+
+      Await.result(resultF, 1.second) shouldBe Seq("success", "success")
       mockHttp.usedToken shouldBe "TOKEN"
     }
 

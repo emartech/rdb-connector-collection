@@ -6,6 +6,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.testkit.scaladsl.{TestSink, TestSource}
 import akka.testkit.TestKit
+import akka.util.Timeout
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
@@ -20,8 +21,8 @@ class ErrorSignalProcessorSpec extends TestKit(ActorSystem("ErrorSignalProcessor
     TestKit.shutdownActorSystem(system)
   }
 
-  implicit val materializer = ActorMaterializer()
-
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val timeout: Timeout = Timeout(1.second)
 
   "ErrorSignalProcessor" must {
 

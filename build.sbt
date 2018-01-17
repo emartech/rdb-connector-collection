@@ -16,7 +16,8 @@ libraryDependencies ++= {
     "io.igl"                %% "jwt"                   % "1.2.2",
     "org.scalatest"         %% "scalatest"             % scalaTestV  % "test",
     "com.typesafe.akka"     %% "akka-stream-testkit"   % "2.5.6"     % "test",
-    "com.github.emartech"   %  "rdb-connector-test"    % "-SNAPSHOT" % "test" changing()
+    "com.github.emartech"   %  "rdb-connector-test"    % "-SNAPSHOT" % "test" changing(),
+    "com.github.fommil"     %% "spray-json-shapeless"  % "1.3.0"
   )
 }
 

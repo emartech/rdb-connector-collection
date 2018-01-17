@@ -9,16 +9,18 @@ import spray.json._
 
 import scala.concurrent.ExecutionContext
 
+final case class PagingInfo(pageToken: Option[String], jobId: Option[String])
+
 object Parser {
-  def apply[T](parseFunction: JsObject => T)(implicit materializer: Materializer, ec: ExecutionContext): Graph[FanOutShape2[HttpResponse, T, Option[String]], NotUsed] =
+  def apply[T](parseFunction: JsObject => T)(implicit materializer: Materializer, ec: ExecutionContext): Graph[FanOutShape2[HttpResponse, T, PagingInfo], NotUsed] =
     GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
 
       val broadcast = builder.add(Broadcast[JsObject](2))
       val parseMap = builder.add(Flow[JsObject].map(parseFunction(_)))
 
-      val bodyJsonParse: FlowShape[HttpResponse, JsObject] = builder.add(Flow[HttpResponse].mapAsync(1)(request => {
-        request.entity.dataBytes
+      val bodyJsonParse: FlowShape[HttpResponse, JsObject] = builder.add(Flow[HttpResponse].mapAsync(1)(response => {
+        response.entity.dataBytes
           .runFold(ByteString(""))(_ ++ _)
           .map {
             _.utf8String match {
@@ -28,17 +30,20 @@ object Parser {
           }
       }))
 
-      val findPageToken = builder.add(Flow[JsObject].map(getPageTokenFromResponse))
+      val pageInfoProvider = builder.add(Flow[JsObject].map(getPageInfo))
 
       bodyJsonParse.out ~> broadcast.in
       broadcast.out(0) ~> parseMap.in
-      broadcast.out(1) ~> findPageToken.in
+      broadcast.out(1) ~> pageInfoProvider.in
 
 
-      new FanOutShape2(bodyJsonParse.in, parseMap.out, findPageToken.out)
+      new FanOutShape2(bodyJsonParse.in, parseMap.out, pageInfoProvider.out)
     }
 
-  private def getPageTokenFromResponse[T](jsObject: JsObject) = for {
-    nextPageToken <- jsObject.fields.get("nextPageToken")
-  } yield nextPageToken.asInstanceOf[JsString].value
+  private def getPageInfo[T](jsObject: JsObject): PagingInfo =  {
+    val pageToken = jsObject.fields.get("pageToken").map(_.asInstanceOf[JsString].value)
+    val jobId = jsObject.fields.get("jobReference").flatMap(_.asJsObject().fields.get("jobId")).map(_.asInstanceOf[JsString].value)
+
+    PagingInfo(pageToken, jobId)
+  }
 }

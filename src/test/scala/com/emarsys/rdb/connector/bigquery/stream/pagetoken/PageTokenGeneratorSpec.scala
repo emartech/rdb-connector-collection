@@ -5,6 +5,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.testkit.scaladsl.{TestSink, TestSource}
 import akka.testkit.TestKit
+import com.emarsys.rdb.connector.bigquery.stream.parser.PagingInfo
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 class PageTokenGeneratorSpec extends TestKit(ActorSystem("PageTokenGeneratorSpec"))
@@ -20,39 +21,42 @@ class PageTokenGeneratorSpec extends TestKit(ActorSystem("PageTokenGeneratorSpec
 
     implicit val materializer = ActorMaterializer()
 
-    val pageToken = Some("next page")
+    val emptyPagingInfo = PagingInfo(None, None)
+    val pagingInfoWithPageToken = PagingInfo(Some("next page"), None)
+    val pagingInfoWithJobId = PagingInfo(None, Some("job"))
+    val pagingInfoWithPageTokenAndJobId = PagingInfo(Some("next page"), Some("job"))
 
-    "always return an empty page token first" in {
-      val sourceProbe = TestSource.probe[Option[String]]
-      val sinkProbe = TestSink.probe[Option[String]]
+    "always return an empty page info first" in {
+      val sourceProbe = TestSource.probe[PagingInfo]
+      val sinkProbe = TestSink.probe[PagingInfo]
 
       val probe = sourceProbe
-        .via(PageTokenGenerator[String]())
+        .via(PageTokenGenerator())
         .runWith(sinkProbe)
 
-      probe.requestNext() should be(None)
+      probe.requestNext() should be(emptyPagingInfo)
     }
 
     "return a page token on second pull when there is a new page token sent" in {
-      val sinkProbe = TestSink.probe[Option[String]]
+      val sinkProbe = TestSink.probe[PagingInfo]
 
-      val (_, sink) = Source.single(pageToken)
-        .via(PageTokenGenerator[String]())
+      val (_, sink) = Source.single(pagingInfoWithPageTokenAndJobId)
+        .via(PageTokenGenerator())
         .toMat(sinkProbe)(Keep.both).run
 
-      sink.requestNext() should be(None)
-      sink.requestNext() should be(pageToken)
+      sink.requestNext() should be(emptyPagingInfo)
+      sink.requestNext() should be(pagingInfoWithPageTokenAndJobId)
     }
 
-    "return no page token and close graph when there are no more page tokens sent" in {
-      val sinkProbe = TestSink.probe[Option[String]]
+    "return no page token and close graph when there is no page token in paging info" in {
+      val sinkProbe = TestSink.probe[PagingInfo]
 
-      val probe = Source(List[Option[String]](pageToken, None))
-        .via(PageTokenGenerator[String]())
+      val probe = Source(List[PagingInfo](pagingInfoWithPageTokenAndJobId, pagingInfoWithJobId))
+        .via(PageTokenGenerator())
         .runWith(sinkProbe)
 
-      probe.requestNext() should be(None)
-      probe.requestNext() should be(pageToken)
+      probe.requestNext() should be(emptyPagingInfo)
+      probe.requestNext() should be(pagingInfoWithPageTokenAndJobId)
       probe.expectComplete()
 
     }

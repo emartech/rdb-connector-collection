@@ -25,7 +25,7 @@ trait SelectDbInitHelper {
   val aTableName: String
   val bTableName: String
 
-  lazy val connector: Connector = Await.result(BigQueryConnector(TestHelper.TEST_CONNECTION_CONFIG)(sys), 5.seconds).right.get
+  lazy val connector: Connector = Await.result(BigQueryConnector(TestHelper.TEST_CONNECTION_CONFIG)(sys), timeout.duration).right.get
 
   def runRequest(httpRequest: HttpRequest): Future[Done] = {
     val tokenActor = sys.actorOf(GoogleTokenActor.props(TestHelper.TEST_CONNECTION_CONFIG.clientEmail, TestHelper.TEST_CONNECTION_CONFIG.privateKey, Http()))
@@ -216,13 +216,13 @@ trait SelectDbInitHelper {
       _ <- runRequest(createTable(createBTableSql))
       _ <- runRequest(insertInto(insertADataSql, aTableName))
       _ <- runRequest(insertInto(insertBDataSql, bTableName))
-    } yield (), 5.seconds)
+    } yield (), timeout.duration)
   }
 
   def cleanUpDb(): Unit = {
     Await.result(for {
       _ <- runRequest(dropTable(aTableName))
       _ <- runRequest(dropTable(bTableName))
-    } yield (), 5.seconds)
+    } yield (), timeout.duration)
   }
 }

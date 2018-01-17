@@ -2,7 +2,7 @@ package com.emarsys.rdb.connector.bigquery.stream.sendrequest
 
 import akka.NotUsed
 import akka.actor.{ActorRef, ActorSystem}
-import akka.http.scaladsl.{Http, HttpExt}
+import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.scaladsl.{Flow, GraphDSL}
 import akka.stream.{ActorMaterializer, FlowShape, Graph}
@@ -17,7 +17,7 @@ object SendRequestWithOauthHandling {
 
       val signalBasedRepeater = builder.add(new SignalBasedRepeater[HttpRequest]())
       val addGoogleOauthToken = builder.add(EnrichRequestWithOauth(tokenActor))
-      val sendHttpRequest = builder.add(Flow[HttpRequest].mapAsync(1)(request => http.singleRequest(request)))
+      val sendHttpRequest = builder.add(Flow[HttpRequest].mapAsync(1)(http.singleRequest(_)))
       val responseErrorSplitter = builder.add(BooleanSplitter[HttpResponse](_.status.isSuccess()))
       val errorSignalProcessor = builder.add(ErrorSignalProcessor())
 

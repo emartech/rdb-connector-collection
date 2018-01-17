@@ -6,16 +6,13 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequ
 import akka.stream.scaladsl.{Flow, Source}
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import spray.json._
-import fommil.sjs.FamilyFormats._
+import spray.json.{DefaultJsonProtocol, JsObject, JsString, JsValue, JsonFormat, RootJsonFormat, pimpAny}
 
-import scala.collection.immutable
 import scala.concurrent.Future
-
-final case class QueryRequest(query: String, useLegacySql: Boolean = false, maxResults: Option[Int] = None)
 
 trait BigQueryStreamingQuery {
   self: BigQueryConnector =>
+  import BigQueryStreamingQuery.QueryJsonProtocol._
 
   protected def streamingQuery(query: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     val projectId: String = config.projectId
@@ -51,11 +48,38 @@ trait BigQueryStreamingQuery {
     HttpEntity(ContentTypes.`application/json`, QueryRequest(query).toJson.compactPrint)
 
   private def parseResult(result: JsObject): (Seq[String], Seq[Seq[String]]) = {
-    val fields = result.fields("schema").asJsObject().fields("fields").asInstanceOf[JsArray].elements.map(_.asJsObject.fields("name").asInstanceOf[JsString].value)
+    val queryResponse = result.convertTo[QueryResponse]
 
-    val rows: immutable.Seq[JsObject] = result.fields.get("rows").fold(immutable.Seq[JsObject]())(_.asInstanceOf[JsArray].elements.map(_.asInstanceOf[JsObject]))
+    val fields = queryResponse.schema.fields.map(_.name)
+    val rows = queryResponse.rows.fold(Seq[Seq[String]]())(rowSeq => rowSeq.map(row => row.f.map(_.v)))
 
-    (fields, rows.map(_.fields("f").asInstanceOf[JsArray]).map(_.elements.map(_.asJsObject.fields("v").toString())))
+    (fields, rows)
+  }
+
+}
+
+object BigQueryStreamingQuery {
+  object QueryJsonProtocol extends DefaultJsonProtocol {
+
+    case class QueryRequest(query: String, useLegacySql: Boolean = false, maxResults: Option[Int] = None)
+    case class QueryResponse(schema: Schema, rows: Option[Seq[Row]])
+    case class Schema(fields: Seq[FieldSchema])
+    case class FieldSchema(name: String)
+    case class Row(f: Seq[RowValue])
+    case class RowValue(v: String)
+
+    implicit val queryRequestFormat: JsonFormat[QueryRequest] = jsonFormat3(QueryRequest)
+
+    implicit val rowValiueFormat: JsonFormat[RowValue] = new JsonFormat[RowValue] {
+      override def write(obj: RowValue): JsValue = JsObject("v" -> JsString(obj.v))
+
+      override def read(json: JsValue): RowValue = RowValue(json.toString())
+    }
+    implicit val rowFormat: JsonFormat[Row] = jsonFormat1(Row)
+    implicit val fieldFormat: JsonFormat[FieldSchema] = jsonFormat1(FieldSchema)
+    implicit val schemaFormat: JsonFormat[Schema] = jsonFormat1(Schema)
+    implicit val queryResponseFormat: JsonFormat[QueryResponse] = jsonFormat2(QueryResponse)
+
   }
 
 }

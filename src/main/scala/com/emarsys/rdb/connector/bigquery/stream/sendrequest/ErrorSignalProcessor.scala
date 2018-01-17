@@ -5,6 +5,7 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.stream._
 import akka.stream.scaladsl.{Concat, Flow, GraphDSL, Source}
 import akka.util.Timeout
+import com.emarsys.rdb.connector.bigquery.util.AkkaHttpPimps._
 
 import scala.concurrent.{Await, ExecutionContext}
 
@@ -29,6 +30,6 @@ object ErrorSignalProcessor {
 
   private def getErrorBody(timeout: Timeout, response: HttpResponse)(implicit materializer: Materializer) = {
     implicit val ec: ExecutionContext = materializer.executionContext
-    Await.result(response.entity.toStrict(timeout.duration).map(_.data.utf8String), timeout.duration)
+    Await.result(response.entity.convertToString(), timeout.duration)
   }
 }

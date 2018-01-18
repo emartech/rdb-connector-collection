@@ -18,7 +18,9 @@ class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQ
   extends Connector
     with BigQueryWriter
     with BigQuerySimpleSelect
-    with BigQueryRawSelect {
+    with BigQueryRawSelect
+    with BigQueryIsOptimized
+    with BigQueryTestConnection {
 
   implicit val sys: ActorSystem = actorSystem
   implicit val materializer: ActorMaterializer = ActorMaterializer()
@@ -31,15 +33,11 @@ class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQ
 
   override def close(): Future[Unit] = Future.successful()
 
-  override def testConnection(): ConnectorResponse[Unit] = ???
-
   override def listTables(): ConnectorResponse[Seq[TableSchemaDescriptors.TableModel]] = ???
 
   override def listTablesWithFields(): ConnectorResponse[Seq[TableSchemaDescriptors.FullTableModel]] = ???
 
   override def listFields(table: String): ConnectorResponse[Seq[TableSchemaDescriptors.FieldModel]] = ???
-
-  override def isOptimized(table: String, fields: Seq[String]): ConnectorResponse[Boolean] = ???
 
   override def validateRawSelect(rawSql: String): ConnectorResponse[Unit] = ???
 

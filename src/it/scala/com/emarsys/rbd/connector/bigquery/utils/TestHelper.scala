@@ -10,6 +10,6 @@ object TestHelper {
     projectId = config.getString("dbconfig.projectId"),
     dataset = config.getString("dbconfig.dataset"),
     clientEmail = config.getString("dbconfig.clientEmail"),
-    privateKey = config.getString("dbconfig.privateKey")
+    privateKey = config.getString("dbconfig.privateKey").replace("\\n","\n")
   )
 }

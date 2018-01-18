@@ -5,12 +5,16 @@ import akka.testkit.TestKit
 import com.emarsys.rbd.connector.bigquery.utils.TestHelper
 import com.emarsys.rdb.connector.bigquery.BigQueryConnector
 import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+
 import concurrent.duration._
 import scala.concurrent.Await
 
-class BigQueryConnectorItSpec extends TestKit(ActorSystem()) with WordSpecLike with Matchers {
+class BigQueryConnectorItSpec extends TestKit(ActorSystem()) with WordSpecLike with Matchers with BeforeAndAfterAll{
 
+  override def afterAll {
+    shutdown()
+  }
 
   "BigQueryConnector" when {
 

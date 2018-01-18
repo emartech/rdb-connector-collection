@@ -17,9 +17,8 @@ trait BigQueryStreamingQuery {
   protected def streamingQuery(query: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     val projectId: String = config.projectId
 
-    val gta = actorSystem.actorOf(GoogleTokenActor.props(config.clientEmail, config.privateKey, Http()))
     val request = createQueryRequest(query, projectId)
-    val bigQuerySource = BigQueryStreamSource(request, parseResult, gta, Http()).via(concatWitFieldNamesAsFirst)
+    val bigQuerySource = BigQueryStreamSource(request, parseResult, googleTokenActor, Http()).via(concatWitFieldNamesAsFirst)
 
     Future.successful(Right(bigQuerySource))
   }

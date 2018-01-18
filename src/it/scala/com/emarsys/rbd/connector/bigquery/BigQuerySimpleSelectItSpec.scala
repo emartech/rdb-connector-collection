@@ -33,7 +33,7 @@ class BigQuerySimpleSelectItSpec extends TestKit(ActorSystem()) /*with SimpleSel
   override def afterAll(): Unit = {
     cleanUpDb()
     connector.close()
-    system.terminate()
+    shutdown()
   }
 
   override def beforeAll(): Unit = {

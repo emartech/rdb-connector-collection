@@ -2,6 +2,7 @@ package com.emarsys.rdb.connector.bigquery
 
 import akka.NotUsed
 import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.util.Timeout
@@ -20,11 +21,14 @@ class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQ
     with BigQuerySimpleSelect
     with BigQueryRawSelect
     with BigQueryIsOptimized
-    with BigQueryTestConnection {
+    with BigQueryTestConnection
+    with BigQueryMetadata {
 
   implicit val sys: ActorSystem = actorSystem
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val timeout: Timeout = Timeout(3.seconds)
+
+  val googleTokenActor = actorSystem.actorOf(GoogleTokenActor.props(config.clientEmail, config.privateKey, Http()))
 
   protected def handleNotExistingTable[T](table: String): PartialFunction[Throwable, ConnectorResponse[T]] = {
     case e: Exception if e.getMessage.contains("doesn't exist") =>
@@ -32,12 +36,6 @@ class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQ
   }
 
   override def close(): Future[Unit] = Future.successful()
-
-  override def listTables(): ConnectorResponse[Seq[TableSchemaDescriptors.TableModel]] = ???
-
-  override def listTablesWithFields(): ConnectorResponse[Seq[TableSchemaDescriptors.FullTableModel]] = ???
-
-  override def listFields(table: String): ConnectorResponse[Seq[TableSchemaDescriptors.FieldModel]] = ???
 
   override def validateRawSelect(rawSql: String): ConnectorResponse[Unit] = ???
 

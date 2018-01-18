@@ -20,7 +20,7 @@ class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) /*with RawSelectItS
 
   implicit override val sys: ActorSystem = system
   implicit override val materializer: ActorMaterializer = ActorMaterializer()
-  implicit override val timeout: Timeout = Timeout(3.second)
+  implicit override val timeout: Timeout = Timeout(30.second)
 
   val uuid = UUID.randomUUID().toString.replace("-", "")
 
@@ -29,12 +29,12 @@ class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) /*with RawSelectItS
   val aTableName = s"a$postfixTableName"
   val bTableName = s"b$postfixTableName"
 
-  val awaitTimeout = 5.seconds
+  val awaitTimeout = 30.seconds
 
   override def afterAll(): Unit = {
     cleanUpDb()
-    TestKit.shutdownActorSystem(sys)
     connector.close()
+    shutdown()
   }
 
   override def beforeAll(): Unit = {

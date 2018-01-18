@@ -4,7 +4,7 @@ import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
 
 trait BigQueryIsOptimized {
-  self: BigQueryConnector /*with BigQueryMetadata*/ =>
+  self: BigQueryConnector =>
 
   override def isOptimized(table: String, fields: Seq[String]): ConnectorResponse[Boolean] = {
     listTables()

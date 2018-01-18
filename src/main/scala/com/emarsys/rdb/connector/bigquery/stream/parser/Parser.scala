@@ -15,12 +15,12 @@ object Parser {
 
   object ParserJsonProtocol extends DefaultJsonProtocol {
 
-    case class Response(jobReference: Option[JobReference], pageToken: Option[String])
+    case class Response(jobReference: Option[JobReference], pageToken: Option[String], nextPageToken: Option[String])
 
     case class JobReference(jobId: String)
 
     implicit val jobReferenceFormat = jsonFormat1(JobReference)
-    implicit val responseFormat = jsonFormat2(Response)
+    implicit val responseFormat = jsonFormat3(Response)
   }
 
   def apply[T](parseFunction: JsObject => T)(implicit materializer: Materializer, ec: ExecutionContext): Graph[FanOutShape2[HttpResponse, T, PagingInfo], NotUsed] =
@@ -54,7 +54,7 @@ object Parser {
 
     val response = jsObject.convertTo[Response]
 
-    val pageToken = response.pageToken
+    val pageToken = response.pageToken orElse response.nextPageToken
     val jobId = response.jobReference.map(_.jobId)
 
     PagingInfo(pageToken, jobId)

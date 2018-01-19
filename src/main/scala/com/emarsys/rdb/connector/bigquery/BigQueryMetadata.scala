@@ -23,7 +23,7 @@ trait BigQueryMetadata {
 
     bigQuerySource.runWith(Sink.seq)
       .map(listOfList => Right(listOfList.flatten))
-      .recover { case x: Throwable => Left(ErrorWithMessage(x.getMessage)) }
+      .recover { case ex: Throwable => Left(ErrorWithMessage(ex.getMessage)) }
   }
 
   private def parseTableResult(result: JsObject): Seq[TableModel] = {
@@ -36,15 +36,13 @@ trait BigQueryMetadata {
 
 
   override def listTables(): ConnectorResponse[Seq[TableModel]] = {
-    val url = s"https://www.googleapis.com/bigquery/v2/projects/${config.projectId}/datasets/${config.dataset}/tables"
-    runMetaQuery(url, parseTableResult)
+    runMetaQuery(tableListUrl, parseTableResult)
   }
 
   override def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
-    val url = s"https://www.googleapis.com/bigquery/v2/projects/${config.projectId}/datasets/${config.dataset}/tables/$tableName"
-    runMetaQuery(url, parseFieldResults).map {
+    runMetaQuery(fieldListUrl(tableName), parseFieldResults).map {
       case Left(_) => Left(TableNotFound(tableName))
-      case x       => x
+      case other => other
     }
   }
 
@@ -55,7 +53,7 @@ trait BigQueryMetadata {
     } yield makeTablesWithFields(tables, map.toMap)
   }.value
 
-  def sequence[F[_]: Applicative: Monad, A, B](s: Seq[EitherT[F, A, B]]): EitherT[F, A, Seq[B]] =
+  def sequence[F[_] : Applicative : Monad, A, B](s: Seq[EitherT[F, A, B]]): EitherT[F, A, Seq[B]] =
     s.foldRight(EitherT.rightT[F, A](Nil: Seq[B])) {
       (e, acc) => for (xs <- acc; x <- e) yield x +: xs
     }

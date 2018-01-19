@@ -31,12 +31,12 @@ trait BigQueryStreamingQuery {
 
   private val concatWitFieldNamesAsFirst =
     Flow[(Seq[String], Seq[Seq[String]])].statefulMapConcat(() => {
-      var state = true
+      var isFirstRun = true
 
       {
         case (fields, rows) =>
-          if (state && rows.nonEmpty) {
-            state = false
+          if (isFirstRun && rows.nonEmpty) {
+            isFirstRun = false
             fields :: rows.toList
           } else {
             rows.toList
@@ -44,10 +44,8 @@ trait BigQueryStreamingQuery {
       }
     })
 
-  private def getQueryUrl(projectId: String) = s"https://www.googleapis.com/bigquery/v2/projects/$projectId/queries"
-
   private def createQueryRequest(query: QueryRequest, projectId: String) =
-    HttpRequest(HttpMethods.POST, getQueryUrl(projectId), entity = createQueryBody(query))
+    HttpRequest(HttpMethods.POST, queryUrl(projectId), entity = createQueryBody(query))
 
   private def createQueryBody(query: QueryRequest) =
     HttpEntity(ContentTypes.`application/json`, query.toJson.compactPrint)

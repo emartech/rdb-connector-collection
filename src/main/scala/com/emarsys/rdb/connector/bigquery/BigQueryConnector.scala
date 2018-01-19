@@ -1,22 +1,20 @@
 package com.emarsys.rdb.connector.bigquery
 
-import akka.NotUsed
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, PoisonPill}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Source
 import akka.util.Timeout
-import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
-import com.emarsys.rdb.connector.common.models._
 import com.emarsys.rdb.connector.bigquery.BigQueryConnector.BigQueryConnectionConfig
+import com.emarsys.rdb.connector.common.ConnectorResponse
+import com.emarsys.rdb.connector.common.models._
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQueryConnectionConfig)
                        (implicit val executionContext: ExecutionContext)
   extends Connector
+    with BigQueryApi
     with BigQueryWriter
     with BigQuerySimpleSelect
     with BigQueryRawSelect
@@ -30,13 +28,10 @@ class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQ
 
   val googleTokenActor = actorSystem.actorOf(GoogleTokenActor.props(config.clientEmail, config.privateKey, Http()))
 
-  protected def handleNotExistingTable[T](table: String): PartialFunction[Throwable, ConnectorResponse[T]] = {
-    case e: Exception if e.getMessage.contains("doesn't exist") =>
-      Future.successful(Left(TableNotFound(table)))
+  override def close(): Future[Unit] = {
+    googleTokenActor ! PoisonPill
+    Future.successful()
   }
-
-  override def close(): Future[Unit] = Future.successful()
-
 }
 
 object BigQueryConnector extends BigQueryConnectorTrait {

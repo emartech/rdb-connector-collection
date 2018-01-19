@@ -29,7 +29,9 @@ trait BigQueryRawSelect {
 
   override def validateRawSelect(rawSql: String): ConnectorResponse[Unit] = {
     val modifiedSql = removeEndingSemicolons(rawSql)
-    streamingDryQuery(modifiedSql).runWith(Sink.seq).map(_ => Right({})).recover{case x => Left(ErrorWithMessage(x.getMessage))}
+    streamingDryQuery(modifiedSql).runWith(Sink.seq)
+      .map(_ => Right({}))
+      .recover{case ex => Left(ErrorWithMessage(ex.getMessage))}
   }
 
   override def analyzeRawSelect(rawSql: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {

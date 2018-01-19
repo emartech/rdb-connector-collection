@@ -3,12 +3,13 @@ package com.emarsys.rdb.connector.bigquery
 import java.util.Base64
 
 import akka.actor.{ActorRef, FSM, Props}
-import akka.http.scaladsl.{Http, HttpExt}
+import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{FormData, HttpMethods, HttpRequest, HttpResponse}
 import akka.stream.ActorMaterializer
-import akka.util.ByteString
 import com.emarsys.rdb.connector.bigquery.GoogleTokenActor._
+import com.emarsys.rdb.connector.bigquery.util.AkkaHttpPimps._
 import com.emarsys.rdb.connector.bigquery.util.GoogleJwt
+import spray.json.{DefaultJsonProtocol, JsonFormat}
 
 import scala.concurrent.Future
 import scala.util.Success
@@ -31,6 +32,11 @@ object GoogleTokenActor {
   sealed trait Data
   case class SenderList(list: Seq[ActorRef]) extends Data
   case class Token(token: String) extends Data
+
+  object TokenJsonProtocol extends DefaultJsonProtocol{
+    case class TokenResponse(accessToken: String)
+    implicit val tokenFormat: JsonFormat[TokenResponse] = jsonFormat(TokenResponse, "access_token")
+  }
 }
 
 class GoogleTokenActor(clientEmail: String, privateKey: String, http: HttpExt)(implicit val materializer: ActorMaterializer) extends FSM[State, Data] {
@@ -115,12 +121,8 @@ class GoogleTokenActor(clientEmail: String, privateKey: String, http: HttpExt)(i
   def parseToken(response: HttpResponse): Future[Option[String]] = {
     import spray.json._
 
-    response.entity.dataBytes.runFold(ByteString(""))(_ ++ _)
-      .map(_.utf8String)
-      .map(_.parseJson.asJsObject)
-      .map(_.fields
-        .get("access_token")
-        .map(_.asInstanceOf[JsString].value))
+    response.entity.convertToString()
+      .map(body => Option(body.parseJson.convertTo[TokenJsonProtocol.TokenResponse].accessToken))
       .recover {
         case _ => None
       }

@@ -19,7 +19,7 @@ trait DbInitUtil {
   implicit val timeout: Timeout
   implicit lazy val ec = sys.dispatcher
 
-  lazy val connector: Connector = Await.result(BigQueryConnector(TestHelper.TEST_CONNECTION_CONFIG)(sys), timeout.duration).right.get
+  lazy val connector: BigQueryConnector = Await.result(BigQueryConnector(TestHelper.TEST_CONNECTION_CONFIG)(sys), timeout.duration).right.get
 
   def sleep() = {
     Await.result(Future(Thread.sleep(500)),1.seconds)
@@ -32,18 +32,18 @@ trait DbInitUtil {
 
   def createTable(schemaDefinition: String): HttpRequest = HttpRequest(
     HttpMethods.POST,
-    Uri(s"https://www.googleapis.com/bigquery/v2/projects/${TestHelper.TEST_CONNECTION_CONFIG.projectId}/datasets/${TestHelper.TEST_CONNECTION_CONFIG.dataset}/tables"),
+    Uri(connector.createTableUrl),
     entity = HttpEntity(ContentTypes.`application/json`, schemaDefinition)
   )
 
   def insertInto(data: String, table: String) = HttpRequest(
     HttpMethods.POST,
-    Uri(s"https://www.googleapis.com/bigquery/v2/projects/${TestHelper.TEST_CONNECTION_CONFIG.projectId}/datasets/${TestHelper.TEST_CONNECTION_CONFIG.dataset}/tables/$table/insertAll"),
+    Uri(connector.insertIntoUrl(table)),
     entity = HttpEntity(ContentTypes.`application/json`, data)
   )
 
   def dropTable(table: String) = HttpRequest(
     HttpMethods.DELETE,
-    Uri(s"https://www.googleapis.com/bigquery/v2/projects/${TestHelper.TEST_CONNECTION_CONFIG.projectId}/datasets/${TestHelper.TEST_CONNECTION_CONFIG.dataset}/tables/$table")
+    Uri(connector.deleteTableUrl(table))
   )
 }

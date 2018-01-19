@@ -4,6 +4,7 @@ import akka.NotUsed
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequest}
 import akka.stream.scaladsl.{Flow, Source}
+import com.emarsys.rdb.connector.bigquery.GoogleApi.queryUrl
 import com.emarsys.rdb.connector.bigquery.BigQueryStreamingQuery.DryRunJsonProtocol.DryRunResponse
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.common.ConnectorResponse

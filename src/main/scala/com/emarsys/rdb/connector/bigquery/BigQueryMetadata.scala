@@ -6,6 +6,7 @@ import akka.stream.scaladsl.Sink
 import cats.data.EitherT
 import cats.implicits._
 import cats.{Applicative, Monad}
+import com.emarsys.rdb.connector.bigquery.GoogleApi.{fieldListUrl, tableListUrl}
 import com.emarsys.rdb.connector.bigquery.BigQueryMetadata.TableDataQueryJsonProtocol.TableDataQueryResponse
 import com.emarsys.rdb.connector.bigquery.BigQueryMetadata.TableListQueryJsonProtocol.TableListQueryResponse
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
@@ -36,11 +37,11 @@ trait BigQueryMetadata {
 
 
   override def listTables(): ConnectorResponse[Seq[TableModel]] = {
-    runMetaQuery(tableListUrl, parseTableResult)
+    runMetaQuery(tableListUrl(config.projectId, config.dataset), parseTableResult)
   }
 
   override def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
-    runMetaQuery(fieldListUrl(tableName), parseFieldResults).map {
+    runMetaQuery(fieldListUrl(config.projectId, config.dataset, tableName), parseFieldResults).map {
       case Left(_) => Left(TableNotFound(tableName))
       case other => other
     }

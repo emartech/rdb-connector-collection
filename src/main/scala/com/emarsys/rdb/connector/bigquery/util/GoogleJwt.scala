@@ -2,6 +2,7 @@ package com.emarsys.rdb.connector.bigquery.util
 
 import java.time.Instant
 
+import com.emarsys.rdb.connector.bigquery.GoogleApi._
 import io.igl.jwt._
 
 object GoogleJwt {
@@ -11,8 +12,8 @@ object GoogleJwt {
     val jwt = new DecodedJwt(Seq(Alg(Algorithm.RS256), Typ("JWT")),
       Seq(
         Iss(clientEmail),
-        Scope("https://www.googleapis.com/auth/bigquery"),
-        Aud("https://www.googleapis.com/oauth2/v4/token"),
+        Scope(bigQueryAuthUrl),
+        Aud(googleTokenUrl),
         Exp(time + 3600),
         Iat(time)
       )

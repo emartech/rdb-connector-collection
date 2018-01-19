@@ -6,6 +6,7 @@ import akka.actor.{ActorRef, FSM, Props}
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{FormData, HttpMethods, HttpRequest, HttpResponse}
 import akka.stream.ActorMaterializer
+import com.emarsys.rdb.connector.bigquery.GoogleApi.googleTokenUrl
 import com.emarsys.rdb.connector.bigquery.GoogleTokenActor._
 import com.emarsys.rdb.connector.bigquery.util.AkkaHttpPimps._
 import com.emarsys.rdb.connector.bigquery.util.GoogleJwt
@@ -106,8 +107,6 @@ class GoogleTokenActor(clientEmail: String, privateKey: String, http: HttpExt)(i
       case _ => self ! TokenError
     }
   }
-
-  val googleTokenUrl = "https://www.googleapis.com/oauth2/v4/token"
 
   def createTokenRequest(jwt: String): HttpRequest = {
     val requestEntity = FormData(

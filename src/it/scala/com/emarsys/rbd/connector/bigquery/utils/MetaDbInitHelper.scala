@@ -65,6 +65,7 @@ trait MetaDbInitHelper extends DbInitUtil {
       _ <- runRequest(createTable(createTableSql))
       _ <- runRequest(createTable(createViewSql))
     } yield (), timeout.duration)
+    sleep()
   }
 
   def cleanUpDb(): Unit = {

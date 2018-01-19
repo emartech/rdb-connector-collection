@@ -37,9 +37,6 @@ class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQ
 
   override def close(): Future[Unit] = Future.successful()
 
-  override def validateRawSelect(rawSql: String): ConnectorResponse[Unit] = ???
-
-  override def analyzeRawSelect(rawSql: String): ConnectorResponse[Source[Seq[String], NotUsed]] = ???
 }
 
 object BigQueryConnector extends BigQueryConnectorTrait {

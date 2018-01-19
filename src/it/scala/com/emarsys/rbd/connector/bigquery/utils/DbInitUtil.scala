@@ -12,7 +12,7 @@ import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.common.models.Connector
 
 import scala.concurrent.{Await, Future}
-
+import concurrent.duration._
 trait DbInitUtil {
   implicit val sys: ActorSystem
   implicit val materializer: ActorMaterializer
@@ -20,6 +20,10 @@ trait DbInitUtil {
   implicit lazy val ec = sys.dispatcher
 
   lazy val connector: Connector = Await.result(BigQueryConnector(TestHelper.TEST_CONNECTION_CONFIG)(sys), timeout.duration).right.get
+
+  def sleep() = {
+    Await.result(Future(Thread.sleep(500)),1.seconds)
+  }
 
   def runRequest(httpRequest: HttpRequest): Future[Done] = {
     val tokenActor = sys.actorOf(GoogleTokenActor.props(TestHelper.TEST_CONNECTION_CONFIG.clientEmail, TestHelper.TEST_CONNECTION_CONFIG.privateKey, Http()))

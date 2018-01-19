@@ -17,7 +17,7 @@ object Parser {
 
     case class Response(jobReference: Option[JobReference], pageToken: Option[String], nextPageToken: Option[String])
 
-    case class JobReference(jobId: String)
+    case class JobReference(jobId: Option[String])
 
     implicit val jobReferenceFormat = jsonFormat1(JobReference)
     implicit val responseFormat = jsonFormat3(Response)
@@ -55,7 +55,7 @@ object Parser {
     val response = jsObject.convertTo[Response]
 
     val pageToken = response.pageToken orElse response.nextPageToken
-    val jobId = response.jobReference.map(_.jobId)
+    val jobId = response.jobReference.flatMap(_.jobId)
 
     PagingInfo(pageToken, jobId)
   }

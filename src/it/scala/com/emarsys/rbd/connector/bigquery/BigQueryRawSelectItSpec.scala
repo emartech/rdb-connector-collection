@@ -10,7 +10,7 @@ import akka.testkit.TestKit
 import akka.util.Timeout
 import com.emarsys.rbd.connector.bigquery.utils.{SelectDbInitHelper, TestHelper}
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.test.RawSelectItSpec
+import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
@@ -112,6 +112,33 @@ class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) /*with RawSelectItS
         Seq("6", null),
         Seq(null, null)
       ))
+    }
+  }
+
+  "#validateRawSelect" should {
+    "return ok if ok" in {
+      Await.result(connector.validateRawSelect(simpleSelect), awaitTimeout) shouldBe Right()
+    }
+
+    "return ok if no ; in query" in {
+
+      Await.result(connector.validateRawSelect(simpleSelectNoSemicolon), awaitTimeout) shouldBe Right()
+    }
+
+    "return error if not ok" in {
+
+      Await.result(connector.validateRawSelect(badSimpleSelect), awaitTimeout) shouldBe a[Left[ErrorWithMessage, Unit]]
+    }
+  }
+
+  "#analyzeRawSelect" should {
+    "return result" in {
+      val result = getStreamResult(connector.analyzeRawSelect(simpleSelect))
+
+      result shouldEqual Seq(
+        Seq("totalBytesProcessed", "jobComplete", "cacheHit"),
+        Seq("0", "true", "false")
+      )
     }
   }
 

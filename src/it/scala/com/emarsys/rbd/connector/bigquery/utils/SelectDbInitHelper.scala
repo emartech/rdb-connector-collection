@@ -175,6 +175,7 @@ trait SelectDbInitHelper extends DbInitUtil {
       _ <- runRequest(insertInto(insertADataSql, aTableName))
       _ <- runRequest(insertInto(insertBDataSql, bTableName))
     } yield (), timeout.duration)
+    sleep()
   }
 
   def cleanUpDb(): Unit = {

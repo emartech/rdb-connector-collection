@@ -30,6 +30,7 @@ class BigQueryIsOptimizedItSpec extends TestKit(ActorSystem()) with WordSpecLike
     Await.result(for {
       _ <- runRequest(createTable(createTableSql))
     } yield (), timeout.duration)
+    sleep()
   }
 
   override def cleanUpDb(): Unit = {

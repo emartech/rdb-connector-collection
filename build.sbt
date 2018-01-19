@@ -17,7 +17,9 @@ libraryDependencies ++= {
     "org.scalatest"         %% "scalatest"             % scalaTestV  % "test",
     "com.typesafe.akka"     %% "akka-stream-testkit"   % "2.5.6"     % "test",
     "com.github.emartech"   %  "rdb-connector-test"    % "-SNAPSHOT" % "test" changing(),
-    "com.github.fommil"     %% "spray-json-shapeless"  % "1.3.0"
+    "com.github.fommil"     %% "spray-json-shapeless"  % "1.3.0",
+    "org.typelevel"         %% "cats-core"             % "1.0.1"
+
   )
 }
 

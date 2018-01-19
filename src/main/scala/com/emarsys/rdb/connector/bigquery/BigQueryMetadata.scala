@@ -3,6 +3,9 @@ package com.emarsys.rdb.connector.bigquery
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest}
 import akka.stream.scaladsl.Sink
+import cats.data.EitherT
+import cats.implicits._
+import cats.{Applicative, Monad}
 import com.emarsys.rdb.connector.bigquery.BigQueryMetadata.TableDataQueryJsonProtocol.TableDataQueryResponse
 import com.emarsys.rdb.connector.bigquery.BigQueryMetadata.TableListQueryJsonProtocol.TableListQueryResponse
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
@@ -10,8 +13,6 @@ import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.{ErrorWithMessage, TableNotFound}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
 import spray.json.{DefaultJsonProtocol, JsObject, JsonFormat}
-
-import scala.concurrent.Future
 
 trait BigQueryMetadata {
   self: BigQueryConnector =>
@@ -22,7 +23,7 @@ trait BigQueryMetadata {
 
     bigQuerySource.runWith(Sink.seq)
       .map(listOfList => Right(listOfList.flatten))
-      .recover{case x: Throwable => Left(ErrorWithMessage(x.getMessage))}
+      .recover { case x: Throwable => Left(ErrorWithMessage(x.getMessage)) }
   }
 
   private def parseTableResult(result: JsObject): Seq[TableModel] = {
@@ -41,28 +42,22 @@ trait BigQueryMetadata {
 
   override def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
     val url = s"https://www.googleapis.com/bigquery/v2/projects/${config.projectId}/datasets/${config.dataset}/tables/$tableName"
-    runMetaQuery(url, parseFieldResults).map{
-      case Left(x) => Left(TableNotFound(tableName))
-      case x => x
+    runMetaQuery(url, parseFieldResults).map {
+      case Left(_) => Left(TableNotFound(tableName))
+      case x       => x
     }
   }
 
   override def listTablesWithFields(): ConnectorResponse[Seq[FullTableModel]] = {
     for {
-      tablesE <- listTables()
-      f <- Future.sequence{
-        tablesE match {
-          case Right(tableList) => tableList.map(table => listFields(table.name).map(_.map(fieldList => (table.name, fieldList))))
-          case Left(error) => Seq(Future.successful(Left(error)))
-        }
-      }
-      mapE = sequence(f).map(_.toMap)
-    } yield tablesE.flatMap(tables => mapE.map(map => makeTablesWithFields(tables, map)))
-  }
+      tables <- EitherT(listTables())
+      map <- sequence(tables.map(table => EitherT(listFields(table.name)).map(fieldModel => (table.name, fieldModel))))
+    } yield makeTablesWithFields(tables, map.toMap)
+  }.value
 
-  def sequence[A, B](s: Seq[Either[A, B]]): Either[A, Seq[B]] =
-    s.foldRight(Right(Nil): Either[A, List[B]]) {
-      (e, acc) => for (xs <- acc.right; x <- e.right) yield x :: xs
+  def sequence[F[_]: Applicative: Monad, A, B](s: Seq[EitherT[F, A, B]]): EitherT[F, A, Seq[B]] =
+    s.foldRight(EitherT.rightT[F, A](Nil: Seq[B])) {
+      (e, acc) => for (xs <- acc; x <- e) yield x +: xs
     }
 
   private def makeTablesWithFields(tableList: Seq[TableModel], tableFieldMap: Map[String, Seq[FieldModel]]): Seq[FullTableModel] = {
@@ -79,11 +74,13 @@ object BigQueryMetadata {
         tables.map(_.toTableModel)
       }
     }
-    case class QueryTableModel(tableReference: TableReference, `type`: String){
+
+    case class QueryTableModel(tableReference: TableReference, `type`: String) {
       def toTableModel: TableModel = {
         TableModel(tableReference.tableId, `type` == "VIEW")
       }
     }
+
     case class TableReference(tableId: String)
 
 
@@ -91,13 +88,17 @@ object BigQueryMetadata {
     implicit val queryTableModelFormat: JsonFormat[QueryTableModel] = jsonFormat2(QueryTableModel)
     implicit val tableListQueryResponseFormat: JsonFormat[TableListQueryResponse] = jsonFormat1(TableListQueryResponse)
   }
+
   object TableDataQueryJsonProtocol extends DefaultJsonProtocol {
+
     case class TableDataQueryResponse(schema: TableSchema) {
       def toFieldModelList = {
         schema.fields.map(_.toFieldModel)
       }
     }
+
     case class TableSchema(fields: Seq[Field])
+
     case class Field(name: String, `type`: String) {
       def toFieldModel = {
         FieldModel(name, `type`)

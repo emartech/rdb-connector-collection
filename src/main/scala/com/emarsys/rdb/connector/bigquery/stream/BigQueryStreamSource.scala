@@ -12,8 +12,8 @@ import akka.util.Timeout
 import com.emarsys.rdb.connector.bigquery.stream.pagetoken.PageTokenGenerator
 import com.emarsys.rdb.connector.bigquery.stream.parser.{PagingInfo, Parser}
 import com.emarsys.rdb.connector.bigquery.stream.sendrequest.SendRequestWithOauthHandling
-import spray.json.JsObject
 import com.emarsys.rdb.connector.bigquery.util.AkkaHttpPimps._
+import spray.json.JsObject
 
 import scala.concurrent.ExecutionContext
 
@@ -55,20 +55,20 @@ object BigQueryStreamSource {
 
       SourceShape(parser.out0)
 
-      /*
-      +--------+           +------------+          +-------+         +------+
-      |Request |           |AddPageToken|          |Request|         |Parser|
-      |Repeater+---------->|            +--------->|Sender +-------->|      +------(response)------>
-      |        |           |            |          |       |         |      |
-      +--------+           +------------+          +-------+         +---+--+
-                                  ^                                      |
-                                  |                                      |
-                                  |                                      |
-                                  |               +---------+            |
-                                  |               |PageToken|            |
-                                  +---------------+Generator|<-----------+
-                                                  |         |
-                                                  +---------+
-       */
+    /*
+    +--------+           +------------+          +-------+         +------+
+    |Request |           |AddPageToken|          |Request|         |Parser|
+    |Repeater+---------->|            +--------->|Sender +-------->|      +------(response)------>
+    |        |           |            |          |       |         |      |
+    +--------+           +------------+          +-------+         +---+--+
+                                ^                                      |
+                                |                                      |
+                                |                                      |
+                                |               +---------+            |
+                                |               |PageToken|            |
+                                +---------------+Generator|<-----------+
+                                                |         |
+                                                +---------+
+     */
   })
 }

@@ -19,25 +19,38 @@ object GoogleTokenActor {
   def props(clientEmail: String, privateKey: String, http: HttpExt)(implicit materializer: ActorMaterializer) = Props(new GoogleTokenActor(clientEmail, privateKey, http))
 
   sealed trait Message
+
   case class TokenRequest(force: Boolean) extends Message
+
   case class TokenResponse(token: String) extends Message
+
   case object TokenError extends Message
+
   private case class NewToken(token: String) extends Message
 
   sealed trait State
+
   case object Starting extends State
+
   case object InRefresh extends State
+
   case object Idle extends State
+
   case object Error extends State
 
   sealed trait Data
+
   case class SenderList(list: Seq[ActorRef]) extends Data
+
   case class Token(token: String) extends Data
 
-  object TokenJsonProtocol extends DefaultJsonProtocol{
+  object TokenJsonProtocol extends DefaultJsonProtocol {
+
     case class TokenResponse(accessToken: String)
+
     implicit val tokenFormat: JsonFormat[TokenResponse] = jsonFormat(TokenResponse, "access_token")
   }
+
 }
 
 class GoogleTokenActor(clientEmail: String, privateKey: String, http: HttpExt)(implicit val materializer: ActorMaterializer) extends FSM[State, Data] {
@@ -102,9 +115,9 @@ class GoogleTokenActor(clientEmail: String, privateKey: String, http: HttpExt)(i
       case Success(response) if response.status.isSuccess() =>
         parseToken(response).foreach {
           case Some(token) => self ! NewToken(token)
-          case _ => self ! TokenError
+          case _           => self ! TokenError
         }
-      case _ => self ! TokenError
+      case _                                                => self ! TokenError
     }
   }
 

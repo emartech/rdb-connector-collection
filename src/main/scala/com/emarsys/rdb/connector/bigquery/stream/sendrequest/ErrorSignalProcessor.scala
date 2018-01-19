@@ -16,9 +16,9 @@ object ErrorSignalProcessor {
     val initialSource = builder.add(Source.single(true))
     val buffer = builder.add(Flow[HttpResponse].buffer(1, OverflowStrategy.backpressure))
     val errorMapper = builder.add(Flow[HttpResponse].map(response => response.status match {
-      case StatusCodes.Unauthorized => false
+      case StatusCodes.Unauthorized               => false
       case otherStatus if otherStatus.isSuccess() => true
-      case otherStatus => throw new IllegalStateException(s"Unexpected error in response: $otherStatus, ${getErrorBody(timeout, response)}")
+      case otherStatus                            => throw new IllegalStateException(s"Unexpected error in response: $otherStatus, ${getErrorBody(timeout, response)}")
     }))
     val concat = builder.add(Concat[Boolean](2))
 

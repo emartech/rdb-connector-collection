@@ -12,6 +12,7 @@ import com.emarsys.rdb.connector.bigquery.GoogleTokenActor.{TokenError, TokenReq
 import scala.concurrent.ExecutionContext
 
 object EnrichRequestWithOauth {
+
   case object TokenErrorException extends Exception
 
   def apply(tokenActor: ActorRef)(implicit to: Timeout, ec: ExecutionContext): Flow[(HttpRequest, Boolean), HttpRequest, NotUsed] = {

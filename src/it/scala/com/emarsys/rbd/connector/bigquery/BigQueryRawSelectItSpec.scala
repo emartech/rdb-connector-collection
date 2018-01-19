@@ -11,7 +11,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
 
-class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) with RawSelectItSpec with SelectDbInitHelper with WordSpecLike with Matchers with BeforeAndAfterAll{
+class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) with RawSelectItSpec with SelectDbInitHelper with WordSpecLike with Matchers with BeforeAndAfterAll {
 
   implicit override val sys: ActorSystem = system
   implicit override val materializer: ActorMaterializer = ActorMaterializer()

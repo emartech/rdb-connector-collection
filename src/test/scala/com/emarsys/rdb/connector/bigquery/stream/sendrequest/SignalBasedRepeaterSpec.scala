@@ -19,23 +19,23 @@ class SignalBasedRepeaterSpec extends TestKit(ActorSystem("SignalBasedRepeaterSp
   }
 
   implicit val materializer = ActorMaterializer()
-    val timeout = 300.millis
+  val timeout = 300.millis
 
-    def createTestGraph[A, B, C](source: Source[Int, A], errorSignalSource: Source[Boolean, B], sink: Sink[(Int, Boolean), C]): RunnableGraph[(A, B, C)] = {
-      RunnableGraph.fromGraph(GraphDSL.create(source, errorSignalSource, sink)((_, _, _)) { implicit builder =>
-        (source, errorSignalSource, sink) =>
-          import GraphDSL.Implicits._
+  def createTestGraph[A, B, C](source: Source[Int, A], errorSignalSource: Source[Boolean, B], sink: Sink[(Int, Boolean), C]): RunnableGraph[(A, B, C)] = {
+    RunnableGraph.fromGraph(GraphDSL.create(source, errorSignalSource, sink)((_, _, _)) { implicit builder =>
+      (source, errorSignalSource, sink) =>
+        import GraphDSL.Implicits._
 
-          val xfile = builder.add(new SignalBasedRepeater[Int]())
+        val xfile = builder.add(new SignalBasedRepeater[Int]())
 
-          source            ~> xfile.in0
-          errorSignalSource ~> xfile.in1
+        source ~> xfile.in0
+        errorSignalSource ~> xfile.in1
 
-          xfile.out ~> sink.in
+        xfile.out ~> sink.in
 
-          ClosedShape
-      })
-    }
+        ClosedShape
+    })
+  }
 
   "SignalBasedRepeater" must {
 
@@ -53,7 +53,7 @@ class SignalBasedRepeaterSpec extends TestKit(ActorSystem("SignalBasedRepeaterSp
 
       dataIn.sendNext(0)
       signalIn.sendNext(true)
-      sink.requestNext() shouldBe (0, false)
+      sink.requestNext() shouldBe(0, false)
     }
 
     "when in is ready and out is backpressued and signal is pushed, produce an element" in {
@@ -64,7 +64,7 @@ class SignalBasedRepeaterSpec extends TestKit(ActorSystem("SignalBasedRepeaterSp
       sink.request(1)
       sink.expectNoMessage(timeout)
       signalIn.sendNext(true)
-      sink.expectNext() shouldBe (0, false)
+      sink.expectNext() shouldBe(0, false)
     }
 
     "when signal is ready and out is backpressued and in is pushed, produce an element" in {
@@ -75,7 +75,7 @@ class SignalBasedRepeaterSpec extends TestKit(ActorSystem("SignalBasedRepeaterSp
       sink.request(1)
       sink.expectNoMessage(timeout)
       dataIn.sendNext(0)
-      sink.expectNext() shouldBe (0, false)
+      sink.expectNext() shouldBe(0, false)
     }
 
     "when signal is true, grab element from input, cache it and provide it" in {
@@ -84,7 +84,7 @@ class SignalBasedRepeaterSpec extends TestKit(ActorSystem("SignalBasedRepeaterSp
 
       signalIn.sendNext(true)
       dataIn.sendNext(0)
-      sink.requestNext() shouldBe (0, false)
+      sink.requestNext() shouldBe(0, false)
     }
 
     "when signal is false, provide cached" in {
@@ -93,10 +93,10 @@ class SignalBasedRepeaterSpec extends TestKit(ActorSystem("SignalBasedRepeaterSp
 
       dataIn.sendNext(0)
       signalIn.sendNext(true)
-      sink.requestNext() shouldBe (0, false)
+      sink.requestNext() shouldBe(0, false)
 
       signalIn.sendNext(false)
-      sink.requestNext() shouldBe (0, true)
+      sink.requestNext() shouldBe(0, true)
     }
 
     "when signal is false and cache is empty, throw illegal state exception" in {
@@ -106,7 +106,7 @@ class SignalBasedRepeaterSpec extends TestKit(ActorSystem("SignalBasedRepeaterSp
       dataIn.sendNext(0)
       signalIn.sendNext(false)
       sink.request(1)
-      sink.expectError() shouldBe a [IllegalStateException]
+      sink.expectError() shouldBe a[IllegalStateException]
     }
 
     "when in is completed, complete the stage" in {
@@ -115,7 +115,7 @@ class SignalBasedRepeaterSpec extends TestKit(ActorSystem("SignalBasedRepeaterSp
 
       dataIn.sendNext(0)
       signalIn.sendNext(true)
-      sink.requestNext() shouldBe (0, false)
+      sink.requestNext() shouldBe(0, false)
 
       dataIn.sendComplete()
       signalIn.sendNext(true)
@@ -136,7 +136,7 @@ class SignalBasedRepeaterSpec extends TestKit(ActorSystem("SignalBasedRepeaterSp
       signalIn.sendNext(false)
       signalIn.sendNext(false)
 
-      sink.expectError() shouldBe a [IllegalStateException]
+      sink.expectError() shouldBe a[IllegalStateException]
     }
 
   }

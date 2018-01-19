@@ -3,9 +3,9 @@ package com.emarsys.rdb.connector.bigquery
 import akka.NotUsed
 import akka.stream.scaladsl.{Sink, Source}
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.SimpleSelect.FieldName
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
+import com.emarsys.rdb.connector.common.models.SimpleSelect.FieldName
 
 import scala.annotation.tailrec
 import scala.concurrent.Future
@@ -15,7 +15,7 @@ trait BigQueryRawSelect {
 
   override def rawSelect(rawSql: String, limit: Option[Int]): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     val query = removeEndingSemicolons(rawSql)
-    val limitedQuery = limit.fold(query){ l =>
+    val limitedQuery = limit.fold(query) { l =>
       s"SELECT * FROM ( $query ) AS query LIMIT $l"
     }
     streamingQuery(limitedQuery)
@@ -31,7 +31,7 @@ trait BigQueryRawSelect {
     val modifiedSql = removeEndingSemicolons(rawSql)
     streamingDryQuery(modifiedSql).runWith(Sink.seq)
       .map(_ => Right({}))
-      .recover{case ex => Left(ErrorWithMessage(ex.getMessage))}
+      .recover { case ex => Left(ErrorWithMessage(ex.getMessage)) }
   }
 
   override def analyzeRawSelect(rawSql: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
@@ -42,7 +42,7 @@ trait BigQueryRawSelect {
   @tailrec
   private def removeEndingSemicolons(query: String): String = {
     val qTrimmed = query.trim
-    if(qTrimmed.last == ';') {
+    if (qTrimmed.last == ';') {
       removeEndingSemicolons(qTrimmed.dropRight(1))
     } else {
       qTrimmed

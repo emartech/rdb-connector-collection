@@ -4,16 +4,17 @@ import akka.NotUsed
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequest}
 import akka.stream.scaladsl.{Flow, Source}
-import com.emarsys.rdb.connector.bigquery.GoogleApi.queryUrl
 import com.emarsys.rdb.connector.bigquery.BigQueryStreamingQuery.DryRunJsonProtocol.DryRunResponse
+import com.emarsys.rdb.connector.bigquery.GoogleApi.queryUrl
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import spray.json.{DefaultJsonProtocol, JsObject, JsString, JsValue, JsonFormat, RootJsonFormat, pimpAny}
+import spray.json.{DefaultJsonProtocol, JsObject, JsString, JsValue, JsonFormat, pimpAny}
 
 import scala.concurrent.Future
 
 trait BigQueryStreamingQuery {
   self: BigQueryConnector =>
+
   import BigQueryStreamingQuery.QueryJsonProtocol._
 
   protected def streamingQuery(query: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
@@ -72,18 +73,26 @@ trait BigQueryStreamingQuery {
 }
 
 object BigQueryStreamingQuery {
-  object DryRunJsonProtocol extends DefaultJsonProtocol{
+
+  object DryRunJsonProtocol extends DefaultJsonProtocol {
+
     case class DryRunResponse(totalBytesProcessed: String, jobComplete: Boolean, cacheHit: Boolean)
+
     implicit val dryRunFormat: JsonFormat[DryRunResponse] = jsonFormat3(DryRunResponse)
   }
 
   object QueryJsonProtocol extends DefaultJsonProtocol {
 
     case class QueryRequest(query: String, useLegacySql: Boolean = false, maxResults: Option[Int] = None, dryRun: Option[Boolean] = None)
+
     case class QueryResponse(schema: Schema, rows: Option[Seq[Row]])
+
     case class Schema(fields: Seq[FieldSchema])
+
     case class FieldSchema(name: String)
+
     case class Row(f: Seq[RowValue])
+
     case class RowValue(v: String)
 
     implicit val queryRequestFormat: JsonFormat[QueryRequest] = jsonFormat4(QueryRequest)

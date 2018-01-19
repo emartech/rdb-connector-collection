@@ -2,7 +2,7 @@ package com.emarsys.rdb.connector.bigquery.stream.pagetoken
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Keep, Sink, Source}
+import akka.stream.scaladsl.{Keep, Source}
 import akka.stream.testkit.scaladsl.{TestSink, TestSource}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.bigquery.stream.parser.PagingInfo

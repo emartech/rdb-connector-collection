@@ -7,8 +7,8 @@ import com.emarsys.rdb.connector.bigquery.BigQueryConnector
 import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-import concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class BigQueryConnectorItSpec extends TestKit(ActorSystem()) with WordSpecLike with Matchers with BeforeAndAfterAll {
 

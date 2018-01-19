@@ -2,8 +2,8 @@ package com.emarsys.rdb.connector.bigquery
 
 object GoogleApi {
   val bigQueryAuthUrl: String = "https://www.googleapis.com/auth/bigquery"
-  val bigQueryV2Url  : String = "https://www.googleapis.com/bigquery/v2"
-  val googleTokenUrl : String = "https://www.googleapis.com/oauth2/v4/token"
+  val bigQueryV2Url: String = "https://www.googleapis.com/bigquery/v2"
+  val googleTokenUrl: String = "https://www.googleapis.com/oauth2/v4/token"
 
   def queryUrl(projectId: String): String =
     s"$bigQueryV2Url/projects/$projectId/queries"

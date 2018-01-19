@@ -24,6 +24,7 @@ class EnrichRequestWithOauthSpec extends TestKit(ActorSystem("EnrichRequestWithO
 
   implicit val materializer = ActorMaterializer()
   implicit val timeout = Timeout(1.second)
+
   import system.dispatcher
 
   "EnrichRequestWithOauth" must {

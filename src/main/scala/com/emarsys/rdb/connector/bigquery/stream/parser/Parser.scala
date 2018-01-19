@@ -34,7 +34,7 @@ object Parser {
         response.entity
           .convertToString()
           .map {
-            case "" => JsObject()
+            case ""             => JsObject()
             case nonEmptyString => nonEmptyString.parseJson.asJsObject
           }
       ))

@@ -3,10 +3,10 @@ package com.emarsys.rdb.connector.bigquery
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.bigquery.BigQueryConnector.BigQueryConnectionConfig
+import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 
 class BigQueryWriterSpec extends TestKit(ActorSystem()) with WordSpecLike with Matchers with BeforeAndAfterAll {
 

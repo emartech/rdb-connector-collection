@@ -3,9 +3,9 @@ package com.emarsys.rdb.connector.bigquery.stream
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
-import akka.http.scaladsl.{HttpExt, HttpsConnectionContext}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.settings.ConnectionPoolSettings
+import akka.http.scaladsl.{HttpExt, HttpsConnectionContext}
 import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.{ActorMaterializer, Graph, Materializer, SourceShape}
 import akka.testkit.{TestKit, TestProbe}
@@ -13,8 +13,8 @@ import akka.util.Timeout
 import com.emarsys.rdb.connector.bigquery.GoogleTokenActor.{TokenRequest, TokenResponse}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 class BigQueryStreamSourceSpec extends TestKit(ActorSystem("BigQueryStreamSourceSpec"))
   with WordSpecLike
@@ -65,7 +65,7 @@ class BigQueryStreamSourceSpec extends TestKit(ActorSystem("BigQueryStreamSource
 
       mockHttp.responseFn = { request =>
         request.uri.toString() match {
-          case "/" =>
+          case "/"                          =>
             Future.successful(HttpResponse(entity = HttpEntity("""{ "pageToken": "nextPage", "jobReference": { "jobId": "job123"} }""")))
           case "/job123?pageToken=nextPage" =>
             Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
@@ -115,7 +115,7 @@ class BigQueryStreamSourceSpec extends TestKit(ActorSystem("BigQueryStreamSource
       val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success", testTokenActorProbe.ref, mockHttp)
       mockHttp.responseFn = { request =>
         request.uri.toString() match {
-          case "/" => Future.successful(HttpResponse(entity = HttpEntity("""{ "pageToken": "===", "jobReference": { "jobId": "job123"} }""")))
+          case "/"                           => Future.successful(HttpResponse(entity = HttpEntity("""{ "pageToken": "===", "jobReference": { "jobId": "job123"} }""")))
           case "/job123?pageToken=%3D%3D%3D" => Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
         }
       }

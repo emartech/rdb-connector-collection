@@ -23,7 +23,7 @@ class BigQueryConnectorItSpec extends TestKit(ActorSystem()) with WordSpecLike w
       "return ok in happy case" in {
         val connection = Await.result(BigQueryConnector(TestHelper.TEST_CONNECTION_CONFIG)(system), 3.seconds).toOption.get
         val result = Await.result(connection.testConnection(), 3.seconds)
-        result shouldBe Right()
+        result shouldBe Right(())
         connection.close()
       }
 

@@ -11,7 +11,7 @@ trait BigQueryTestConnection {
 
   override def testConnection(): ConnectorResponse[Unit] = {
     streamingQuery("SELECT 1").flatMap {
-      case Right(source) => source.runWith(Sink.seq).map { _ => Right() }
+      case Right(source) => source.runWith(Sink.seq).map { _ => Right(()) }
       case Left(error)   => Future.successful(Left(error))
     }.recover { case _ => Left(ErrorWithMessage("Cannot connect to the sql server")) }
   }

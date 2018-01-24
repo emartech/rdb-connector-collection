@@ -28,7 +28,7 @@ class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQ
 
   override def close(): Future[Unit] = {
     googleTokenActor ! PoisonPill
-    Future.successful()
+    Future.unit
   }
 }
 

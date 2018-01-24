@@ -26,28 +26,41 @@ class BigQueryWriterSpec extends WordSpecLike with Matchers {
         createWritableSqlElement(where).toSql shouldEqual s"""FIELD3="VALUE3""""
       }
 
-      "use bigquery writer - only numeric equalTo" in {
-        val writer = BigQueryWriter(config, Seq(FieldModel("FIELD2", "INT64"), FieldModel("FIELD3", "FLOAT64")))
-        import writer._
+      Map(
+        "INT64" -> "123",
+        "FLOAT64" -> "123.123",
+        "INTEGER" -> "123",
+        "FLOAT" -> "123,123"
+      ) foreach { case (numericType, numericValue) =>
+        s"use bigquery writer - only numeric equalTo - $numericType" in {
+          val writer = BigQueryWriter(config, Seq(FieldModel("FIELD1", numericType)))
+          import writer._
 
-        val where = Or(Seq(EqualToValue(FieldName("FIELD2"), Value("123455")), EqualToValue(FieldName("FIELD3"), Value("123.345"))))
+          val where = EqualToValue(FieldName("FIELD1"), Value(numericValue))
 
-        createWritableSqlElement(where).toSql shouldEqual s"""(FIELD2=123455 OR FIELD3=123.345)"""
+          createWritableSqlElement(where).toSql shouldEqual s"""FIELD1=$numericValue"""
+        }
       }
 
       Map(
-        "1" -> "TRUE",
-        "true" -> "TRUE",
-        "TRUE" -> "TRUE",
-        "0" -> "FALSE",
-        "false" -> "FALSE",
-        "FALSE" -> "FALSE"
-      ) foreach { case (value, sqlValue) =>
-        s"use bigquery writer - only boolean equalTo $value -> $sqlValue" in {
-          val writer = BigQueryWriter(config, Seq(FieldModel("FIELD2", "BOOL")))
+        "BOOL" -> "1" -> "TRUE",
+        "BOOL" -> "true" -> "TRUE",
+        "BOOL" -> "TRUE" -> "TRUE",
+        "BOOL" -> "0" -> "FALSE",
+        "BOOL" -> "false" -> "FALSE",
+        "BOOL" -> "FALSE" -> "FALSE",
+        "BOOLEAN" -> "1" -> "TRUE",
+        "BOOLEAN" -> "true" -> "TRUE",
+        "BOOLEAN" -> "TRUE" -> "TRUE",
+        "BOOLEAN" -> "0" -> "FALSE",
+        "BOOLEAN" -> "false" -> "FALSE",
+        "BOOLEAN" -> "FALSE" -> "FALSE"
+      ) foreach { case ((boolType, boolValue), sqlValue) =>
+        s"use bigquery writer - only boolean equalTo $boolValue: $boolType -> $sqlValue" in {
+          val writer = BigQueryWriter(config, Seq(FieldModel("FIELD2", boolType)))
           import writer._
 
-          val where = EqualToValue(FieldName("FIELD2"), Value(value))
+          val where = EqualToValue(FieldName("FIELD2"), Value(boolValue))
 
           createWritableSqlElement(where).toSql shouldEqual s"""FIELD2=$sqlValue"""
         }

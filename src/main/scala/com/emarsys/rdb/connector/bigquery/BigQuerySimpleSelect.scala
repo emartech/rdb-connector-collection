@@ -10,7 +10,11 @@ trait BigQuerySimpleSelect extends BigQueryStreamingQuery {
   self: BigQueryConnector =>
 
   override def simpleSelect(select: SimpleSelect): ConnectorResponse[Source[Seq[String], NotUsed]] = {
+    //get field types {
+    val writer = BigQueryWriter(config, Seq())
+    import writer._
     streamingQuery(select.toSql)
+    // }
   }
 
 }

@@ -22,7 +22,7 @@ trait BigQueryRawSelect {
   }
 
   override def projectedRawSelect(rawSql: String, fields: Seq[String]): ConnectorResponse[Source[Seq[String], NotUsed]] = {
-    val fieldList = fields.map("t." + FieldName(_).toSql).mkString(", ")
+    val fieldList = fields.map(fieldName => s"t.$fieldName").mkString(", ")
     val projectedSql = s"SELECT $fieldList FROM ( ${removeEndingSemicolons(rawSql)} ) t"
     streamingQuery(projectedSql)
   }

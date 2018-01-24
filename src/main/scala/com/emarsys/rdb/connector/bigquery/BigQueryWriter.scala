@@ -1,12 +1,13 @@
 package com.emarsys.rdb.connector.bigquery
 
+import com.emarsys.rdb.connector.bigquery.BigQueryConnector.BigQueryConnectionConfig
 import com.emarsys.rdb.connector.common.defaults.SqlWriter.createValueWriter
 import com.emarsys.rdb.connector.common.defaults.{DefaultSqlWriters, SqlWriter}
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
+import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.FieldModel
 
-trait BigQueryWriter extends DefaultSqlWriters {
-  self: BigQueryConnector =>
+case class BigQueryWriter(config: BigQueryConnectionConfig, fields: Seq[FieldModel]) extends DefaultSqlWriters {
 
   override implicit lazy val tableNameWriter: SqlWriter[TableName] =
     (tableName: TableName) => s"${config.dataset}.${tableName.t}"
@@ -16,4 +17,19 @@ trait BigQueryWriter extends DefaultSqlWriters {
 
   override implicit lazy val valueWriter: SqlWriter[SimpleSelect.Value] =
     createValueWriter("\"", "\\")
+
+  override implicit lazy val equalToValueWriter: SqlWriter[SimpleSelect.EqualToValue] = {
+    equalTo =>
+      val fieldType = fields.find( f => f.name == equalTo.field.f).map(_.columnType).getOrElse("STRING")
+      val valueAsSql = fieldType match {
+        case "INT64" | "FLOAT64" => equalTo.value.v
+        case "BOOL" if equalTo.value.v == "0" => "FALSE"
+        case "BOOL" if equalTo.value.v == "1" => "TRUE"
+        case "BOOL" => equalTo.value.v.toUpperCase
+        case _ => valueWriter.write(equalTo.value)
+      }
+
+      s"${equalTo.field.f}=$valueAsSql"
+  }
+
 }

@@ -100,7 +100,10 @@ object BigQueryStreamingQuery {
     implicit val rowValiueFormat: JsonFormat[RowValue] = new JsonFormat[RowValue] {
       override def write(obj: RowValue): JsValue = JsObject("v" -> JsString(obj.v))
 
-      override def read(json: JsValue): RowValue = RowValue(json.toString())
+      override def read(json: JsValue): RowValue = json.asJsObject.getFields("v") match {
+        case Seq(value) => RowValue(value.toString)
+        case _ => RowValue(json.toString)
+      }
     }
     implicit val rowFormat: JsonFormat[Row] = jsonFormat1(Row)
     implicit val fieldFormat: JsonFormat[FieldSchema] = jsonFormat1(FieldSchema)

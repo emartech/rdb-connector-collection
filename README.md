@@ -1,6 +1,6 @@
 # Rdb - connector - BigQuery
 
-[ ![Codeship Status for emartech/rdb-connector-bigquery](https://app.codeship.com/projects/TODO/status?branch=master)](https://app.codeship.com/projects/252930)
+[ ![Codeship Status for emartech/rdb-connector-bigquery](https://app.codeship.com/projects/80854910-de5f-0135-afd2-2225bf173b24/status?branch=master)](https://app.codeship.com/projects/266143)
 [![](https://www.jitpack.io/v/emartech/rdb-connector-bigquery.svg)](https://www.jitpack.io/#emartech/rdb-connector-bigquery)
 
 ## Definitions:

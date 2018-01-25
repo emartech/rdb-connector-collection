@@ -101,6 +101,7 @@ object BigQueryStreamingQuery {
       override def write(obj: RowValue): JsValue = JsObject("v" -> JsString(obj.v))
 
       override def read(json: JsValue): RowValue = json.asJsObject.getFields("v") match {
+        case Seq(JsString(value)) => RowValue(value)
         case Seq(value) => RowValue(value.toString)
         case _ => RowValue(json.toString)
       }

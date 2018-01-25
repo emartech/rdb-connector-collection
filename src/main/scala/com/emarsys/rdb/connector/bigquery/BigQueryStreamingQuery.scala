@@ -8,7 +8,7 @@ import com.emarsys.rdb.connector.bigquery.BigQueryStreamingQuery.DryRunJsonProto
 import com.emarsys.rdb.connector.bigquery.GoogleApi.queryUrl
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import spray.json.{DefaultJsonProtocol, JsObject, JsString, JsValue, JsonFormat, pimpAny}
+import spray.json.{DefaultJsonProtocol, JsBoolean, JsNull, JsObject, JsString, JsValue, JsonFormat, pimpAny}
 
 import scala.concurrent.Future
 
@@ -97,11 +97,16 @@ object BigQueryStreamingQuery {
 
     implicit val queryRequestFormat: JsonFormat[QueryRequest] = jsonFormat4(QueryRequest)
 
-    implicit val rowValiueFormat: JsonFormat[RowValue] = new JsonFormat[RowValue] {
+    implicit val rowValueFormat: JsonFormat[RowValue] = new JsonFormat[RowValue] {
       override def write(obj: RowValue): JsValue = JsObject("v" -> JsString(obj.v))
 
       override def read(json: JsValue): RowValue = json.asJsObject.getFields("v") match {
-        case Seq(JsString(value)) => RowValue(value)
+        case Seq(JsString(value)) =>
+          if (value == "true") RowValue("1")
+          else if (value == "false") RowValue("0")
+          else RowValue(value)
+        case Seq(JsNull) => RowValue(null)
+        case Seq(JsBoolean(b)) => RowValue(if (b) "1" else "0")
         case Seq(value) => RowValue(value.toString)
         case _ => RowValue(json.toString)
       }

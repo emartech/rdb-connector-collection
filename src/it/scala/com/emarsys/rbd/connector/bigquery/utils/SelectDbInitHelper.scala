@@ -143,7 +143,7 @@ trait SelectDbInitHelper extends DbInitUtil {
            |    },
            |    {
            |      "json": {
-           |        "B1": "b'1",
+           |        "B1": "b;2",
            |        "B2": "b\\2",
            |        "B3": "b\'2",
            |        "B4": "b=2"
@@ -159,7 +159,7 @@ trait SelectDbInitHelper extends DbInitUtil {
            |    },
            |    {
            |      "json": {
-           |        "B1": "b $$4",
+           |        "B1": "b$$4",
            |        "B2": "b%4",
            |        "B3": "b 4",
            |        "B4": null

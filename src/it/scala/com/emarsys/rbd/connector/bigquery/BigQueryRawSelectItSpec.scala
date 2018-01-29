@@ -5,11 +5,12 @@ import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import akka.util.Timeout
 import com.emarsys.rbd.connector.bigquery.utils.{SelectDbInitHelper, TestHelper}
+import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
 import com.emarsys.rdb.connector.test.RawSelectItSpec
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContextExecutor}
 
 class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) with RawSelectItSpec with SelectDbInitHelper with WordSpecLike with Matchers with BeforeAndAfterAll {
 
@@ -35,6 +36,20 @@ class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) with RawSelectItSpe
   val simpleSelect = s"SELECT * FROM $dataset.$aTableName;"
   val badSimpleSelect = s"SELECT * ForM $dataset.$aTableName"
   val simpleSelectNoSemicolon = s"""SELECT * FROM $dataset.$aTableName"""
+
+  "#validateProjectedRawSelect" should {
+    "return ok if ok" in {
+      Await.result(connector.validateProjectedRawSelect(simpleSelect, Seq("A1")), awaitTimeout) shouldBe Right()
+    }
+
+    "return ok if no ; in query" in {
+      Await.result(connector.validateProjectedRawSelect(simpleSelectNoSemicolon, Seq("A1")), awaitTimeout) shouldBe Right()
+    }
+
+    "return error if not ok" in {
+      Await.result(connector.validateProjectedRawSelect(simpleSelect, Seq("NONEXISTENT_COLUMN")), awaitTimeout) shouldBe a[Left[ErrorWithMessage, Unit]]
+    }
+  }
 
   "#analyzeRawSelect" should {
     "return result" in {

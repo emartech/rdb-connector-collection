@@ -37,20 +37,6 @@ class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) with RawSelectItSpe
   val badSimpleSelect = s"SELECT * ForM $dataset.$aTableName"
   val simpleSelectNoSemicolon = s"""SELECT * FROM $dataset.$aTableName"""
 
-  "#validateProjectedRawSelect" should {
-    "return ok if ok" in {
-      Await.result(connector.validateProjectedRawSelect(simpleSelect, Seq("A1")), awaitTimeout) shouldBe Right()
-    }
-
-    "return ok if no ; in query" in {
-      Await.result(connector.validateProjectedRawSelect(simpleSelectNoSemicolon, Seq("A1")), awaitTimeout) shouldBe Right()
-    }
-
-    "return error if not ok" in {
-      Await.result(connector.validateProjectedRawSelect(simpleSelect, Seq("NONEXISTENT_COLUMN")), awaitTimeout) shouldBe a[Left[ErrorWithMessage, Unit]]
-    }
-  }
-
   "#analyzeRawSelect" should {
     "return result" in {
       val result = getStreamResult(connector.analyzeRawSelect(simpleSelect))

@@ -13,6 +13,6 @@ trait BigQueryTestConnection {
     streamingQuery("SELECT 1").flatMap {
       case Right(source) => source.runWith(Sink.seq).map { _ => Right(()) }
       case Left(error)   => Future.successful(Left(error))
-    }.recover { case _ => Left(ErrorWithMessage("Cannot connect to the sql server")) }
+    } recover { case e: Throwable => Left(ErrorWithMessage(s"Cannot connect to the sql server - ${e.getMessage}")) }
   }
 }

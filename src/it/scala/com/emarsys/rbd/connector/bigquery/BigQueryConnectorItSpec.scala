@@ -31,7 +31,7 @@ class BigQueryConnectorItSpec extends TestKit(ActorSystem()) with WordSpecLike w
         val badConnection = TestHelper.TEST_CONNECTION_CONFIG.copy(projectId = "asd")
         val connection = Await.result(BigQueryConnector(badConnection)(system), 3.seconds).toOption.get
         val result = Await.result(connection.testConnection(), 3.seconds)
-        result shouldBe Left(ErrorWithMessage("Cannot connect to the sql server"))
+        result should matchPattern { case Left(ErrorWithMessage(_)) => }
       }
 
     }

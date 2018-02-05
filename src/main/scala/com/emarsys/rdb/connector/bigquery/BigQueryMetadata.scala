@@ -42,7 +42,7 @@ trait BigQueryMetadata {
 
   override def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
     runMetaQuery(fieldListUrl(config.projectId, config.dataset, tableName), parseFieldResults).map {
-      case Left(_) => Left(TableNotFound(tableName))
+      case Left(x) => Left(x)
       case other   => other
     }
   }

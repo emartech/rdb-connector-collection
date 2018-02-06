@@ -19,11 +19,11 @@ trait BigQueryRawSelect {
     streamingQuery(limitedQuery)
   }
 
-  override def projectedRawSelect(rawSql: String, fields: Seq[String]): ConnectorResponse[Source[Seq[String], NotUsed]] =
-    runProjectedSelectWith(rawSql, fields, streamingQuery)
+  override def projectedRawSelect(rawSql: String, fields: Seq[String], allowNullFieldValue: Boolean): ConnectorResponse[Source[Seq[String], NotUsed]] =
+    runProjectedSelectWith(rawSql, fields, allowNullFieldValue, streamingQuery)
 
   override def validateProjectedRawSelect(rawSql: String, fields: Seq[String]): ConnectorResponse[Unit] = {
-    runProjectedSelectWith(rawSql, fields, streamingDryQuery)
+    runProjectedSelectWith(rawSql, fields, allowNullFieldValue = true, streamingDryQuery)
       .runWith(Sink.seq)
       .map(_ => Right({}))
       .recover { case ex => Left(ErrorWithMessage(ex.getMessage)) }
@@ -42,22 +42,29 @@ trait BigQueryRawSelect {
     Future(Right(streamingDryQuery(modifiedSql)))
   }
 
-  private def runProjectedSelectWith[R](rawSql: String, fields: Seq[String], queryRunner: String => R) = {
+  private def runProjectedSelectWith[R](rawSql: String, fields: Seq[String], allowNullFieldValue: Boolean, queryRunner: String => R) = {
     val fieldList = concatenateProjection(fields)
-    val projectedSql = wrapInProject(rawSql, fieldList)
-    queryRunner(projectedSql)
+    val projectedSql = wrapInProjection(rawSql, fieldList)
+    val query =
+      if (!allowNullFieldValue) wrapInCondition(projectedSql, fields)
+      else projectedSql
+    queryRunner(query)
   }
+
+  private def concatenateProjection(fields: Seq[String]) =
+    fields.map("t." + _).mkString(", ")
 
   private def wrapInLimit(query: String, l: Int) =
     s"SELECT * FROM ( $query ) AS query LIMIT $l"
 
+  private def wrapInCondition(rawSql: String, fields: Seq[String]): String =
+    removeEndingSemicolons(rawSql) + concatenateCondition(fields)
 
-  private def wrapInProject(rawSql: String, fieldList: String): String =
-    s"SELECT $fieldList FROM ( ${removeEndingSemicolons(rawSql)} ) t"
+  private def concatenateCondition(fields: Seq[String]) =
+    " WHERE " + fields.map("t." + _ + " IS NOT NULL ").mkString("AND ")
 
-  private def concatenateProjection(fields: Seq[String]) = {
-    fields.map(fieldName => s"t.$fieldName").mkString(", ")
-  }
+  private def wrapInProjection(rawSql: String, projection: String) =
+    s"SELECT $projection FROM ( ${removeEndingSemicolons(rawSql)} ) t"
 
   @tailrec
   private def removeEndingSemicolons(query: String): String = {

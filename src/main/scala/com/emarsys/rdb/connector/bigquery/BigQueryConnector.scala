@@ -6,7 +6,7 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.emarsys.rdb.connector.bigquery.BigQueryConnector.BigQueryConnectionConfig
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models._
+import com.emarsys.rdb.connector.common.models.{CommonConnectionReadableData, _}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,7 +39,11 @@ object BigQueryConnector extends BigQueryConnectorTrait {
                                        dataset: String,
                                        clientEmail: String,
                                        privateKey: String,
-                                     ) extends ConnectionConfig
+                                     ) extends ConnectionConfig {
+    def toCommonFormat: CommonConnectionReadableData =
+      CommonConnectionReadableData("bigquery", projectId, dataset, clientEmail)
+
+  }
 
 }
 

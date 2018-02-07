@@ -42,7 +42,9 @@ trait BigQueryMetadata {
 
   override def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
     runMetaQuery(fieldListUrl(config.projectId, config.dataset, tableName), parseFieldResults).map {
-      case Left(_) => Left(TableNotFound(tableName))
+      case Left(ErrorWithMessage(message))
+        if message.startsWith("Unexpected error in response: 404 Not Found") =>
+          Left(TableNotFound(tableName))
       case other   => other
     }
   }

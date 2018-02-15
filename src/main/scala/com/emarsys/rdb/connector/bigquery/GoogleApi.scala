@@ -22,4 +22,7 @@ object GoogleApi {
 
   def deleteTableUrl(projectId: String, dataset: String, tableName: String): String =
     s"$bigQueryV2Url/projects/$projectId/datasets/$dataset/tables/$tableName"
+
+  def testConnectionUrl(projectId: String, dataset: String): String =
+    s"$bigQueryV2Url/projects/$projectId/datasets/$dataset"
 }

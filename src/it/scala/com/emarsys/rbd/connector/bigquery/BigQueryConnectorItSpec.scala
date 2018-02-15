@@ -27,8 +27,15 @@ class BigQueryConnectorItSpec extends TestKit(ActorSystem()) with WordSpecLike w
         connection.close()
       }
 
-      "return error if cant connect" in {
+      "return error if invalid project id" in {
         val badConnection = TestHelper.TEST_CONNECTION_CONFIG.copy(projectId = "asd")
+        val connection = Await.result(BigQueryConnector(badConnection)(system), 3.seconds).toOption.get
+        val result = Await.result(connection.testConnection(), 3.seconds)
+        result should matchPattern { case Left(ErrorWithMessage(_)) => }
+      }
+
+      "return error if invalid dataset" in {
+        val badConnection = TestHelper.TEST_CONNECTION_CONFIG.copy(dataset = "asd")
         val connection = Await.result(BigQueryConnector(badConnection)(system), 3.seconds).toOption.get
         val result = Await.result(connection.testConnection(), 3.seconds)
         result should matchPattern { case Left(ErrorWithMessage(_)) => }

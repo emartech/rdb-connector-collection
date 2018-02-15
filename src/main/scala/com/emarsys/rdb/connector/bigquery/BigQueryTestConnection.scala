@@ -1,18 +1,24 @@
 package com.emarsys.rdb.connector.bigquery
 
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.{HttpMethods, HttpRequest}
 import akka.stream.scaladsl.Sink
+import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
-
-import scala.concurrent.Future
 
 trait BigQueryTestConnection {
   self: BigQueryConnector =>
 
   override def testConnection(): ConnectorResponse[Unit] = {
-    streamingQuery("SELECT 1").flatMap {
-      case Right(source) => source.runWith(Sink.seq).map { _ => Right(()) }
-      case Left(error)   => Future.successful(Left(error))
-    } recover { case e: Throwable => Left(ErrorWithMessage(s"Cannot connect to the sql server - ${e.getMessage}")) }
+    val url = GoogleApi.testConnectionUrl(config.projectId, config.dataset)
+    val request = HttpRequest(HttpMethods.GET, url)
+    val bigQuerySource = BigQueryStreamSource(request, identity, googleTokenActor, Http())
+    bigQuerySource
+      .runWith(Sink.seq)
+      .map { _ => Right(()) }
+      .recover {
+        case e: Throwable => Left(ErrorWithMessage(s"Cannot connect to the sql server - ${e.getMessage}"))
+      }
   }
 }

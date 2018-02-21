@@ -23,7 +23,7 @@ class BigQueryWriterSpec extends WordSpecLike with Matchers {
 
         val where = EqualToValue(FieldName("FIELD3"), Value("VALUE3"))
 
-        createWritableSqlElement(where).toSql shouldEqual s"""FIELD3="VALUE3""""
+        where.toSql shouldEqual s"""FIELD3="VALUE3""""
       }
 
       Map(
@@ -38,7 +38,7 @@ class BigQueryWriterSpec extends WordSpecLike with Matchers {
 
           val where = EqualToValue(FieldName("FIELD1"), Value(numericValue))
 
-          createWritableSqlElement(where).toSql shouldEqual s"""FIELD1=$numericValue"""
+          where.toSql shouldEqual s"""FIELD1=$numericValue"""
         }
       }
 
@@ -62,7 +62,7 @@ class BigQueryWriterSpec extends WordSpecLike with Matchers {
 
           val where = EqualToValue(FieldName("FIELD2"), Value(boolValue))
 
-          createWritableSqlElement(where).toSql shouldEqual s"""FIELD2=$sqlValue"""
+          where.toSql shouldEqual s"""FIELD2=$sqlValue"""
         }
       }
 
@@ -78,7 +78,7 @@ class BigQueryWriterSpec extends WordSpecLike with Matchers {
           limit = Some(100)
         )
 
-        createWritableSqlElement(select).toSql shouldEqual s"""SELECT FIELD1,FIELD2,FIELD3 FROM $dataset.TABLE1 WHERE (FIELD1 IS NULL AND (FIELD2 IS NULL OR FIELD3="VALUE3")) LIMIT 100"""
+        select.toSql shouldEqual s"""SELECT FIELD1,FIELD2,FIELD3 FROM $dataset.TABLE1 WHERE (FIELD1 IS NULL AND (FIELD2 IS NULL OR FIELD3="VALUE3")) LIMIT 100"""
       }
     }
 

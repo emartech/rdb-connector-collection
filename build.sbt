@@ -16,15 +16,17 @@ libraryDependencies ++= {
   val scalaTestV = "3.0.1"
   val akkaHttpV  = "10.0.7"
   Seq(
-    "com.github.emartech"   %  "rdb-connector-common"  % "159e1ff513",
+    "com.github.emartech" %  "rdb-connector-common" % "388361c2fe",
     "com.typesafe.akka"     %% "akka-http-core"        % akkaHttpV,
     "com.typesafe.akka"     %% "akka-http-spray-json"  % akkaHttpV,
     "io.igl"                %% "jwt"                   % "1.2.2",
-    "org.scalatest"         %% "scalatest"             % scalaTestV  % "test",
-    "com.typesafe.akka"     %% "akka-stream-testkit"   % "2.5.6"     % "test",
-    "com.github.emartech"   %  "rdb-connector-test"    % "e124eee311" % "test",
+    "org.scalatest"         %% "scalatest"             % scalaTestV  % Test,
+    "com.typesafe.akka"     %% "akka-stream-testkit"   % "2.5.6"     % Test,
+    "com.github.emartech"   %  "rdb-connector-test"    % "e124eee311" % Test,
     "com.github.fommil"     %% "spray-json-shapeless"  % "1.3.0",
-    "org.typelevel"         %% "cats-core"             % "1.0.1"
+    "org.typelevel"         %% "cats-core"             % "1.0.1",
+    "com.typesafe.akka"     %% "akka-http-spray-json"      % "10.0.7" % Test,
+    "org.mockito"         %  "mockito-core"         % "2.11.0"  % Test
 
   )
 }

@@ -2,7 +2,7 @@ package com.emarsys.rdb.connector.bigquery.stream.parser
 
 import akka.NotUsed
 import akka.http.scaladsl.model.HttpResponse
-import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL}
+import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Zip}
 import akka.stream.{FanOutShape2, FlowShape, Graph, Materializer}
 import com.emarsys.rdb.connector.bigquery.util.AkkaHttpPimps._
 import spray.json._
@@ -26,31 +26,48 @@ object Parser {
   def apply[T](parseFunction: JsObject => Option[T])(
     implicit materializer: Materializer,
     ec: ExecutionContext
-  ): Graph[FanOutShape2[HttpResponse, T, PagingInfo], NotUsed] = GraphDSL.create() { implicit builder =>
+  ): Graph[FanOutShape2[HttpResponse, T, (Boolean, PagingInfo)], NotUsed] = GraphDSL.create() { implicit builder =>
     import GraphDSL.Implicits._
 
-    val broadcast = builder.add(Broadcast[JsObject](2))
-    val parseMap  = builder.add(Flow[JsObject].map(parseFunction(_)).map(_.get))
+    val bodyJsonParse: FlowShape[HttpResponse, JsObject] = builder.add(Flow[HttpResponse].mapAsync(1)(parseHttpBody(_)))
 
-    val bodyJsonParse: FlowShape[HttpResponse, JsObject] = builder.add(
-      Flow[HttpResponse].mapAsync(1)(
-        response =>
-          response.entity
-            .convertToString()
-            .map {
-              case ""             => JsObject()
-              case nonEmptyString => nonEmptyString.parseJson.asJsObject
-          }
-      )
-    )
-
+    val parseMap         = builder.add(Flow[JsObject].map(parseFunction(_)))
     val pageInfoProvider = builder.add(Flow[JsObject].map(getPageInfo))
 
-    bodyJsonParse.out ~> broadcast.in
-    broadcast.out(0) ~> parseMap.in
-    broadcast.out(1) ~> pageInfoProvider.in
+    val broadcast1 = builder.add(Broadcast[JsObject](2))
+    val broadcast2 = builder.add(Broadcast[Option[T]](2))
 
-    new FanOutShape2(bodyJsonParse.in, parseMap.out, pageInfoProvider.out)
+    val filterNone = builder.add(Flow[Option[T]].mapConcat {
+      case Some(value) => List(value)
+      case None        => List()
+    })
+    val mapOptionToBool = builder.add(Flow[Option[T]].map(_.isEmpty))
+
+    val zip = builder.add(Zip[Boolean, PagingInfo]())
+
+    bodyJsonParse ~> broadcast1
+
+    broadcast1.out(0) ~> parseMap
+    broadcast1.out(1) ~> pageInfoProvider
+
+    parseMap ~> broadcast2
+
+    broadcast2.out(0) ~> filterNone
+    broadcast2.out(1) ~> mapOptionToBool
+
+    mapOptionToBool ~> zip.in0
+    pageInfoProvider ~> zip.in1
+
+    new FanOutShape2(bodyJsonParse.in, filterNone.out, zip.out)
+  }
+
+  private def parseHttpBody[T](response: HttpResponse)(implicit materializer: Materializer, ec: ExecutionContext) = {
+    response.entity
+      .convertToString()
+      .map {
+        case ""             => JsObject()
+        case nonEmptyString => nonEmptyString.parseJson.asJsObject
+      }
   }
 
   private def getPageInfo[T](jsObject: JsObject): PagingInfo = {

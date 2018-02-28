@@ -1,18 +1,18 @@
 package com.emarsys.rdb.connector.bigquery.stream
 
-import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.{HttpExt, HttpsConnectionContext}
 import akka.stream.scaladsl.{Sink, Source}
-import akka.stream.{ActorMaterializer, Graph, Materializer, SourceShape}
+import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.{TestKit, TestProbe}
 import akka.util.Timeout
 import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.GoogleTokenActor.{TokenRequest, TokenResponse}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import spray.json.JsObject
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -55,8 +55,7 @@ class BigQueryStreamSourceSpec
 
     "return single page request" in new BigQuerySourceScope {
 
-      val bigQuerySource: Graph[SourceShape[String], NotUsed] =
-        BigQueryStreamSource(HttpRequest(), _ => "success".some, testTokenActorProbe.ref, mockHttp)
+      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success".some, testTokenActorProbe.ref, mockHttp)
 
       val resultF = Source.fromGraph(bigQuerySource).runWith(Sink.head)
 
@@ -137,6 +136,43 @@ class BigQueryStreamSourceSpec
       testTokenActorProbe.reply(TokenResponse("TOKEN"))
 
       Await.result(resultF, 1.second) shouldBe Seq("success", "success")
+      mockHttp.usedToken shouldBe "TOKEN"
+    }
+
+    "get first page again when parsing returns None" in new BigQuerySourceScope {
+      mockHttp.responseFn = { request =>
+        request.uri.toString() match {
+          case "/" =>
+            Future.successful(
+              HttpResponse(entity = HttpEntity("""{ "pageToken": "nextPage", "jobReference": { "jobId": "job123"} }"""))
+            )
+          case "/job123" =>
+            Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
+        }
+      }
+      val parseFn: JsObject => Option[String] = {
+        var firstCall = true
+        _ =>
+          {
+            if (firstCall) {
+              firstCall = false
+              None
+            } else {
+              "success".some
+            }
+          }
+      }
+
+      val bigQuerySource = BigQueryStreamSource(HttpRequest(), parseFn, testTokenActorProbe.ref, mockHttp)
+
+      val resultF = bigQuerySource.runWith(Sink.seq)
+      testTokenActorProbe.expectMsg(TokenRequest(false))
+      testTokenActorProbe.reply(TokenResponse("TOKEN"))
+
+      testTokenActorProbe.expectMsg(TokenRequest(false))
+      testTokenActorProbe.reply(TokenResponse("TOKEN"))
+
+      Await.result(resultF, 1.second) shouldBe Seq("success")
       mockHttp.usedToken shouldBe "TOKEN"
     }
 

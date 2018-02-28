@@ -19,35 +19,39 @@ object Parser {
 
     case class JobReference(jobId: Option[String])
 
-    implicit val jobReferenceFormat = jsonFormat1(JobReference)
-    implicit val responseFormat = jsonFormat3(Response)
+    implicit val jobReferenceFormat: RootJsonFormat[JobReference] = jsonFormat1(JobReference)
+    implicit val responseFormat: RootJsonFormat[Response]         = jsonFormat3(Response)
   }
 
-  def apply[T](parseFunction: JsObject => T)(implicit materializer: Materializer, ec: ExecutionContext): Graph[FanOutShape2[HttpResponse, T, PagingInfo], NotUsed] =
-    GraphDSL.create() { implicit builder =>
-      import GraphDSL.Implicits._
+  def apply[T](parseFunction: JsObject => Option[T])(
+    implicit materializer: Materializer,
+    ec: ExecutionContext
+  ): Graph[FanOutShape2[HttpResponse, T, PagingInfo], NotUsed] = GraphDSL.create() { implicit builder =>
+    import GraphDSL.Implicits._
 
-      val broadcast = builder.add(Broadcast[JsObject](2))
-      val parseMap = builder.add(Flow[JsObject].map(parseFunction(_)))
+    val broadcast = builder.add(Broadcast[JsObject](2))
+    val parseMap  = builder.add(Flow[JsObject].map(parseFunction(_)).map(_.get))
 
-      val bodyJsonParse: FlowShape[HttpResponse, JsObject] = builder.add(Flow[HttpResponse].mapAsync(1)(response =>
-        response.entity
-          .convertToString()
-          .map {
-            case ""             => JsObject()
-            case nonEmptyString => nonEmptyString.parseJson.asJsObject
+    val bodyJsonParse: FlowShape[HttpResponse, JsObject] = builder.add(
+      Flow[HttpResponse].mapAsync(1)(
+        response =>
+          response.entity
+            .convertToString()
+            .map {
+              case ""             => JsObject()
+              case nonEmptyString => nonEmptyString.parseJson.asJsObject
           }
-      ))
+      )
+    )
 
-      val pageInfoProvider = builder.add(Flow[JsObject].map(getPageInfo))
+    val pageInfoProvider = builder.add(Flow[JsObject].map(getPageInfo))
 
-      bodyJsonParse.out ~> broadcast.in
-      broadcast.out(0) ~> parseMap.in
-      broadcast.out(1) ~> pageInfoProvider.in
+    bodyJsonParse.out ~> broadcast.in
+    broadcast.out(0) ~> parseMap.in
+    broadcast.out(1) ~> pageInfoProvider.in
 
-
-      new FanOutShape2(bodyJsonParse.in, parseMap.out, pageInfoProvider.out)
-    }
+    new FanOutShape2(bodyJsonParse.in, parseMap.out, pageInfoProvider.out)
+  }
 
   private def getPageInfo[T](jsObject: JsObject): PagingInfo = {
     import ParserJsonProtocol._
@@ -55,7 +59,7 @@ object Parser {
     val response = jsObject.convertTo[Response]
 
     val pageToken = response.pageToken orElse response.nextPageToken
-    val jobId = response.jobReference.flatMap(_.jobId)
+    val jobId     = response.jobReference.flatMap(_.jobId)
 
     PagingInfo(pageToken, jobId)
   }

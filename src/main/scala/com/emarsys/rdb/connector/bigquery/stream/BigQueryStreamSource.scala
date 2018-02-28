@@ -17,34 +17,39 @@ import spray.json.JsObject
 
 import scala.concurrent.ExecutionContext
 
-
 object BigQueryStreamSource {
-  def addPageToken(request: HttpRequest, pagingInfo: PagingInfo): HttpRequest = {
-    val req = request.copy(uri = request.uri.withQuery(Uri.Query(pagingInfo.pageToken.map(token => s"pageToken=${URLEncoder.encode(token, "utf-8")}"))))
-    pagingInfo.jobId.fold(req) { id =>
-      val getReq = req.copy(
-        method = HttpMethods.GET,
-        entity = HttpEntity.Empty
+  private def addPageToken(request: HttpRequest, pagingInfo: PagingInfo): HttpRequest = {
+    val req = request.copy(
+      uri = request.uri.withQuery(
+        Uri.Query(pagingInfo.pageToken.map(token => s"pageToken=${URLEncoder.encode(token, "utf-8")}"))
       )
-      getReq.copy(uri = req.uri.withPath(req.uri.path ?/ id))
+    )
+    pagingInfo.jobId match {
+      case Some(id) =>
+        val getReq = req.copy(
+          method = HttpMethods.GET,
+          entity = HttpEntity.Empty
+        )
+        getReq.copy(uri = req.uri.withPath(req.uri.path ?/ id))
+      case None => req
     }
   }
 
-
-  def apply[T](httpRequest: HttpRequest, parserFn: JsObject => T, tokenActor: ActorRef, http: HttpExt)
-              (implicit timeout: Timeout, mat: ActorMaterializer): Source[T, NotUsed] = Source.fromGraph(GraphDSL.create() {
-    implicit builder =>
+  def apply[T](httpRequest: HttpRequest, parserFn: JsObject => Option[T], tokenActor: ActorRef, http: HttpExt)(
+      implicit timeout: Timeout,
+      mat: ActorMaterializer): Source[T, NotUsed] =
+    Source.fromGraph(GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
 
-      implicit val system: ActorSystem = mat.system
+      implicit val system: ActorSystem  = mat.system
       implicit val ec: ExecutionContext = mat.executionContext
 
-      val in = builder.add(Source.repeat(httpRequest))
-      val requestSender = builder.add(SendRequestWithOauthHandling(tokenActor, http))
-      val parser = builder.add(Parser(parserFn))
+      val in                 = builder.add(Source.repeat(httpRequest))
+      val requestSender      = builder.add(SendRequestWithOauthHandling(tokenActor, http))
+      val parser             = builder.add(Parser(parserFn))
       val pageTokenGenerator = builder.add(PageTokenGenerator())
-      val zip = builder.add(Zip[HttpRequest, PagingInfo]())
-      val addPageTokenNode = builder.add(Flow[(HttpRequest, PagingInfo)].map((addPageToken _).tupled))
+      val zip                = builder.add(Zip[HttpRequest, PagingInfo]())
+      val addPageTokenNode   = builder.add(Flow[(HttpRequest, PagingInfo)].map((addPageToken _).tupled))
 
       in ~> zip.in0
       requestSender.out ~> parser.in
@@ -70,5 +75,5 @@ object BigQueryStreamSource {
                                                 |         |
                                                 +---------+
      */
-  })
+    })
 }

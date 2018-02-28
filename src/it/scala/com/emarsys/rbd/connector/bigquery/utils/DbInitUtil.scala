@@ -7,6 +7,7 @@ import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import akka.util.Timeout
+import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.GoogleApi._
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.bigquery.{BigQueryConnector, GoogleTokenActor}
@@ -30,7 +31,7 @@ trait DbInitUtil {
 
   def runRequest(httpRequest: HttpRequest): Future[Done] = {
     val tokenActor = sys.actorOf(GoogleTokenActor.props(testConfig.clientEmail, testConfig.privateKey, Http()))
-    BigQueryStreamSource(httpRequest, identity, tokenActor, Http()).runWith(Sink.ignore)
+    BigQueryStreamSource(httpRequest, x => x.some, tokenActor, Http()).runWith(Sink.ignore)
   }
 
   def createTable(schemaDefinition: String): HttpRequest = HttpRequest(
@@ -45,8 +46,6 @@ trait DbInitUtil {
     entity = HttpEntity(ContentTypes.`application/json`, data)
   )
 
-  def dropTable(table: String) = HttpRequest(
-    HttpMethods.DELETE,
-    Uri(deleteTableUrl(testConfig.projectId, testConfig.dataset, table))
-  )
+  def dropTable(table: String) =
+    HttpRequest(HttpMethods.DELETE, Uri(deleteTableUrl(testConfig.projectId, testConfig.dataset, table)))
 }

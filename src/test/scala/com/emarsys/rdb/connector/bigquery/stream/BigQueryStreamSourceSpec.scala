@@ -10,37 +10,42 @@ import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.{ActorMaterializer, Graph, Materializer, SourceShape}
 import akka.testkit.{TestKit, TestProbe}
 import akka.util.Timeout
+import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.GoogleTokenActor.{TokenRequest, TokenResponse}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.language.reflectiveCalls
 
-class BigQueryStreamSourceSpec extends TestKit(ActorSystem("BigQueryStreamSourceSpec"))
-  with WordSpecLike
-  with Matchers
-  with BeforeAndAfterAll {
+class BigQueryStreamSourceSpec
+    extends TestKit(ActorSystem("BigQueryStreamSourceSpec"))
+    with WordSpecLike
+    with Matchers
+    with BeforeAndAfterAll {
 
   override def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
   }
 
-  implicit val timeout = Timeout.durationToTimeout(3.seconds)
+  implicit val timeout      = Timeout.durationToTimeout(3.seconds)
   implicit val materializer = ActorMaterializer()
 
   val mockHttp =
     new HttpExt(null) {
       var usedToken = ""
-      var responseFn: HttpRequest => Future[HttpResponse] = {
-        _ => Future.successful(HttpResponse(entity = HttpEntity("{}")))
+      var responseFn: HttpRequest => Future[HttpResponse] = { _ =>
+        Future.successful(HttpResponse(entity = HttpEntity("{}")))
       }
 
-      override def singleRequest(request: HttpRequest, connectionContext: HttpsConnectionContext, settings: ConnectionPoolSettings, log: LoggingAdapter)(implicit fm: Materializer): Future[HttpResponse] = {
+      override def singleRequest(request: HttpRequest,
+                                 connectionContext: HttpsConnectionContext,
+                                 settings: ConnectionPoolSettings,
+                                 log: LoggingAdapter)(implicit fm: Materializer): Future[HttpResponse] = {
         usedToken = request.headers.head.value().stripPrefix("Bearer ")
         responseFn(request)
       }
     }
-
 
   "BigQueryStreamSource" should {
 
@@ -50,7 +55,8 @@ class BigQueryStreamSourceSpec extends TestKit(ActorSystem("BigQueryStreamSource
 
     "return single page request" in new BigQuerySourceScope {
 
-      val bigQuerySource: Graph[SourceShape[String], NotUsed] = BigQueryStreamSource(HttpRequest(), _ => "success", testTokenActorProbe.ref, mockHttp)
+      val bigQuerySource: Graph[SourceShape[String], NotUsed] =
+        BigQueryStreamSource(HttpRequest(), _ => "success".some, testTokenActorProbe.ref, mockHttp)
 
       val resultF = Source.fromGraph(bigQuerySource).runWith(Sink.head)
 
@@ -65,13 +71,15 @@ class BigQueryStreamSourceSpec extends TestKit(ActorSystem("BigQueryStreamSource
 
       mockHttp.responseFn = { request =>
         request.uri.toString() match {
-          case "/"                          =>
-            Future.successful(HttpResponse(entity = HttpEntity("""{ "pageToken": "nextPage", "jobReference": { "jobId": "job123"} }""")))
+          case "/" =>
+            Future.successful(
+              HttpResponse(entity = HttpEntity("""{ "pageToken": "nextPage", "jobReference": { "jobId": "job123"} }"""))
+            )
           case "/job123?pageToken=nextPage" =>
             Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
         }
       }
-      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success", testTokenActorProbe.ref, mockHttp)
+      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success".some, testTokenActorProbe.ref, mockHttp)
 
       val resultF = bigQuerySource.runWith(Sink.seq)
       testTokenActorProbe.expectMsg(TokenRequest(false))
@@ -86,17 +94,15 @@ class BigQueryStreamSourceSpec extends TestKit(ActorSystem("BigQueryStreamSource
 
     "retry on failed auth" in new BigQuerySourceScope {
 
-      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success", testTokenActorProbe.ref, mockHttp)
-      var firstRequest = true
+      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success".some, testTokenActorProbe.ref, mockHttp)
+      var firstRequest   = true
       mockHttp.responseFn = { _ =>
-        Future.successful(
-          if (firstRequest) {
-            firstRequest = false
-            HttpResponse(StatusCodes.Unauthorized)
-          } else {
-            HttpResponse(entity = HttpEntity("""{ }"""))
-          }
-        )
+        Future.successful(if (firstRequest) {
+          firstRequest = false
+          HttpResponse(StatusCodes.Unauthorized)
+        } else {
+          HttpResponse(entity = HttpEntity("""{ }"""))
+        })
       }
 
       val resultF = bigQuerySource.runWith(Sink.seq)
@@ -112,10 +118,13 @@ class BigQueryStreamSourceSpec extends TestKit(ActorSystem("BigQueryStreamSource
 
     "url encode page token" in new BigQuerySourceScope {
 
-      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success", testTokenActorProbe.ref, mockHttp)
+      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success".some, testTokenActorProbe.ref, mockHttp)
       mockHttp.responseFn = { request =>
         request.uri.toString() match {
-          case "/"                           => Future.successful(HttpResponse(entity = HttpEntity("""{ "pageToken": "===", "jobReference": { "jobId": "job123"} }""")))
+          case "/" =>
+            Future.successful(
+              HttpResponse(entity = HttpEntity("""{ "pageToken": "===", "jobReference": { "jobId": "job123"} }"""))
+            )
           case "/job123?pageToken=%3D%3D%3D" => Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
         }
       }

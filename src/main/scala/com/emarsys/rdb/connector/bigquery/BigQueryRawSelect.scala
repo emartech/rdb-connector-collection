@@ -16,14 +16,21 @@ trait BigQueryRawSelect {
     val limitedQuery = limit.fold(query) { l =>
       wrapInLimit(query, l)
     }
-    streamingQuery(limitedQuery)
+    Future.successful(Right(bigQueryClient.streamingQuery(limitedQuery)))
   }
 
-  override def projectedRawSelect(rawSql: String, fields: Seq[String], allowNullFieldValue: Boolean): ConnectorResponse[Source[Seq[String], NotUsed]] =
-    runProjectedSelectWith(rawSql, fields, allowNullFieldValue, streamingQuery)
+  override def projectedRawSelect(rawSql: String,
+                                  fields: Seq[String],
+                                  allowNullFieldValue: Boolean): ConnectorResponse[Source[Seq[String], NotUsed]] =
+    Future.successful(
+      Right(runProjectedSelectWith(rawSql, fields, allowNullFieldValue, query => bigQueryClient.streamingQuery(query)))
+    )
 
   override def validateProjectedRawSelect(rawSql: String, fields: Seq[String]): ConnectorResponse[Unit] = {
-    runProjectedSelectWith(rawSql, fields, allowNullFieldValue = true, streamingDryQuery)
+    runProjectedSelectWith(rawSql,
+                           fields,
+                           allowNullFieldValue = true,
+                           query => bigQueryClient.streamingQuery(query, dryRun = true))
       .runWith(Sink.seq)
       .map(_ => Right({}))
       .recover { case ex => Left(ErrorWithMessage(ex.getMessage)) }
@@ -31,7 +38,8 @@ trait BigQueryRawSelect {
 
   override def validateRawSelect(rawSql: String): ConnectorResponse[Unit] = {
     val modifiedSql = removeEndingSemicolons(rawSql)
-    streamingDryQuery(modifiedSql)
+    bigQueryClient
+      .streamingQuery(modifiedSql, dryRun = true)
       .runWith(Sink.seq)
       .map(_ => Right({}))
       .recover { case ex => Left(ErrorWithMessage(ex.getMessage)) }
@@ -39,11 +47,14 @@ trait BigQueryRawSelect {
 
   override def analyzeRawSelect(rawSql: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     val modifiedSql = removeEndingSemicolons(rawSql)
-    Future(Right(streamingDryQuery(modifiedSql)))
+    Future(Right(bigQueryClient.streamingQuery(modifiedSql, dryRun = true)))
   }
 
-  private def runProjectedSelectWith[R](rawSql: String, fields: Seq[String], allowNullFieldValue: Boolean, queryRunner: String => R) = {
-    val fieldList = concatenateProjection(fields)
+  private def runProjectedSelectWith[R](rawSql: String,
+                                        fields: Seq[String],
+                                        allowNullFieldValue: Boolean,
+                                        queryRunner: String => R) = {
+    val fieldList    = concatenateProjection(fields)
     val projectedSql = wrapInProjection(rawSql, fieldList)
     val query =
       if (!allowNullFieldValue) wrapInCondition(projectedSql, fields)

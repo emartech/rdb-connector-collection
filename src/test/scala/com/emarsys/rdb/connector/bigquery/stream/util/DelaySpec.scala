@@ -22,14 +22,14 @@ class DelaySpec
   "Delay" should {
     "work as passthrough if should delay returns false" in {
 
-      val elems = 0 to 11
+      val elems = 0 to 12
       val probe = Source(elems)
         .map(_ => System.nanoTime())
         .via(Delay(_ => false, TimeUnit.MILLISECONDS))
         .map(start => System.nanoTime() - start)
         .runWith(TestSink.probe)
 
-      val expectedDelay = 50.milli.dilated
+      val expectedDelay = 100.milli.dilated
 
       elems.foreach(_ => {
         val next = probe
@@ -43,8 +43,8 @@ class DelaySpec
 
     "delay elements using fibonacci series" in {
 
-      val elems = 0 to 11
-      val delays = List(1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89).map(_.millis)
+      val elems = 0 to 12
+      val delays = List(1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144).map(_.millis)
       val probe = Source(elems)
         .map(_ => System.nanoTime())
         .via(Delay(_ => true, TimeUnit.MILLISECONDS))

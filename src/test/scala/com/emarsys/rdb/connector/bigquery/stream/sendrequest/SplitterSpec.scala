@@ -11,7 +11,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
 
-class BooleanSplitterSpec extends TestKit(ActorSystem("BooleanSplitterSpec"))
+class SplitterSpec extends TestKit(ActorSystem("BooleanSplitterSpec"))
   with WordSpecLike
   with Matchers
   with BeforeAndAfterAll {
@@ -28,7 +28,7 @@ class BooleanSplitterSpec extends TestKit(ActorSystem("BooleanSplitterSpec"))
       (s1, s2) =>
         import GraphDSL.Implicits._
 
-        val splitter = builder.add(BooleanSplitter[Int](_ < 3))
+        val splitter = builder.add(Splitter[Int](_ < 3)())
 
         source ~> splitter.in
         splitter.out(0) ~> s1
@@ -38,7 +38,7 @@ class BooleanSplitterSpec extends TestKit(ActorSystem("BooleanSplitterSpec"))
     })
   }
 
-  "BooleanSplitter" must {
+  "Splitter" must {
 
     "input splitting" in {
       val testGraph = createTestGraph(Source(0 until 10), Sink.seq, Sink.seq)
@@ -46,7 +46,7 @@ class BooleanSplitterSpec extends TestKit(ActorSystem("BooleanSplitterSpec"))
       val (trueResult, allResult) = testGraph.run()
 
       Await.result(trueResult, 1.second) shouldEqual (0 until 3)
-      Await.result(allResult, 1.second) shouldEqual (0 until 10)
+      Await.result(allResult, 1.second) shouldEqual (3 until 10)
     }
 
 

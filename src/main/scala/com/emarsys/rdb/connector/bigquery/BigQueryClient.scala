@@ -20,13 +20,14 @@ import spray.json._
 import cats.syntax.option._
 
 import scala.concurrent.ExecutionContext
+import scala.util.Try
 
 class BigQueryClient(val googleTokenActor: ActorRef, projectId: String, dataset: String)(
   implicit timeout: Timeout,
   materializer: ActorMaterializer
 ) {
 
-  implicit val system: ActorSystem = materializer.system
+  implicit val system: ActorSystem  = materializer.system
   implicit val ec: ExecutionContext = system.dispatcher
 
   def streamingQuery(query: String, dryRun: Boolean = false): Source[Seq[String], NotUsed] = {
@@ -74,12 +75,12 @@ class BigQueryClient(val googleTokenActor: ActorRef, projectId: String, dataset:
   }
 
   private def parseQueryResult(result: JsObject): Option[(Seq[String], Seq[Seq[String]])] = {
-    val queryResponse = result.convertTo[QueryResponse]
+    Try { result.convertTo[QueryResponse] }.map { queryResponse =>
+      val fields = queryResponse.schema.fields.map(_.name)
+      val rows   = queryResponse.rows.fold(Seq[Seq[String]]())(rowSeq => rowSeq.map(row => row.f.map(_.v)))
 
-    val fields = queryResponse.schema.fields.map(_.name)
-    val rows   = queryResponse.rows.fold(Seq[Seq[String]]())(rowSeq => rowSeq.map(row => row.f.map(_.v)))
-
-    (fields, rows).some
+      (fields, rows)
+    }.toOption
   }
 
   private def parseDryResult(result: JsObject): Option[List[Seq[String]]] = {
@@ -118,11 +119,9 @@ class BigQueryClient(val googleTokenActor: ActorRef, projectId: String, dataset:
 
 object BigQueryClient {
 
-  def apply(
-    googleTokenActor: ActorRef,
-    projectId: String,
-    dataset: String
-  )(implicit timeout: Timeout, materializer: ActorMaterializer): BigQueryClient =
+  def apply(googleTokenActor: ActorRef,
+            projectId: String,
+            dataset: String)(implicit timeout: Timeout, materializer: ActorMaterializer): BigQueryClient =
     new BigQueryClient(googleTokenActor, projectId, dataset)
 
   object DryRunJsonProtocol extends DefaultJsonProtocol {

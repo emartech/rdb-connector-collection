@@ -11,15 +11,20 @@ import akka.util.Timeout
 import scala.concurrent.ExecutionContext
 
 object SendRequestWithOauthHandling {
-  def apply(tokenActor: ActorRef, http: HttpExt)(implicit tokenRequest: Timeout, ec: ExecutionContext, system: ActorSystem, mat: ActorMaterializer): Graph[FlowShape[HttpRequest, HttpResponse], NotUsed] = {
+  def apply(tokenActor: ActorRef, http: HttpExt)(
+    implicit tokenRequest: Timeout,
+    ec: ExecutionContext,
+    system: ActorSystem,
+    mat: ActorMaterializer
+  ): Graph[FlowShape[HttpRequest, HttpResponse], NotUsed] = {
     GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
 
-      val signalBasedRepeater = builder.add(new SignalBasedRepeater[HttpRequest]())
-      val addGoogleOauthToken = builder.add(EnrichRequestWithOauth(tokenActor))
-      val sendHttpRequest = builder.add(Flow[HttpRequest].mapAsync(1)(http.singleRequest(_)))
-      val responseErrorSplitter = builder.add(BooleanSplitter[HttpResponse](_.status.isSuccess()))
-      val errorSignalProcessor = builder.add(ErrorSignalProcessor())
+      val signalBasedRepeater   = builder.add(new SignalBasedRepeater[HttpRequest]())
+      val addGoogleOauthToken   = builder.add(EnrichRequestWithOauth(tokenActor))
+      val sendHttpRequest       = builder.add(Flow[HttpRequest].mapAsync(1)(http.singleRequest(_)))
+      val responseErrorSplitter = builder.add(Splitter[HttpResponse](_.status.isSuccess())(_ => true))
+      val errorSignalProcessor  = builder.add(ErrorSignalProcessor())
 
       signalBasedRepeater.out ~> addGoogleOauthToken.in
 
@@ -33,7 +38,7 @@ object SendRequestWithOauthHandling {
 
       FlowShape[HttpRequest, HttpResponse](signalBasedRepeater.in0, responseErrorSplitter.out(0))
 
-      /*
+    /*
                        +----------+     +------------+     +---------+     +----------+
                        | Signal   |     | Add Google |     | Send    |     | Response |
      ----(Request)---->| Based    |---->| OAuth      |---->| Http    |---->| Error    |----(OK: Response)--->
@@ -44,7 +49,7 @@ object SendRequestWithOauthHandling {
                    \------------------------| Signal     |<----------------------/
                                             | Processor  |
                                             +------------+
-       */
+     */
     }
   }
 }

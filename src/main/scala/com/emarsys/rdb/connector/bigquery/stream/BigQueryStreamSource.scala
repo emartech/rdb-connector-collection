@@ -12,7 +12,7 @@ import akka.util.Timeout
 import com.emarsys.rdb.connector.bigquery.stream.pagetoken.{AddPageToken, EndOfStreamDetector}
 import com.emarsys.rdb.connector.bigquery.stream.parser.{PagingInfo, Parser}
 import com.emarsys.rdb.connector.bigquery.stream.sendrequest.SendRequestWithOauthHandling
-import com.emarsys.rdb.connector.bigquery.stream.util.FlowInitializer
+import com.emarsys.rdb.connector.bigquery.stream.util.{Delay, FlowInitializer}
 import com.emarsys.rdb.connector.bigquery.util.AkkaHttpPimps._
 import spray.json.JsObject
 
@@ -52,33 +52,40 @@ object BigQueryStreamSource {
       val parser              = builder.add(Parser(parserFn))
       val endOfStreamDetector = builder.add(EndOfStreamDetector())
       val flowInitializer     = builder.add(FlowInitializer((false, PagingInfo(None, None))))
+      val delay               = builder.add(Delay[(Boolean, PagingInfo)](_._1))
       val zip                 = builder.add(Zip[HttpRequest, (Boolean, PagingInfo)]())
       val addPageTokenNode    = builder.add(AddPageToken())
 
       in ~> zip.in0
-      requestSender.out ~> parser.in
-      parser.out1 ~> endOfStreamDetector.in
-      endOfStreamDetector.out ~> flowInitializer.in
-      flowInitializer.out ~> zip.in1
-      zip.out ~> addPageTokenNode.in
-      addPageTokenNode.out ~> requestSender.in
+      requestSender ~> parser.in
+      parser.out1 ~> endOfStreamDetector
+      endOfStreamDetector ~> delay
+      delay ~> flowInitializer
+      flowInitializer ~> zip.in1
+      zip.out ~> addPageTokenNode
+      addPageTokenNode ~> requestSender
 
       SourceShape(parser.out0)
 
     /*
-    +--------+           +------------+          +-------+         +------+
-    |Request |           |AddPageToken|          |Request|         |Parser|
-    |Repeater+---------->|            +--------->|Sender +-------->|      +------(response)------>
-    |        |           |            |          |       |         |      |
-    +--------+           +------------+          +-------+         +---+--+
-                                ^                                      |
-                                |                                      |
-                                |                                      |
-                                |               +---------+            |
-                                |               |PageToken|            |
-                                +---------------+Generator|<-----------+
-                                                |         |
-                                                +---------+
+        +--------+           +------------+          +-------+         +------+
+        |Request |           |AddPageToken|          |Request|         |Parser|
+        |Repeater+---------->+            +--------->+Sender +-------->+      +-----+(response)+----->
+        |        |           |            |          |       |         |      |
+        +--------+           +-----+------+          +-------+         +---+--+
+                                   ^                                       |
+                                   |                                       |
+                                   |     +-----------+                     |
+                                   |     |   Flow    |                     |
+                                   +<----+Initializer|                     |
+                                   |     | (single)  |                     |
+                                   |     +-----------+                     |
+                                   |                                       |
+                                   |       +-----+       +-----------+     |
+                                   |       |Delay|       |EndOfStream|     |
+                                   +-------+     +<------+  Detector +<----+
+                                           |     |       |           |
+                                           +-----+       +-----------+
      */
     })
 }

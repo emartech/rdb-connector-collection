@@ -4,29 +4,30 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import akka.util.Timeout
-import com.emarsys.rbd.connector.bigquery.utils.SelectDbInitHelper
+import com.emarsys.rbd.connector.bigquery.utils.{SelectDbInitHelper, TestHelper}
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.test.SimpleSelectItSpec
-import org.scalatest._
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class BigQuerySimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSelectItSpec with WordSpecLike with Matchers with BeforeAndAfterAll with SelectDbInitHelper {
+class BigQuerySimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSelectItSpec with SelectDbInitHelper {
 
   override implicit val sys: ActorSystem = system
   override implicit val materializer: ActorMaterializer = ActorMaterializer()
   override implicit val timeout: Timeout = 10.seconds
   override val awaitTimeout = timeout.duration
 
-  override def afterAll(): Unit = {
-    cleanUpDb()
-    connector.close()
-    shutdown()
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    initCTable()
   }
 
-  override def beforeAll(): Unit = {
-    initDb()
+  override def afterAll(): Unit = {
+    Await.result(runRequest(dropTable(cTableName)), timeout.duration)
+    super.afterAll()
+    shutdown()
   }
 
   "list table values with EQUAL on booleans with case-insensitive true/false values" in {
@@ -39,5 +40,56 @@ class BigQuerySimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSelec
       Seq("v1", "1", "1"),
       Seq("v3", "3", "1")
     ))
+  }
+
+  private def initCTable(): Unit = {
+    val createCTableSql =
+      s"""{
+         |  "friendlyName": "$cTableName",
+         |  "tableReference": {
+         |    "datasetId": "${TestHelper.TEST_CONNECTION_CONFIG.dataset}",
+         |    "projectId": "${TestHelper.TEST_CONNECTION_CONFIG.projectId}",
+         |    "tableId": "$cTableName"
+         |  },
+         |  "schema": {
+         |    "fields": [
+         |      {
+         |        "name": "C",
+         |        "type": "STRING",
+         |        "mode": "REQUIRED"
+         |      }
+         |    ]
+         |  }
+         |}
+       """.stripMargin
+
+    val insertCDataSql =
+      """
+        |{
+        |  rows: [
+        |    {
+        |      "json": {
+        |        "C": "c12",
+        |      }
+        |    },
+        |    {
+        |      "json": {
+        |        "C": "c12",
+        |      }
+        |    },
+        |    {
+        |      "json": {
+        |        "C": "c3",
+        |      }
+        |    }
+        |  ]
+        |}
+      """.stripMargin
+
+    Await.result(for {
+      _ <- runRequest(createTable(createCTableSql))
+      _ <- runRequest(insertInto(insertCDataSql, cTableName))
+    } yield (), timeout.duration)
+    sleep()
   }
 }

@@ -52,7 +52,7 @@ object BigQueryStreamSource {
       val parser              = builder.add(Parser(parserFn))
       val endOfStreamDetector = builder.add(EndOfStreamDetector())
       val flowInitializer     = builder.add(FlowInitializer((false, PagingInfo(None, None))))
-      val delay               = builder.add(Delay[(Boolean, PagingInfo)](_._1))
+      val delay               = builder.add(Delay[(Boolean, PagingInfo)](_._1, 60))
       val zip                 = builder.add(Zip[HttpRequest, (Boolean, PagingInfo)]())
       val addPageTokenNode    = builder.add(AddPageToken())
 

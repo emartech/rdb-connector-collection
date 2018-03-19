@@ -1,12 +1,11 @@
 package com.emarsys.rdb.connector.bigquery
 
+import cats.Traverse
 import cats.data.EitherT
 import cats.implicits._
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.ConnectorError
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
 
-import scala.concurrent.Future
 
 trait BigQueryMetadata {
   self: BigQueryConnector =>
@@ -22,18 +21,18 @@ trait BigQueryMetadata {
   override def listTablesWithFields(): ConnectorResponse[Seq[FullTableModel]] = {
     val tablesWithFields = for {
       tables <- EitherT(listTables())
-      map    <- mapTablesWithFields(tables)
+      map    <- mapTablesWithFields(tables.toVector)
     } yield makeTablesWithFields(tables, map.toMap)
 
     tablesWithFields.value
   }
 
-  private def mapTablesWithFields(tables: Seq[TableModel]) = {
-    type ET[A] = EitherT[Future, ConnectorError, A]
-    tables
-      .map(table => EitherT(listFields(table.name)).map(fieldModel => (table.name, fieldModel)))
-      .toList
-      .sequence[ET, (String, Seq[FieldModel])]
+  private def mapTablesWithFields[F[_]: Traverse](tables: F[TableModel]) = {
+    def getFieldsForTable(table: TableModel) =
+      EitherT(listFields(table.name)).map(fieldModel => (table.name, fieldModel))
+
+
+    tables.traverse(getFieldsForTable)
   }
 
   private def makeTablesWithFields(tableList: Seq[TableModel],

@@ -23,7 +23,7 @@ libraryDependencies ++= {
     "io.igl"                %% "jwt"                   % "1.2.2",
     "org.scalatest"         %% "scalatest"             % scalaTestV   % Test,
     "com.typesafe.akka"     %% "akka-stream-testkit"   % "2.5.6"      % Test,
-    "com.github.emartech"   %  "rdb-connector-test"    % "299379b749" % Test,
+    "com.github.emartech"   %  "rdb-connector-test"    % "cc25620083" % Test,
     "com.github.fommil"     %% "spray-json-shapeless"  % "1.3.0",
     "org.typelevel"         %% "cats-core"             % "1.0.1",
     "com.typesafe.akka"     %% "akka-http-spray-json"  % "10.0.7"     % Test,

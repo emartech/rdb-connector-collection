@@ -17,7 +17,7 @@ libraryDependencies ++= {
   val scalaTestV = "3.0.1"
   val akkaHttpV  = "10.0.7"
   Seq(
-    "com.github.emartech"   %  "rdb-connector-common"  % "67bc7a5e27",
+    "com.github.emartech"   %  "rdb-connector-common"  % "7c92f8b425",
     "com.typesafe.akka"     %% "akka-http-core"        % akkaHttpV,
     "com.typesafe.akka"     %% "akka-http-spray-json"  % akkaHttpV,
     "io.igl"                %% "jwt"                   % "1.2.2",

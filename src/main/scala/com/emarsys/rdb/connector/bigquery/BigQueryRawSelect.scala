@@ -33,7 +33,7 @@ trait BigQueryRawSelect {
                            query => bigQueryClient.streamingQuery(query, dryRun = true))
       .runWith(Sink.seq)
       .map(_ => Right({}))
-      .recover { case ex => Left(ErrorWithMessage(ex.getMessage)) }
+      .recover(errorHandler())
   }
 
   override def validateRawSelect(rawSql: String): ConnectorResponse[Unit] = {
@@ -42,7 +42,7 @@ trait BigQueryRawSelect {
       .streamingQuery(modifiedSql, dryRun = true)
       .runWith(Sink.seq)
       .map(_ => Right({}))
-      .recover { case ex => Left(ErrorWithMessage(ex.getMessage)) }
+      .recover(errorHandler())
   }
 
   override def analyzeRawSelect(rawSql: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {

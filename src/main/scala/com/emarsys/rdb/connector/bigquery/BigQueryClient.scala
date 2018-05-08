@@ -7,6 +7,7 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequ
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.util.Timeout
+import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.BigQueryClient.DryRunJsonProtocol.DryRunResponse
 import com.emarsys.rdb.connector.bigquery.BigQueryClient.QueryJsonProtocol.{QueryRequest, QueryResponse}
 import com.emarsys.rdb.connector.bigquery.BigQueryClient.TableDataQueryJsonProtocol.TableDataQueryResponse
@@ -14,10 +15,9 @@ import com.emarsys.rdb.connector.bigquery.BigQueryClient.TableListQueryJsonProto
 import com.emarsys.rdb.connector.bigquery.GoogleApi.{fieldListUrl, queryUrl, tableListUrl}
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.{ErrorWithMessage, TableNotFound}
+import com.emarsys.rdb.connector.common.models.Errors.{ConnectionError, TableNotFound}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, TableModel}
 import spray.json._
-import cats.syntax.option._
 
 import scala.concurrent.ExecutionContext
 import scala.util.Try
@@ -25,7 +25,7 @@ import scala.util.Try
 class BigQueryClient(val googleTokenActor: ActorRef, projectId: String, dataset: String)(
   implicit timeout: Timeout,
   materializer: ActorMaterializer
-) {
+) extends BigQueryErrorHandling {
 
   implicit val system: ActorSystem  = materializer.system
   implicit val ec: ExecutionContext = system.dispatcher
@@ -46,7 +46,7 @@ class BigQueryClient(val googleTokenActor: ActorRef, projectId: String, dataset:
 
   def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
     runMetaQuery(fieldListUrl(projectId, dataset, tableName), parseFieldResults).map {
-      case Left(ErrorWithMessage(message)) if message.startsWith("Unexpected error in response: 404 Not Found") =>
+      case Left(ConnectionError(ex)) if ex.getMessage.startsWith("Unexpected error in response: 404 Not Found") =>
         Left(TableNotFound(tableName))
       case other => other
     }
@@ -71,7 +71,7 @@ class BigQueryClient(val googleTokenActor: ActorRef, projectId: String, dataset:
     bigQuerySource
       .runWith(Sink.seq)
       .map(listOfList => Right(listOfList.flatten))
-      .recover { case ex: Throwable => Left(ErrorWithMessage(ex.getMessage)) }
+      .recover(errorHandler())
   }
 
   private def parseQueryResult(result: JsObject): Option[(Seq[String], Seq[Seq[String]])] = {

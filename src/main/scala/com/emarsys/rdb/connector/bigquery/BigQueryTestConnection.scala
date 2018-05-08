@@ -6,7 +6,6 @@ import akka.stream.scaladsl.Sink
 import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
 
 trait BigQueryTestConnection {
   self: BigQueryConnector =>
@@ -19,8 +18,6 @@ trait BigQueryTestConnection {
     bigQuerySource
       .runWith(Sink.seq)
       .map(_ => Right({}))
-      .recover {
-        case e: Throwable => Left(ErrorWithMessage(s"Cannot connect to the sql server - ${e.getMessage}"))
-      }
+      .recover(errorHandler())
   }
 }

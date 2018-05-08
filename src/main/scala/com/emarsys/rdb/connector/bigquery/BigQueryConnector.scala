@@ -18,6 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQueryConnectionConfig)(
   implicit val executionContext: ExecutionContext
 ) extends Connector
+    with BigQueryErrorHandling
     with BigQuerySimpleSelect
     with BigQueryRawSelect
     with BigQueryIsOptimized

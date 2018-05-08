@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.emarsys.rbd.connector.bigquery.utils.TestHelper
 import com.emarsys.rdb.connector.bigquery.BigQueryConnector
-import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
+import com.emarsys.rdb.connector.common.models.Errors.{ConnectionError, ErrorWithMessage}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
@@ -31,14 +31,14 @@ class BigQueryConnectorItSpec extends TestKit(ActorSystem()) with WordSpecLike w
         val badConnection = TestHelper.TEST_CONNECTION_CONFIG.copy(projectId = "asd")
         val connection = Await.result(BigQueryConnector(badConnection)(system), 3.seconds).toOption.get
         val result = Await.result(connection.testConnection(), 5.seconds)
-        result should matchPattern { case Left(ErrorWithMessage(_)) => }
+        result should matchPattern { case Left(ConnectionError(_)) => }
       }
 
       "return error if invalid dataset" in {
         val badConnection = TestHelper.TEST_CONNECTION_CONFIG.copy(dataset = "asd")
         val connection = Await.result(BigQueryConnector(badConnection)(system), 3.seconds).toOption.get
         val result = Await.result(connection.testConnection(), 5.seconds)
-        result should matchPattern { case Left(ErrorWithMessage(_)) => }
+        result should matchPattern { case Left(ConnectionError(_)) => }
       }
 
     }

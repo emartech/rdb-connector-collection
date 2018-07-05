@@ -13,7 +13,7 @@ import com.emarsys.rdb.connector.bigquery.util.GoogleJwt
 import spray.json.{DefaultJsonProtocol, JsonFormat}
 
 import scala.concurrent.Future
-import scala.util.Success
+import scala.util.{Success, Try}
 
 object GoogleTokenActor {
   def props(clientEmail: String, privateKey: String, http: HttpExt)(implicit materializer: ActorMaterializer) = Props(new GoogleTokenActor(clientEmail, privateKey, http))
@@ -104,10 +104,14 @@ class GoogleTokenActor(clientEmail: String, privateKey: String, http: HttpExt)(i
   import context.dispatcher
 
   def doRefresh(): Unit = {
-    val jwt = GoogleJwt.create(clientEmail, decodedPrivateKey)
-    val request = createTokenRequest(jwt)
-    val response = http.singleRequest(request)
-    handleResponse(response)
+    Try(GoogleJwt.create(clientEmail, decodedPrivateKey)) match {
+      case Success(jwt) =>
+        val request = createTokenRequest(jwt)
+        val response = http.singleRequest(request)
+        handleResponse(response)
+      case _ =>
+        self ! TokenError
+    }
   }
 
   def handleResponse(responseF: Future[HttpResponse]): Unit = {

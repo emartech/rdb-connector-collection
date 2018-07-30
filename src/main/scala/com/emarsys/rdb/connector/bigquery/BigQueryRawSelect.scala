@@ -21,14 +21,16 @@ trait BigQueryRawSelect {
 
   override def projectedRawSelect(rawSql: String,
                                   fields: Seq[String],
+                                  limit: Option[Int],
                                   allowNullFieldValue: Boolean): ConnectorResponse[Source[Seq[String], NotUsed]] =
     Future.successful(
-      Right(runProjectedSelectWith(rawSql, fields, allowNullFieldValue, query => bigQueryClient.streamingQuery(query)))
+      Right(runProjectedSelectWith(rawSql, fields, limit, allowNullFieldValue, query => bigQueryClient.streamingQuery(query)))
     )
 
   override def validateProjectedRawSelect(rawSql: String, fields: Seq[String]): ConnectorResponse[Unit] = {
     runProjectedSelectWith(rawSql,
                            fields,
+                           None,
                            allowNullFieldValue = true,
                            query => bigQueryClient.streamingQuery(query, dryRun = true))
       .runWith(Sink.seq)
@@ -52,6 +54,7 @@ trait BigQueryRawSelect {
 
   private def runProjectedSelectWith[R](rawSql: String,
                                         fields: Seq[String],
+                                        limit: Option[Int],
                                         allowNullFieldValue: Boolean,
                                         queryRunner: String => R) = {
     val fieldList    = concatenateProjection(fields)
@@ -59,7 +62,9 @@ trait BigQueryRawSelect {
     val query =
       if (!allowNullFieldValue) wrapInCondition(projectedSql, fields)
       else projectedSql
-    queryRunner(query)
+    val limitedQuery = limit.fold(query)(l => s"$query LIMIT $l")
+
+    queryRunner(limitedQuery)
   }
 
   private def concatenateProjection(fields: Seq[String]) =

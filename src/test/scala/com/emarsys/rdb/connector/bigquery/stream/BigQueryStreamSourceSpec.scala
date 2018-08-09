@@ -88,26 +88,6 @@ class BigQueryStreamSourceSpec
       mockHttp.usedToken shouldBe "TOKEN"
     }
 
-    "retry on failed auth" in new Scope {
-
-      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success".some, session, mockHttp)
-      var firstRequest = true
-      mockHttp.responseFn = { _ =>
-        Future.successful(if (firstRequest) {
-          firstRequest = false
-          HttpResponse(StatusCodes.Unauthorized)
-        } else {
-          HttpResponse(entity = HttpEntity("""{ }"""))
-        })
-      }
-
-      val resultF = bigQuerySource.runWith(Sink.seq)
-
-      Await.result(resultF, timeout) shouldBe Seq("success")
-      verify(session, times(2)).getToken()
-      mockHttp.usedToken shouldBe "TOKEN"
-    }
-
     "url encode page token" in new Scope {
 
       val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success".some, session, mockHttp)

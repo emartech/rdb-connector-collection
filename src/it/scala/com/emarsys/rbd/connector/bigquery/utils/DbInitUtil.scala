@@ -26,7 +26,7 @@ trait DbInitUtil {
   lazy val connector: BigQueryConnector = Await.result(BigQueryConnector(testConfig)(sys), timeout.duration).right.get
 
   def sleep(): Unit = {
-    Await.result(Future(Thread.sleep(500)), 1.seconds)
+    Await.result(Future(Thread.sleep(1000)), 2.seconds)
   }
 
   def runRequest(httpRequest: HttpRequest): Future[Done] = {

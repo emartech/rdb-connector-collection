@@ -39,3 +39,5 @@ lazy val root = (project in file("."))
   .settings(
     inConfig(ItTest)(Seq(Defaults.itSettings: _*))
   )
+
+parallelExecution in ItTest := false

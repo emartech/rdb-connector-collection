@@ -5,10 +5,10 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.scaladsl.{Flow, GraphDSL}
-import akka.stream.{ActorMaterializer, FlowShape, Graph}
+import akka.stream.{ActorMaterializer, FlowShape, Graph, Materializer}
 import com.emarsys.rdb.connector.bigquery.GoogleSession
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 object SendRequestWithOauthHandling {
   def apply(googleSession: GoogleSession, http: HttpExt)(
@@ -19,36 +19,23 @@ object SendRequestWithOauthHandling {
     GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
 
-      val signalBasedRepeater   = builder.add(new SignalBasedRepeater[HttpRequest]())
       val addGoogleOauthToken   = builder.add(EnrichRequestWithOauth(googleSession))
       val sendHttpRequest       = builder.add(Flow[HttpRequest].mapAsync(1)(http.singleRequest(_)))
-      val responseErrorSplitter = builder.add(Splitter[HttpResponse](_.status.isSuccess())(_ => true))
-      val errorSignalProcessor  = builder.add(ErrorSignalProcessor())
+      val responseErrorHandler = builder.add(Flow[HttpResponse].mapAsync(1)(handleRequestError(_)))
 
-      signalBasedRepeater.out ~> addGoogleOauthToken.in
+      addGoogleOauthToken ~> sendHttpRequest ~> responseErrorHandler
 
-      addGoogleOauthToken.out ~> sendHttpRequest.in
+      FlowShape[HttpRequest, HttpResponse](addGoogleOauthToken.in, responseErrorHandler.out)
+    }
+  }
 
-      sendHttpRequest.out ~> responseErrorSplitter.in
-
-      responseErrorSplitter.out(1) ~> errorSignalProcessor.in
-
-      errorSignalProcessor.out ~> signalBasedRepeater.in1
-
-      FlowShape[HttpRequest, HttpResponse](signalBasedRepeater.in0, responseErrorSplitter.out(0))
-
-    /*
-                       +----------+     +------------+     +---------+     +----------+
-                       | Signal   |     | Add Google |     | Send    |     | Response |
-     ----(Request)---->| Based    |---->| OAuth      |---->| Http    |---->| Error    |----(OK: Response)--->
-                   /-->| Repeater |     | Token      |     | Request |     | Splitter |
-                   |   +----------+     +------------+     +---------+     +----------+
-                   |                        +------------+                       |
-                   |                        | Error      |                       |
-                   \------------------------| Signal     |<----------------------/
-                                            | Processor  |
-                                            +------------+
-     */
+  private def handleRequestError(response: HttpResponse)(implicit materializer: Materializer) = {
+    import com.emarsys.rdb.connector.bigquery.util.AkkaHttpPimps._
+    implicit val ec: ExecutionContext = materializer.executionContext
+    if(response.status.isFailure) {
+      response.entity.convertToString().map(errorBody => throw new IllegalStateException(s"Unexpected error in response: ${response.status}}, $errorBody"))
+    } else {
+      Future.successful(response)
     }
   }
 }

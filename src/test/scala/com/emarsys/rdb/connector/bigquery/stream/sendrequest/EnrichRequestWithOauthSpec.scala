@@ -35,7 +35,7 @@ class EnrichRequestWithOauthSpec extends TestKit(ActorSystem("EnrichRequestWithO
     "Ask token actor, add oauth header" in {
       val session = mock[GoogleSession]
       when(session.getToken()) thenReturn Future.successful("TOKEN")
-      val resultF = Source.single((HttpRequest(), false))
+      val resultF = Source.single(HttpRequest())
         .via(EnrichRequestWithOauth(session))
         .runWith(Sink.last)
 
@@ -48,7 +48,7 @@ class EnrichRequestWithOauthSpec extends TestKit(ActorSystem("EnrichRequestWithO
       val session = mock[GoogleSession]
       when(session.getToken()) thenReturn Future.failed(TokenErrorException())
 
-      val resultF = Source.single((HttpRequest(), true))
+      val resultF = Source.single(HttpRequest())
         .via(EnrichRequestWithOauth(session))
         .runWith(Sink.last)
 

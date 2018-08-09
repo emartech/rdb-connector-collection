@@ -7,9 +7,8 @@ import akka.stream.contrib.DelayFlow
 import akka.stream.contrib.DelayFlow.DelayStrategy
 import akka.stream.scaladsl.{GraphDSL, Merge}
 import akka.stream.{FlowShape, Graph}
-import com.emarsys.rdb.connector.bigquery.stream.sendrequest.Splitter
 
-import scala.concurrent.duration.{FiniteDuration, _}
+import scala.concurrent.duration.FiniteDuration
 
 object Delay {
   def apply[T](shouldDelay: T => Boolean,

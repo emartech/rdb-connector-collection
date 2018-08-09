@@ -1,4 +1,4 @@
-package com.emarsys.rdb.connector.bigquery.stream.sendrequest
+package com.emarsys.rdb.connector.bigquery.stream.util
 
 import akka.NotUsed
 import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL}

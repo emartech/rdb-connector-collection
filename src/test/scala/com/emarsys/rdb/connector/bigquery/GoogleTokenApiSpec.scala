@@ -89,7 +89,7 @@ class GoogleTokenApiSpec
       val decoded = Jwt.decode(jwt, publicKey, Seq(JwtAlgorithm.RS256))
       decoded.isSuccess shouldBe true
       decoded.get should include(""""aud":"https://www.googleapis.com/oauth2/v4/token"""")
-      decoded.get should include(""""scope":"https://www.googleapis.com/auth/firebase.messaging"""")
+      decoded.get should include(""""scope":"https://www.googleapis.com/auth/bigquery"""")
       decoded.get should include(""""iss":"email"""")
 
     }

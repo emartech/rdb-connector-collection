@@ -13,7 +13,7 @@ trait BigQueryTestConnection {
   override def testConnection(): ConnectorResponse[Unit] = {
     val url            = GoogleApi.testConnectionUrl(config.projectId, config.dataset)
     val request        = HttpRequest(HttpMethods.GET, url)
-    val bigQuerySource = BigQueryStreamSource(request, x => x.some, googleTokenActor, Http())
+    val bigQuerySource = BigQueryStreamSource(request, x => x.some, googleSession, Http())
 
     bigQuerySource
       .runWith(Sink.seq)

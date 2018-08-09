@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.bigquery
 
 import akka.NotUsed
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequest}
 import akka.stream.ActorMaterializer
@@ -22,7 +22,7 @@ import spray.json._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 
-class BigQueryClient(val googleTokenActor: ActorRef, projectId: String, dataset: String)(
+class BigQueryClient(val googleSession: GoogleSession, projectId: String, dataset: String)(
   implicit timeout: Timeout,
   materializer: ActorMaterializer
 ) extends BigQueryErrorHandling {
@@ -53,10 +53,10 @@ class BigQueryClient(val googleTokenActor: ActorRef, projectId: String, dataset:
   }
 
   private def createQuerySource(request: HttpRequest) =
-    BigQueryStreamSource(request, parseQueryResult, googleTokenActor, Http()).via(concatWitFieldNamesAsFirst)
+    BigQueryStreamSource(request, parseQueryResult, googleSession, Http()).via(concatWitFieldNamesAsFirst)
 
   private def createDryQuerySource(request: HttpRequest) =
-    BigQueryStreamSource(request, parseDryResult, googleTokenActor, Http()).mapConcat(identity)
+    BigQueryStreamSource(request, parseDryResult, googleSession, Http()).mapConcat(identity)
 
   private def createQueryRequest(query: String, dryRun: Boolean) =
     HttpRequest(HttpMethods.POST, queryUrl(projectId), entity = createQueryBody(query, dryRun))
@@ -66,7 +66,7 @@ class BigQueryClient(val googleTokenActor: ActorRef, projectId: String, dataset:
 
   protected def runMetaQuery[T](url: String, parser: JsObject => Option[Seq[T]]): ConnectorResponse[Seq[T]] = {
     val request        = HttpRequest(HttpMethods.GET, url)
-    val bigQuerySource = BigQueryStreamSource(request, parser, googleTokenActor, Http())
+    val bigQuerySource = BigQueryStreamSource(request, parser, googleSession, Http())
 
     bigQuerySource
       .runWith(Sink.seq)
@@ -119,10 +119,10 @@ class BigQueryClient(val googleTokenActor: ActorRef, projectId: String, dataset:
 
 object BigQueryClient {
 
-  def apply(googleTokenActor: ActorRef,
+  def apply(googleSession: GoogleSession,
             projectId: String,
             dataset: String)(implicit timeout: Timeout, materializer: ActorMaterializer): BigQueryClient =
-    new BigQueryClient(googleTokenActor, projectId, dataset)
+    new BigQueryClient(googleSession, projectId, dataset)
 
   object DryRunJsonProtocol extends DefaultJsonProtocol {
 

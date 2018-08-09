@@ -1,19 +1,18 @@
 package com.emarsys.rdb.connector.bigquery.stream.sendrequest
 
 import akka.NotUsed
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.ActorSystem
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.scaladsl.{Flow, GraphDSL}
 import akka.stream.{ActorMaterializer, FlowShape, Graph}
-import akka.util.Timeout
+import com.emarsys.rdb.connector.bigquery.GoogleSession
 
 import scala.concurrent.ExecutionContext
 
 object SendRequestWithOauthHandling {
-  def apply(tokenActor: ActorRef, http: HttpExt)(
-    implicit tokenRequest: Timeout,
-    ec: ExecutionContext,
+  def apply(googleSession: GoogleSession, http: HttpExt)(
+    implicit ec: ExecutionContext,
     system: ActorSystem,
     mat: ActorMaterializer
   ): Graph[FlowShape[HttpRequest, HttpResponse], NotUsed] = {
@@ -21,7 +20,7 @@ object SendRequestWithOauthHandling {
       import GraphDSL.Implicits._
 
       val signalBasedRepeater   = builder.add(new SignalBasedRepeater[HttpRequest]())
-      val addGoogleOauthToken   = builder.add(EnrichRequestWithOauth(tokenActor))
+      val addGoogleOauthToken   = builder.add(EnrichRequestWithOauth(googleSession))
       val sendHttpRequest       = builder.add(Flow[HttpRequest].mapAsync(1)(http.singleRequest(_)))
       val responseErrorSplitter = builder.add(Splitter[HttpResponse](_.status.isSuccess())(_ => true))
       val errorSignalProcessor  = builder.add(ErrorSignalProcessor())

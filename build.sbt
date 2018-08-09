@@ -20,7 +20,7 @@ libraryDependencies ++= {
     "com.github.emartech"   %  "rdb-connector-common"  % "e5041bd219",
     "com.typesafe.akka"     %% "akka-http-core"        % akkaHttpV,
     "com.typesafe.akka"     %% "akka-http-spray-json"  % akkaHttpV,
-    "io.igl"                %% "jwt"                   % "1.2.2",
+    "com.pauldijou" %% "jwt-core" % "0.14.1",
     "org.scalatest"         %% "scalatest"             % scalaTestV   % Test,
     "com.typesafe.akka"     %% "akka-stream-testkit"   % "2.5.6"      % Test,
     "com.github.emartech"   %  "rdb-connector-test"    % "7205a6ac07" % Test,

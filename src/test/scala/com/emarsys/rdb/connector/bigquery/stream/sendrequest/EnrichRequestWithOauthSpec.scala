@@ -4,19 +4,22 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
-import akka.testkit.{TestKit, TestProbe}
+import akka.testkit.TestKit
 import akka.util.Timeout
-import com.emarsys.rdb.connector.bigquery.GoogleTokenActor.{TokenError, TokenRequest, TokenResponse}
+import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.bigquery.stream.sendrequest.EnrichRequestWithOauth.TokenErrorException
+import org.mockito.Mockito._
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 class EnrichRequestWithOauthSpec extends TestKit(ActorSystem("EnrichRequestWithOauthSpec"))
   with WordSpecLike
   with Matchers
-  with BeforeAndAfterAll {
+  with BeforeAndAfterAll
+  with MockitoSugar {
 
   override def afterAll {
     TestKit.shutdownActorSystem(system)
@@ -30,29 +33,11 @@ class EnrichRequestWithOauthSpec extends TestKit(ActorSystem("EnrichRequestWithO
   "EnrichRequestWithOauth" must {
 
     "Ask token actor, add oauth header" in {
-      val testTokenActor = TestProbe()
-
+      val session = mock[GoogleSession]
+      when(session.getToken()) thenReturn Future.successful("TOKEN")
       val resultF = Source.single((HttpRequest(), false))
-        .via(EnrichRequestWithOauth(testTokenActor.testActor))
+        .via(EnrichRequestWithOauth(session))
         .runWith(Sink.last)
-
-      testTokenActor.expectMsg(TokenRequest(false))
-      testTokenActor.reply(TokenResponse("TOKEN"))
-
-      val result = Await.result(resultF, 1.second)
-      result.headers.head.name() shouldEqual "Authorization"
-      result.headers.head.value() shouldEqual "Bearer TOKEN"
-    }
-
-    "Ask token actor with force, add oauth header" in {
-      val testTokenActor = TestProbe()
-
-      val resultF = Source.single((HttpRequest(), true))
-        .via(EnrichRequestWithOauth(testTokenActor.testActor))
-        .runWith(Sink.last)
-
-      testTokenActor.expectMsg(TokenRequest(true))
-      testTokenActor.reply(TokenResponse("TOKEN"))
 
       val result = Await.result(resultF, 1.second)
       result.headers.head.name() shouldEqual "Authorization"
@@ -60,16 +45,14 @@ class EnrichRequestWithOauthSpec extends TestKit(ActorSystem("EnrichRequestWithO
     }
 
     "Token actor response error" in {
-      val testTokenActor = TestProbe()
+      val session = mock[GoogleSession]
+      when(session.getToken()) thenReturn Future.failed(TokenErrorException())
 
       val resultF = Source.single((HttpRequest(), true))
-        .via(EnrichRequestWithOauth(testTokenActor.testActor))
+        .via(EnrichRequestWithOauth(session))
         .runWith(Sink.last)
 
-      testTokenActor.expectMsg(TokenRequest(true))
-      testTokenActor.reply(TokenError)
-
-      assertThrows[TokenErrorException.type] {
+      assertThrows[TokenErrorException] {
         Await.result(resultF, 1.second)
       }
     }

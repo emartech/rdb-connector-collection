@@ -10,7 +10,7 @@ import akka.util.Timeout
 import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.GoogleApi._
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
-import com.emarsys.rdb.connector.bigquery.{BigQueryConnector, GoogleTokenActor}
+import com.emarsys.rdb.connector.bigquery.{BigQueryConnector, GoogleSession, GoogleTokenApi}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -30,8 +30,8 @@ trait DbInitUtil {
   }
 
   def runRequest(httpRequest: HttpRequest): Future[Done] = {
-    val tokenActor = sys.actorOf(GoogleTokenActor.props(testConfig.clientEmail, testConfig.privateKey, Http()))
-    BigQueryStreamSource(httpRequest, x => x.some, tokenActor, Http()).runWith(Sink.ignore)
+    val googleSession = new GoogleSession(testConfig.clientEmail, testConfig.privateKey, new GoogleTokenApi(Http()))
+    BigQueryStreamSource(httpRequest, x => x.some, googleSession, Http()).runWith(Sink.ignore)
   }
 
   def createTable(schemaDefinition: String): HttpRequest = HttpRequest(

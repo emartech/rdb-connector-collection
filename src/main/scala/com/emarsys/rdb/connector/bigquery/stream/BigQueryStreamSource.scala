@@ -3,12 +3,12 @@ package com.emarsys.rdb.connector.bigquery.stream
 import java.net.URLEncoder
 
 import akka.NotUsed
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.ActorSystem
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, Uri}
 import akka.stream._
-import akka.stream.scaladsl.{Flow, GraphDSL, Source, Unzip, Zip}
-import akka.util.Timeout
+import akka.stream.scaladsl.{GraphDSL, Source, Zip}
+import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.bigquery.stream.pagetoken.{AddPageToken, EndOfStreamDetector}
 import com.emarsys.rdb.connector.bigquery.stream.parser.{PagingInfo, Parser}
 import com.emarsys.rdb.connector.bigquery.stream.sendrequest.SendRequestWithOauthHandling
@@ -37,9 +37,8 @@ object BigQueryStreamSource {
     }
   }
 
-  def apply[T](httpRequest: HttpRequest, parserFn: JsObject => Option[T], tokenActor: ActorRef, http: HttpExt)(
-    implicit timeout: Timeout,
-    mat: ActorMaterializer
+  def apply[T](httpRequest: HttpRequest, parserFn: JsObject => Option[T], googleSession: GoogleSession, http: HttpExt)(
+    implicit mat: ActorMaterializer
   ): Source[T, NotUsed] =
     Source.fromGraph(GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
@@ -48,7 +47,7 @@ object BigQueryStreamSource {
       implicit val ec: ExecutionContext = mat.executionContext
 
       val in                  = builder.add(Source.repeat(httpRequest))
-      val requestSender       = builder.add(SendRequestWithOauthHandling(tokenActor, http))
+      val requestSender       = builder.add(SendRequestWithOauthHandling(googleSession, http))
       val parser              = builder.add(Parser(parserFn))
       val endOfStreamDetector = builder.add(EndOfStreamDetector())
       val flowInitializer     = builder.add(FlowInitializer((false, PagingInfo(None, None))))

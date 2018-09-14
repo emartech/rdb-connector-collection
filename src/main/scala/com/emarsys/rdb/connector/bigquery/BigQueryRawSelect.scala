@@ -7,11 +7,12 @@ import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
 
 import scala.annotation.tailrec
 import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
 
 trait BigQueryRawSelect {
   self: BigQueryConnector =>
 
-  override def rawSelect(rawSql: String, limit: Option[Int]): ConnectorResponse[Source[Seq[String], NotUsed]] = {
+  override def rawSelect(rawSql: String, limit: Option[Int], timeout: FiniteDuration): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     val query = removeEndingSemicolons(rawSql)
     val limitedQuery = limit.fold(query) { l =>
       wrapInLimit(query, l)
@@ -22,6 +23,7 @@ trait BigQueryRawSelect {
   override def projectedRawSelect(rawSql: String,
                                   fields: Seq[String],
                                   limit: Option[Int],
+                                  timeout: FiniteDuration,
                                   allowNullFieldValue: Boolean): ConnectorResponse[Source[Seq[String], NotUsed]] =
     Future.successful(
       Right(runProjectedSelectWith(rawSql, fields, limit, allowNullFieldValue, query => bigQueryClient.streamingQuery(query)))

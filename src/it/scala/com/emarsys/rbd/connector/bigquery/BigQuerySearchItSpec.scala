@@ -37,7 +37,7 @@ class BigQuerySearchItSpec extends TestKit(ActorSystem()) with WordSpecLike with
   s"BigQuerySearchIt $uuid" should {
 
     "return NotImplementedOperation" in {
-      val result = Await.result(connector.search(tableName, Map("C" -> StringValue("c12")), None), awaitTimeout)
+      val result = Await.result(connector.search(tableName, Map("C" -> StringValue("c12")), None, awaitTimeout), awaitTimeout)
       result shouldEqual Left(NotImplementedOperation)
     }
   }

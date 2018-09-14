@@ -31,7 +31,7 @@ class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQ
   val googleSession = new GoogleSession(config.clientEmail, config.privateKey, new GoogleTokenApi(Http()))
   val bigQueryClient: BigQueryClient = new BigQueryClient(googleSession, config.projectId, config.dataset)
 
-  override protected def rawSearch(tableName: String, criteria: Criteria, limit: Option[Int]): ConnectorResponse[Source[Seq[String], NotUsed]] = notImplementedOperation
+  override protected def rawSearch(tableName: String, criteria: Criteria, limit: Option[Int], timeout: FiniteDuration): ConnectorResponse[Source[Seq[String], NotUsed]] = notImplementedOperation
 
   override def close(): Future[Unit] = {
     Future.unit

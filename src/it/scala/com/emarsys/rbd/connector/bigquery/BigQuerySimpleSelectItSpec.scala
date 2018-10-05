@@ -18,6 +18,7 @@ class BigQuerySimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSelec
   override implicit val materializer: ActorMaterializer = ActorMaterializer()
   override implicit val timeout: Timeout = 10.seconds
   override val awaitTimeout = timeout.duration
+  override val queryTimeout = timeout.duration
 
   override def beforeAll(): Unit = {
     super.beforeAll()

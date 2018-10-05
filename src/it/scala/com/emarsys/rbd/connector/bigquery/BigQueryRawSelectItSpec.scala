@@ -18,6 +18,7 @@ class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) with RawSelectItSpe
   implicit override val sys: ActorSystem = system
   implicit override val materializer: ActorMaterializer = ActorMaterializer()
   implicit override val timeout: Timeout = Timeout(30.second)
+  implicit override val queryTimeout: FiniteDuration = timeout.duration
   override implicit val executionContext: ExecutionContextExecutor = sys.dispatcher
 
   override val awaitTimeout = 30.seconds

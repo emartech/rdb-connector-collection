@@ -29,7 +29,7 @@ class DelaySpec
         .map(start => System.nanoTime() - start)
         .runWith(TestSink.probe)
 
-      val expectedDelay = 100.milli.dilated
+      val expectedDelay = 300.milli.dilated
 
       elems.foreach(_ => {
         val next = probe

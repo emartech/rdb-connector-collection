@@ -34,8 +34,8 @@ object Parser {
     val parseMap         = builder.add(Flow[JsObject].map(parseFunction(_)))
     val pageInfoProvider = builder.add(Flow[JsObject].map(getPageInfo))
 
-    val broadcast1 = builder.add(Broadcast[JsObject](2))
-    val broadcast2 = builder.add(Broadcast[Option[T]](2))
+    val broadcast1 = builder.add(Broadcast[JsObject](2, true))
+    val broadcast2 = builder.add(Broadcast[Option[T]](2, true))
 
     val filterNone = builder.add(Flow[Option[T]].mapConcat {
       case Some(value) => List(value)

@@ -17,7 +17,7 @@ trait BigQueryRawSelect {
     val limitedQuery = limit.fold(query) { l =>
       wrapInLimit(query, l)
     }
-    Future.successful(Right(bigQueryClient.streamingQuery(limitedQuery)))
+    Future.successful(Right(bigQueryClient.streamingQuery(limitedQuery).completionTimeout(timeout)))
   }
 
   override def projectedRawSelect(rawSql: String,
@@ -26,7 +26,7 @@ trait BigQueryRawSelect {
                                   timeout: FiniteDuration,
                                   allowNullFieldValue: Boolean): ConnectorResponse[Source[Seq[String], NotUsed]] =
     Future.successful(
-      Right(runProjectedSelectWith(rawSql, fields, limit, allowNullFieldValue, query => bigQueryClient.streamingQuery(query)))
+      Right(runProjectedSelectWith(rawSql, fields, limit, allowNullFieldValue, query => bigQueryClient.streamingQuery(query).completionTimeout(timeout)))
     )
 
   override def validateProjectedRawSelect(rawSql: String, fields: Seq[String]): ConnectorResponse[Unit] = {

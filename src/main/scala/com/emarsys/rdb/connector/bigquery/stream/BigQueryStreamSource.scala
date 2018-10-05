@@ -5,10 +5,11 @@ import java.net.URLEncoder
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.HttpExt
-import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, Uri}
+import akka.http.scaladsl.model._
 import akka.stream._
 import akka.stream.scaladsl.{GraphDSL, Source, Zip}
 import com.emarsys.rdb.connector.bigquery.GoogleSession
+import com.emarsys.rdb.connector.bigquery.stream.downstreamfinishhandler.UpstreamFinishHandler
 import com.emarsys.rdb.connector.bigquery.stream.pagetoken.{AddPageToken, EndOfStreamDetector}
 import com.emarsys.rdb.connector.bigquery.stream.parser.{PagingInfo, Parser}
 import com.emarsys.rdb.connector.bigquery.stream.sendrequest.SendRequestWithOauthHandling
@@ -37,7 +38,7 @@ object BigQueryStreamSource {
     }
   }
 
-  def apply[T](httpRequest: HttpRequest, parserFn: JsObject => Option[T], googleSession: GoogleSession, http: HttpExt)(
+  def apply[T](httpRequest: HttpRequest, parserFn: JsObject => Option[T], googleSession: GoogleSession, http: HttpExt, upstreamFinishFn: ((Boolean, PagingInfo)) => Unit = (x: (Boolean, PagingInfo)) => ())(
     implicit mat: ActorMaterializer
   ): Source[T, NotUsed] =
     Source.fromGraph(GraphDSL.create() { implicit builder =>
@@ -46,18 +47,20 @@ object BigQueryStreamSource {
       implicit val system: ActorSystem  = mat.system
       implicit val ec: ExecutionContext = mat.executionContext
 
-      val in                  = builder.add(Source.repeat(httpRequest))
-      val requestSender       = builder.add(SendRequestWithOauthHandling(googleSession, http))
-      val parser              = builder.add(Parser(parserFn))
-      val endOfStreamDetector = builder.add(EndOfStreamDetector())
-      val flowInitializer     = builder.add(FlowInitializer((false, PagingInfo(None, None))))
-      val delay               = builder.add(Delay[(Boolean, PagingInfo)](_._1, 60))
-      val zip                 = builder.add(Zip[HttpRequest, (Boolean, PagingInfo)]())
-      val addPageTokenNode    = builder.add(AddPageToken())
+      val in                        = builder.add(Source.repeat(httpRequest))
+      val requestSender             = builder.add(SendRequestWithOauthHandling(googleSession, http))
+      val parser                    = builder.add(Parser(parserFn))
+      val uptreamFinishHandler      = builder.add(UpstreamFinishHandler[(Boolean, PagingInfo)](upstreamFinishFn))
+      val endOfStreamDetector       = builder.add(EndOfStreamDetector())
+      val flowInitializer           = builder.add(FlowInitializer((false, PagingInfo(None, None))))
+      val delay                     = builder.add(Delay[(Boolean, PagingInfo)](_._1, 60))
+      val zip                       = builder.add(Zip[HttpRequest, (Boolean, PagingInfo)]())
+      val addPageTokenNode          = builder.add(AddPageToken())
 
-      in ~> zip.in0
+      in  ~> zip.in0
       requestSender ~> parser.in
-      parser.out1 ~> endOfStreamDetector
+      parser.out1  ~> uptreamFinishHandler
+      uptreamFinishHandler ~> endOfStreamDetector
       endOfStreamDetector ~> delay
       delay ~> flowInitializer
       flowInitializer ~> zip.in1
@@ -74,11 +77,11 @@ object BigQueryStreamSource {
         +--------+           +-----+------+          +-------+         +---+--+
                                    ^                                       |
                                    |                                       |
-                                   |     +-----------+                     |
-                                   |     |   Flow    |                     |
-                                   +<----+Initializer|                     |
-                                   |     | (single)  |                     |
-                                   |     +-----------+                     |
+                                   |     +-----------+                +--+--------+
+                                   |     |   Flow    |                | UpStream  |
+                                   +<----+Initializer|                |  Finish   |
+                                   |     | (single)  |                |  Handler  |
+                                   |     +-----------+                +----+------+
                                    |                                       |
                                    |       +-----+       +-----------+     |
                                    |       |Delay|       |EndOfStream|     |

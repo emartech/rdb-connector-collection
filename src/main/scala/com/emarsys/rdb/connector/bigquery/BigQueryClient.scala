@@ -12,8 +12,10 @@ import com.emarsys.rdb.connector.bigquery.BigQueryClient.DryRunJsonProtocol.DryR
 import com.emarsys.rdb.connector.bigquery.BigQueryClient.QueryJsonProtocol.{QueryRequest, QueryResponse}
 import com.emarsys.rdb.connector.bigquery.BigQueryClient.TableDataQueryJsonProtocol.TableDataQueryResponse
 import com.emarsys.rdb.connector.bigquery.BigQueryClient.TableListQueryJsonProtocol.TableListQueryResponse
-import com.emarsys.rdb.connector.bigquery.GoogleApi.{fieldListUrl, queryUrl, tableListUrl}
+import com.emarsys.rdb.connector.bigquery.GoogleApi.{cancellationUrl, fieldListUrl, queryUrl, tableListUrl}
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
+import com.emarsys.rdb.connector.bigquery.stream.parser.PagingInfo
+import com.emarsys.rdb.connector.bigquery.stream.sendrequest.SendRequestWithOauthHandling
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.{ConnectionError, TableNotFound}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, TableModel}
@@ -53,10 +55,11 @@ class BigQueryClient(val googleSession: GoogleSession, projectId: String, datase
   }
 
   private def createQuerySource(request: HttpRequest) =
-    BigQueryStreamSource(request, parseQueryResult, googleSession, Http()).via(concatWitFieldNamesAsFirst)
+    BigQueryStreamSource(request, parseQueryResult, googleSession, Http(), handleTimeout).via(concatWitFieldNamesAsFirst)
+
 
   private def createDryQuerySource(request: HttpRequest) =
-    BigQueryStreamSource(request, parseDryResult, googleSession, Http()).mapConcat(identity)
+    BigQueryStreamSource(request, parseDryResult, googleSession, Http(), handleTimeout).mapConcat(identity)
 
   private def createQueryRequest(query: String, dryRun: Boolean) =
     HttpRequest(HttpMethods.POST, queryUrl(projectId), entity = createQueryBody(query, dryRun))
@@ -66,7 +69,7 @@ class BigQueryClient(val googleSession: GoogleSession, projectId: String, datase
 
   protected def runMetaQuery[T](url: String, parser: JsObject => Option[Seq[T]]): ConnectorResponse[Seq[T]] = {
     val request        = HttpRequest(HttpMethods.GET, url)
-    val bigQuerySource = BigQueryStreamSource(request, parser, googleSession, Http())
+    val bigQuerySource = BigQueryStreamSource(request, parser, googleSession, Http(), handleTimeout)
 
     bigQuerySource
       .runWith(Sink.seq)
@@ -115,6 +118,15 @@ class BigQueryClient(val googleSession: GoogleSession, projectId: String, datase
           }
       }
     })
+
+  private def handleTimeout(tuple: (Boolean, PagingInfo)): Unit = {
+    tuple._2.jobId.foreach(jobId => {
+      Source.single(
+        HttpRequest(HttpMethods.POST, cancellationUrl(projectId, jobId)))
+        .via(SendRequestWithOauthHandling(googleSession, Http()))
+        .runWith(Sink.ignore)(materializer)
+    })
+  }
 }
 
 object BigQueryClient {

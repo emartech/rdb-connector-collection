@@ -19,7 +19,7 @@ trait BigQuerySimpleSelect {
       val writer = BigQueryWriter(config, fields)
       import writer._
 
-      bigQueryClient.streamingQuery(select.toSql)
+      bigQueryClient.streamingQuery(select.toSql).completionTimeout(timeout)
     }.value
   }
 }

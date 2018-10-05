@@ -1,8 +1,8 @@
 package com.emarsys.rdb.connector.bigquery.stream.util
 
 import akka.NotUsed
+import akka.stream._
 import akka.stream.scaladsl.{Concat, GraphDSL, Source}
-import akka.stream.{FlowShape, Graph}
 
 object FlowInitializer {
   def apply[T](initialValue: T): Graph[FlowShape[T, T], NotUsed] = GraphDSL.create() { implicit builder =>

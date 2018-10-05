@@ -10,7 +10,7 @@ object Splitter {
     implicit builder =>
       import GraphDSL.Implicits._
 
-      val broadcast  = builder.add(Broadcast[T](2))
+      val broadcast  = builder.add(Broadcast[T](2, true))
       val filterOut0 = builder.add(Flow[T].filter(out0Predicate(_)))
       val filterOut1 = builder.add(Flow[T].filter(out1Predicate(_)))
 

@@ -77,7 +77,7 @@ object BigQueryStreamSource {
         +--------+           +-----+------+          +-------+         +---+--+
                                    ^                                       |
                                    |                                       |
-                                   |     +-----------+                +--+--------+
+                                   |     +-----------+                +----+------+
                                    |     |   Flow    |                | UpStream  |
                                    +<----+Initializer|                |  Finish   |
                                    |     | (single)  |                |  Handler  |

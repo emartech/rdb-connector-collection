@@ -82,5 +82,40 @@ class BigQueryWriterSpec extends WordSpecLike with Matchers {
       }
     }
 
+    "#simpleSelectWithGroupLimitWriter creates the sql we want" in {
+      val tableName = "test"
+      val simpleSelect = SimpleSelect(AllField, TableName(tableName),
+        where = Some(Or(Seq(
+          And(Seq(
+            EqualToValue(FieldName("ID"), Value("1")),
+            EqualToValue(FieldName("NAME"), Value("test1"))
+          )),
+          And(Seq(
+            EqualToValue(FieldName("ID"), Value("2")),
+            EqualToValue(FieldName("NAME"), Value("test2"))
+          )),
+          And(Seq(
+            EqualToValue(FieldName("ID"), Value("2")),
+            EqualToValue(FieldName("NAME"), Value("test3"))
+          )),
+          And(Seq(
+            EqualToValue(FieldName("ID"), Value("7")),
+            EqualToValue(FieldName("NAME"), Value("test123"))
+          ))
+        ))))
+
+      val writer = BigQueryWriter(config, Seq(FieldModel("ID", "INT"), FieldModel("NAME", "STRING"), FieldModel("DATA", "STRING")))
+      import writer._
+
+      simpleSelect.toSql(simpleSelectWithGroupLimitWriter(Seq("ID", "NAME"), 2)) shouldBe
+        """
+          |SELECT * FROM (
+          |  SELECT *, row_number() over (partition by ID,NAME) as a32ff46896
+          |  FROM ( SELECT * FROM dataset123.test WHERE ((ID="1" AND NAME="test1") OR (ID="2" AND NAME="test2") OR (ID="2" AND NAME="test3") OR (ID="7" AND NAME="test123")) )
+          |)
+          |WHERE a32ff46896 <= 2
+          |""".stripMargin
+    }
+
   }
 }

@@ -22,4 +22,18 @@ trait BigQuerySimpleSelect {
       bigQueryClient.streamingQuery(select.toSql).completionTimeout(timeout)
     }.value
   }
+
+  override protected def runSelectWithGroupLimit(select: SimpleSelect, groupLimit: Int, references: Seq[String], timeout: FiniteDuration): ConnectorResponse[Source[Seq[String], NotUsed]] = {
+    EitherT(listFields(select.table.t)).map { fields =>
+      val writer = BigQueryWriter(config, fields)
+      import writer._
+
+      bigQueryClient
+        .streamingQuery(select.toSql(simpleSelectWithGroupLimitWriter(references, groupLimit)))
+        .completionTimeout(timeout)
+        .map(_.dropRight(1))
+    }.value
+  }
 }
+
+

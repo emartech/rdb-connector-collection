@@ -4,7 +4,7 @@ import com.emarsys.rdb.connector.bigquery.BigQueryConnector.BigQueryConnectionCo
 import com.emarsys.rdb.connector.common.defaults.SqlWriter.createValueWriter
 import com.emarsys.rdb.connector.common.defaults.{DefaultSqlWriters, SqlWriter}
 import com.emarsys.rdb.connector.common.models.SimpleSelect
-import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
+import com.emarsys.rdb.connector.common.models.SimpleSelect.{FieldName, TableName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.FieldModel
 
 case class BigQueryWriter(config: BigQueryConnectionConfig, fields: Seq[FieldModel]) extends DefaultSqlWriters {
@@ -30,6 +30,20 @@ case class BigQueryWriter(config: BigQueryConnectionConfig, fields: Seq[FieldMod
       }
 
       s"${equalTo.field.f}=$valueAsSql"
+  }
+
+  def simpleSelectWithGroupLimitWriter(references: Seq[String], groupLimit: Int): SqlWriter[SimpleSelect] = (ss: SimpleSelect) => {
+    import SqlWriter._
+    val rowNumName = "a32ff46896"
+    val simpleSelectAsSql = ss.toSql
+    val refsAsString = references.map(FieldName).map(_.toSql).mkString(",")
+    s"""
+       |SELECT * FROM (
+       |  SELECT *, row_number() over (partition by $refsAsString) as $rowNumName
+       |  FROM ( $simpleSelectAsSql )
+       |)
+       |WHERE $rowNumName <= $groupLimit
+       |""".stripMargin
   }
 
 }

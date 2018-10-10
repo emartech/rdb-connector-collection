@@ -6,7 +6,7 @@ import akka.stream.scaladsl.Sink
 import akka.testkit.TestKit
 import akka.util.Timeout
 import com.emarsys.rbd.connector.bigquery.utils.{SelectDbInitHelper, TestHelper}
-import com.emarsys.rdb.connector.test.RawSelectItSpec
+import com.emarsys.rdb.connector.test._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
@@ -41,7 +41,7 @@ class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) with RawSelectItSpe
 
   "#analyzeRawSelect" should {
     "return result" in {
-      val result = getStreamResult(connector.analyzeRawSelect(simpleSelect))
+      val result = getConnectorResult(connector.analyzeRawSelect(simpleSelect), awaitTimeout)
 
       result shouldEqual Seq(
         Seq("totalBytesProcessed", "jobComplete", "cacheHit"),

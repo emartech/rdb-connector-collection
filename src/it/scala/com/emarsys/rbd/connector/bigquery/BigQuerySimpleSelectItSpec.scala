@@ -7,7 +7,7 @@ import akka.util.Timeout
 import com.emarsys.rbd.connector.bigquery.utils.{SelectDbInitHelper, TestHelper}
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.test.SimpleSelectItSpec
+import com.emarsys.rdb.connector.test._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

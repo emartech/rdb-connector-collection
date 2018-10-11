@@ -3,7 +3,7 @@ import sbt._
 
 object Dependencies {
 
-  val releaseVersion = "1.0-SNAPSHOT"
+  val releaseVersion = "0.1.0"
 
   val ScalaVersion = "2.12.6"
 

@@ -1,10 +1,10 @@
 
 lazy val connectors: Seq[ProjectReference] = Seq(
-  bigQuery,
-  mssql,
+//  bigQuery,
+//  mssql,
   mysql,
-  postgres,
-  redshift
+//  postgres,
+//  redshift
 )
 
 lazy val connectorCollection = project
@@ -19,6 +19,7 @@ lazy val common = Project(id = "common", base = file("common"))
     AutomaticModuleName.settings(s"com.emarsys.rdb.connector.common")
   )
   //.settings(exports(Seq("com.emarsys.rdb.connector.common.*")))
+  .settings(meta: _*)
   .settings(Dependencies.Common: _*)
 lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(
@@ -26,6 +27,7 @@ lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
     AutomaticModuleName.settings(s"com.emarsys.rdb.connector.test")
   )
   .dependsOn(common)
+  .settings(meta: _*)
   .settings(Dependencies.ConnectorTest: _*)
   //.settings(exports(Seq("com.emarsys.rdb.connector.test.*")))
 
@@ -49,4 +51,27 @@ def connector(projectId: String, additionalSettings: sbt.Def.SettingsDefinition*
     )
     .dependsOn(common, connectorTest % "test")
     .settings(Dependencies.Common: _*)
+    .settings(meta: _*)
     .settings(additionalSettings: _*)
+
+lazy val meta =
+  Seq(
+    organization := "com.emarsys",
+    licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
+    homepage := Some(url("https://github.com/emartech/rdb-connector-collection")),
+    developers := List(
+      Developer("andrasp3a", "Andras Papp", "andras.papp@emarsys.com", url("https://github.com/andrasp3a")),
+      Developer("doczir", "Robert Doczi", "doczi.r@gmail.com", url("https://github.com/doczir")),
+      Developer("fugafree", "Gabor Fulop", "gabor.fulop@emarsys.com", url("https://github.com/fugafree")),
+      Developer("Ksisu", "Kristof Horvath", "kristof.horvath@emarsys.com", url("https://github.com/Ksisu")),
+      Developer("miklos-martin", "Miklos Martin", "miklos.martin@gmail.com", url("https://github.com/miklos-martin")),
+      Developer("tg44", "Gergo Torcsvari", "gergo.torcsvari@emarsys.com", url("https://github.com/tg44")),
+    ),
+    scmInfo := Some(ScmInfo(url("https://github.com/emartech/rdb-connector-collection"), "scm:git:git@github.com:emartech/rdb-connector-collection.git")),
+
+    // These are the sbt-release-early settings to configure
+    pgpPublicRing := file("./travis/local.pubring.asc"),
+    pgpSecretRing := file("./travis/local.secring.asc"),
+    releaseEarlyWith := SonatypePublisher
+  )
+

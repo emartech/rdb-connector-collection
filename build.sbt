@@ -12,6 +12,8 @@ lazy val connectorCollection = project
   .aggregate(common)
   .aggregate(connectorTest)
   .aggregate(connectors: _*)
+  .settings(Test / fork := true)
+  .settings(Global / concurrentRestrictions += Tags.limit(Tags.Test, 1))
 
 lazy val common = Project(id = "common", base = file("common"))
   .settings(
@@ -31,11 +33,11 @@ lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(Dependencies.ConnectorTest: _*)
   //.settings(exports(Seq("com.emarsys.rdb.connector.test.*")))
 
-lazy val bigQuery = connector("bigquery", Dependencies.BigQuery)
-lazy val mssql = connector("mssql", Dependencies.Mssql)
+//lazy val bigQuery = connector("bigquery", Dependencies.BigQuery)
+//lazy val mssql = connector("mssql", Dependencies.Mssql)
 lazy val mysql = connector("mysql", Dependencies.Mysql)
-lazy val postgres = connector("postgresql", Dependencies.Postgresql)
-lazy val redshift = connector("redshift", Dependencies.Redshift)
+//lazy val postgres = connector("postgresql", Dependencies.Postgresql)
+//lazy val redshift = connector("redshift", Dependencies.Redshift)
 
 lazy val ItTest = config("it") extend Test
 

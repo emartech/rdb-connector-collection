@@ -12,12 +12,12 @@ trait BigQueryMetadata {
 
   override def listTables(): ConnectorResponse[Seq[TableModel]] = {
     bigQueryClient.listTables()
-      .recover(errorHandler())
+      .recover(eitherErrorHandler)
   }
 
   override def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
     bigQueryClient.listFields(tableName)
-      .recover(errorHandler())
+      .recover(eitherErrorHandler)
   }
 
   override def listTablesWithFields(): ConnectorResponse[Seq[FullTableModel]] = {
@@ -26,7 +26,7 @@ trait BigQueryMetadata {
       map    <- mapTablesWithFields(tables.toVector)
     } yield makeTablesWithFields(tables, map.toMap)
 
-    tablesWithFields.value.recover(errorHandler())
+    tablesWithFields.value.recover(eitherErrorHandler)
   }
 
   private def mapTablesWithFields[F[_]: Traverse](tables: F[TableModel]) = {

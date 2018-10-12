@@ -3,7 +3,6 @@ package com.emarsys.rdb.connector.bigquery
 import akka.NotUsed
 import akka.stream.scaladsl.{Sink, Source}
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
 
 import scala.annotation.tailrec
 import scala.concurrent.Future
@@ -12,32 +11,51 @@ import scala.concurrent.duration.FiniteDuration
 trait BigQueryRawSelect {
   self: BigQueryConnector =>
 
-  override def rawSelect(rawSql: String, limit: Option[Int], timeout: FiniteDuration): ConnectorResponse[Source[Seq[String], NotUsed]] = {
+  override def rawSelect(
+      rawSql: String,
+      limit: Option[Int],
+      timeout: FiniteDuration
+  ): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     val query = removeEndingSemicolons(rawSql)
-    val limitedQuery = limit.fold(query) { l =>
-      wrapInLimit(query, l)
+    val limitedQuery = limit.fold(query) { l => wrapInLimit(query, l)
     }
-    Future.successful(Right(bigQueryClient.streamingQuery(limitedQuery).completionTimeout(timeout)))
+    Future.successful(
+      Right(
+        bigQueryClient.streamingQuery(limitedQuery).completionTimeout(timeout).recoverWithRetries(1, streamErrorHandler)
+      )
+    )
   }
 
-  override def projectedRawSelect(rawSql: String,
-                                  fields: Seq[String],
-                                  limit: Option[Int],
-                                  timeout: FiniteDuration,
-                                  allowNullFieldValue: Boolean): ConnectorResponse[Source[Seq[String], NotUsed]] =
+  override def projectedRawSelect(
+      rawSql: String,
+      fields: Seq[String],
+      limit: Option[Int],
+      timeout: FiniteDuration,
+      allowNullFieldValue: Boolean
+  ): ConnectorResponse[Source[Seq[String], NotUsed]] =
     Future.successful(
-      Right(runProjectedSelectWith(rawSql, fields, limit, allowNullFieldValue, query => bigQueryClient.streamingQuery(query).completionTimeout(timeout)))
+      Right(
+        runProjectedSelectWith(
+          rawSql,
+          fields,
+          limit,
+          allowNullFieldValue,
+          query =>
+            bigQueryClient.streamingQuery(query).completionTimeout(timeout).recoverWithRetries(1, streamErrorHandler)
+        )
+      )
     )
 
   override def validateProjectedRawSelect(rawSql: String, fields: Seq[String]): ConnectorResponse[Unit] = {
-    runProjectedSelectWith(rawSql,
-                           fields,
-                           None,
-                           allowNullFieldValue = true,
-                           query => bigQueryClient.streamingQuery(query, dryRun = true))
-      .runWith(Sink.seq)
+    runProjectedSelectWith(
+      rawSql,
+      fields,
+      None,
+      allowNullFieldValue = true,
+      query => bigQueryClient.streamingQuery(query, dryRun = true)
+    ).runWith(Sink.seq)
       .map(_ => Right({}))
-      .recover(errorHandler())
+      .recover(eitherErrorHandler)
   }
 
   override def validateRawSelect(rawSql: String): ConnectorResponse[Unit] = {
@@ -46,7 +64,7 @@ trait BigQueryRawSelect {
       .streamingQuery(modifiedSql, dryRun = true)
       .runWith(Sink.seq)
       .map(_ => Right({}))
-      .recover(errorHandler())
+      .recover(eitherErrorHandler)
   }
 
   override def analyzeRawSelect(rawSql: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
@@ -54,11 +72,13 @@ trait BigQueryRawSelect {
     Future(Right(bigQueryClient.streamingQuery(modifiedSql, dryRun = true)))
   }
 
-  private def runProjectedSelectWith[R](rawSql: String,
-                                        fields: Seq[String],
-                                        limit: Option[Int],
-                                        allowNullFieldValue: Boolean,
-                                        queryRunner: String => R) = {
+  private def runProjectedSelectWith[R](
+      rawSql: String,
+      fields: Seq[String],
+      limit: Option[Int],
+      allowNullFieldValue: Boolean,
+      queryRunner: String => R
+  ) = {
     val fieldList    = concatenateProjection(fields)
     val projectedSql = wrapInProjection(rawSql, fieldList)
     val query =

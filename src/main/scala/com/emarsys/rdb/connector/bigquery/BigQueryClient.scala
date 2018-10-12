@@ -48,8 +48,7 @@ class BigQueryClient(val googleSession: GoogleSession, projectId: String, datase
 
   def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
     runMetaQuery(fieldListUrl(projectId, dataset, tableName), parseFieldResults).map {
-      case Left(ConnectionError(ex)) if ex.getMessage.startsWith("Unexpected error in response: 404 Not Found") =>
-        Left(TableNotFound(tableName))
+      case Left(TableNotFound(_)) => Left(TableNotFound(tableName))
       case other => other
     }
   }
@@ -74,7 +73,7 @@ class BigQueryClient(val googleSession: GoogleSession, projectId: String, datase
     bigQuerySource
       .runWith(Sink.seq)
       .map(listOfList => Right(listOfList.flatten))
-      .recover(errorHandler())
+      .recover(eitherErrorHandler)
   }
 
   private def parseQueryResult(result: JsObject): Option[(Seq[String], Seq[Seq[String]])] = {

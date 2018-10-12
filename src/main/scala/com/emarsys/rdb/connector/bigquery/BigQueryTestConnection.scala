@@ -18,6 +18,6 @@ trait BigQueryTestConnection {
     bigQuerySource
       .runWith(Sink.seq)
       .map(_ => Right({}))
-      .recover(errorHandler())
+      .recover(eitherErrorHandler)
   }
 }

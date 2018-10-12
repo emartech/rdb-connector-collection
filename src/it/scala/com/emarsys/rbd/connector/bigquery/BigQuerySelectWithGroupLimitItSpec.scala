@@ -73,6 +73,7 @@ class BigQuerySelectWithGroupLimitItSpec
       _ <- runRequest(createTable(createTableSql))
       _ <- runRequest(insertInto(insertDataSql, tableName))
     } yield (), timeout.duration)
+    sleep()
   }
 
   override def cleanUpDb(): Unit = {

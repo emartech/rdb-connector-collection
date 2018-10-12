@@ -22,7 +22,7 @@ import scala.language.reflectiveCalls
 import scala.util.Try
 
 class BigQueryStreamSourceSpec
-  extends TestKit(ActorSystem("BigQueryStreamSourceSpec"))
+    extends TestKit(ActorSystem("BigQueryStreamSourceSpec"))
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll
@@ -32,8 +32,8 @@ class BigQueryStreamSourceSpec
     TestKit.shutdownActorSystem(system)
   }
 
-  val timeout = 3.seconds
-  implicit val materializer = ActorMaterializer()
+  val timeout                   = 3.seconds
+  implicit val materializer     = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
   trait Scope {
@@ -54,13 +54,15 @@ class BigQueryStreamSourceSpec
 
   val mockHttp =
     new HttpExt(null) {
-      var usedToken = ""
+      var usedToken                                       = ""
       var responseFn: HttpRequest => Future[HttpResponse] = responseFnQuick
 
-      override def singleRequest(request: HttpRequest,
-                                 connectionContext: HttpsConnectionContext,
-                                 settings: ConnectionPoolSettings,
-                                 log: LoggingAdapter)(implicit fm: Materializer): Future[HttpResponse] = {
+      override def singleRequest(
+          request: HttpRequest,
+          connectionContext: HttpsConnectionContext,
+          settings: ConnectionPoolSettings,
+          log: LoggingAdapter
+      )(implicit fm: Materializer): Future[HttpResponse] = {
         usedToken = request.headers.head.value().stripPrefix("Bearer ")
         responseFn(request)
       }
@@ -72,9 +74,10 @@ class BigQueryStreamSourceSpec
 
       var isDummyHandlerCallbackCalled = false
 
-      val dummyHandlerCallback = (x: (Boolean, PagingInfo)) =>  isDummyHandlerCallbackCalled = true
+      val dummyHandlerCallback = (x: (Boolean, PagingInfo)) => isDummyHandlerCallbackCalled = true
 
-      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success".some, session, mockHttp, dummyHandlerCallback)
+      val bigQuerySource =
+        BigQueryStreamSource(HttpRequest(), _ => "success".some, session, mockHttp, dummyHandlerCallback)
 
       val resultF = Source.fromGraph(bigQuerySource).runWith(Sink.head)
 
@@ -166,9 +169,10 @@ class BigQueryStreamSourceSpec
 
       var isDummyHandlerCallbackCalled = false
 
-      val dummyHandlerCallback = (x: (Boolean, PagingInfo)) =>  isDummyHandlerCallbackCalled = true
+      val dummyHandlerCallback = (x: (Boolean, PagingInfo)) => isDummyHandlerCallbackCalled = true
 
-      val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => Option.empty[String], session, mockHttp, dummyHandlerCallback)
+      val bigQuerySource =
+        BigQueryStreamSource(HttpRequest(), _ => Option.empty[String], session, mockHttp, dummyHandlerCallback)
 
       val resultF = bigQuerySource.completionTimeout(1.second).runWith(Sink.ignore)
 

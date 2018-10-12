@@ -10,10 +10,13 @@ import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class BigQuerySelectWithGroupLimitItSpec extends TestKit(ActorSystem()) with SelectWithGroupLimitItSpec with DbInitUtil{
-  override implicit val sys: ActorSystem = system
+class BigQuerySelectWithGroupLimitItSpec
+    extends TestKit(ActorSystem())
+    with SelectWithGroupLimitItSpec
+    with DbInitUtil {
+  override implicit val sys: ActorSystem                = system
   override implicit val materializer: ActorMaterializer = ActorMaterializer()
-  override implicit val timeout: Timeout = 20.seconds
+  override implicit val timeout: Timeout                = 20.seconds
 
   override def afterAll(): Unit = {
     super.afterAll()
@@ -50,8 +53,6 @@ class BigQuerySelectWithGroupLimitItSpec extends TestKit(ActorSystem()) with Sel
        |}
        """.stripMargin
 
-
-
     val insertDataSql =
       s"""
          |{
@@ -67,7 +68,6 @@ class BigQuerySelectWithGroupLimitItSpec extends TestKit(ActorSystem()) with Sel
          |  { "json": {"ID": 3, "NAME": "test4", "DATA": "data9"}}
          |  ]
          |}""".stripMargin
-
 
     Await.result(for {
       _ <- runRequest(createTable(createTableSql))

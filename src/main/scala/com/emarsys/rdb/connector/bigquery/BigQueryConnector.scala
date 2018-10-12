@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQueryConnectionConfig)(
-  implicit val executionContext: ExecutionContext
+    implicit val executionContext: ExecutionContext
 ) extends Connector
     with BigQueryErrorHandling
     with BigQuerySimpleSelect
@@ -28,10 +28,15 @@ class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQ
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val timeout: Timeout                = Timeout(3.seconds)
 
-  val googleSession = new GoogleSession(config.clientEmail, config.privateKey, new GoogleTokenApi(Http()))
+  val googleSession                  = new GoogleSession(config.clientEmail, config.privateKey, new GoogleTokenApi(Http()))
   val bigQueryClient: BigQueryClient = new BigQueryClient(googleSession, config.projectId, config.dataset)
 
-  override protected def rawSearch(tableName: String, criteria: Criteria, limit: Option[Int], timeout: FiniteDuration): ConnectorResponse[Source[Seq[String], NotUsed]] = notImplementedOperation
+  override protected def rawSearch(
+      tableName: String,
+      criteria: Criteria,
+      limit: Option[Int],
+      timeout: FiniteDuration
+  ): ConnectorResponse[Source[Seq[String], NotUsed]] = notImplementedOperation
 
   override def close(): Future[Unit] = {
     Future.unit

@@ -59,7 +59,6 @@ trait MetaDbInitHelper extends DbInitUtil {
        |}
        """.stripMargin
 
-
   def initDb(): Unit = {
     Await.result(for {
       _ <- runRequest(createTable(createTableSql))

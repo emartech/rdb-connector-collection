@@ -13,14 +13,19 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class BigQuerySearchItSpec extends TestKit(ActorSystem()) with WordSpecLike with Matchers with BeforeAndAfterAll with DbInitUtil {
+class BigQuerySearchItSpec
+    extends TestKit(ActorSystem())
+    with WordSpecLike
+    with Matchers
+    with BeforeAndAfterAll
+    with DbInitUtil {
 
-  override implicit val sys: ActorSystem = system
+  override implicit val sys: ActorSystem                = system
   override implicit val materializer: ActorMaterializer = ActorMaterializer()
-  override implicit val timeout: Timeout = 10.seconds
-  val awaitTimeout = timeout.duration
+  override implicit val timeout: Timeout                = 10.seconds
+  val awaitTimeout                                      = timeout.duration
 
-  val uuid = uuidGenerate
+  val uuid      = uuidGenerate
   val tableName = s"search_table_$uuid"
 
   override def beforeAll(): Unit = {
@@ -37,7 +42,8 @@ class BigQuerySearchItSpec extends TestKit(ActorSystem()) with WordSpecLike with
   s"BigQuerySearchIt $uuid" should {
 
     "return NotImplementedOperation" in {
-      val result = Await.result(connector.search(tableName, Map("C" -> StringValue("c12")), None, awaitTimeout), awaitTimeout)
+      val result =
+        Await.result(connector.search(tableName, Map("C" -> StringValue("c12")), None, awaitTimeout), awaitTimeout)
       result shouldEqual Left(NotImplementedOperation)
     }
   }

@@ -8,8 +8,13 @@ trait BigQueryIsOptimized {
 
   override def isOptimized(table: String, fields: Seq[String]): ConnectorResponse[Boolean] = {
     listTables()
-      .map(_.map(_.exists(_.name == table))
-        .flatMap(if (_) Right(true) else Left(TableNotFound(table))))
+      .map(
+        _.map(_.exists(_.name == table))
+          .flatMap(
+            if (_) Right(true)
+            else Left(TableNotFound(table))
+          )
+      )
       .recover(eitherErrorHandler)
   }
 }

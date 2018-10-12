@@ -13,15 +13,20 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class BigQueryIsOptimizedItSpec extends TestKit(ActorSystem()) with WordSpecLike with Matchers with BeforeAndAfterAll with MetaDbInitHelper {
+class BigQueryIsOptimizedItSpec
+    extends TestKit(ActorSystem())
+    with WordSpecLike
+    with Matchers
+    with BeforeAndAfterAll
+    with MetaDbInitHelper {
 
-  implicit override val sys: ActorSystem = system
+  implicit override val sys: ActorSystem                = system
   implicit override val materializer: ActorMaterializer = ActorMaterializer()
-  implicit override val timeout: Timeout = Timeout(30.second)
+  implicit override val timeout: Timeout                = Timeout(30.second)
 
   val awaitTimeout = 30.seconds
 
-  val uuid = UUID.randomUUID().toString.replace("-", "")
+  val uuid      = UUID.randomUUID().toString.replace("-", "")
   val tableName = s"is_optimized_table_$uuid"
 
   override val viewName: String = ""

@@ -24,8 +24,8 @@ object Parser {
   }
 
   def apply[T](parseFunction: JsObject => Option[T])(
-    implicit materializer: Materializer,
-    ec: ExecutionContext
+      implicit materializer: Materializer,
+      ec: ExecutionContext
   ): Graph[FanOutShape2[HttpResponse, T, (Boolean, PagingInfo)], NotUsed] = GraphDSL.create() { implicit builder =>
     import GraphDSL.Implicits._
 

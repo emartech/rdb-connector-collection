@@ -6,17 +6,18 @@ import cats.implicits._
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
 
-
 trait BigQueryMetadata {
   self: BigQueryConnector =>
 
   override def listTables(): ConnectorResponse[Seq[TableModel]] = {
-    bigQueryClient.listTables()
+    bigQueryClient
+      .listTables()
       .recover(eitherErrorHandler)
   }
 
   override def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
-    bigQueryClient.listFields(tableName)
+    bigQueryClient
+      .listFields(tableName)
       .recover(eitherErrorHandler)
   }
 
@@ -33,12 +34,13 @@ trait BigQueryMetadata {
     def getFieldsForTable(table: TableModel) =
       EitherT(listFields(table.name)).map(fieldModel => (table.name, fieldModel))
 
-
     tables.traverse(getFieldsForTable)
   }
 
-  private def makeTablesWithFields(tableList: Seq[TableModel],
-                                   tableFieldMap: Map[String, Seq[FieldModel]]): Seq[FullTableModel] = {
+  private def makeTablesWithFields(
+      tableList: Seq[TableModel],
+      tableFieldMap: Map[String, Seq[FieldModel]]
+  ): Seq[FullTableModel] = {
     tableList
       .map(table => (table, tableFieldMap.get(table.name)))
       .collect {

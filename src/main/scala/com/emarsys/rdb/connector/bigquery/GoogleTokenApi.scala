@@ -14,8 +14,8 @@ import scala.concurrent.Future
 class GoogleTokenApi(http: => HttpExt) {
   protected val encodingAlgorithm: JwtAlgorithm.RS256.type = JwtAlgorithm.RS256
 
-  private val googleTokenUrl =  GoogleApi.googleTokenUrl
-  private val scope = GoogleApi.bigQueryAuthUrl
+  private val googleTokenUrl = GoogleApi.googleTokenUrl
+  private val scope          = GoogleApi.bigQueryAuthUrl
 
   def now: Long = JwtTime.nowSeconds
 
@@ -27,22 +27,22 @@ class GoogleTokenApi(http: => HttpExt) {
   }
 
   def getAccessToken(clientEmail: String, privateKey: String)(
-    implicit materializer: Materializer
+      implicit materializer: Materializer
   ): Future[AccessTokenExpiry] = {
     import materializer.executionContext
     import SprayJsonSupport._
 
     val expiresAt = now + 3600
-    val jwt = generateJwt(clientEmail, privateKey)
+    val jwt       = generateJwt(clientEmail, privateKey)
 
     val requestEntity = FormData(
       "grant_type" -> "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      "assertion" -> jwt
+      "assertion"  -> jwt
     ).toEntity
 
     for {
       response <- http.singleRequest(HttpRequest(HttpMethods.POST, googleTokenUrl, entity = requestEntity))
-      result <- Unmarshal(response.entity).to[OAuthResponse]
+      result   <- Unmarshal(response.entity).to[OAuthResponse]
     } yield {
       AccessTokenExpiry(
         accessToken = result.access_token,

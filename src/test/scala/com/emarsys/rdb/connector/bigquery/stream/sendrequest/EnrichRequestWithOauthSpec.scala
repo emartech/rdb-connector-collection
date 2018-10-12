@@ -15,18 +15,19 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-class EnrichRequestWithOauthSpec extends TestKit(ActorSystem("EnrichRequestWithOauthSpec"))
-  with WordSpecLike
-  with Matchers
-  with BeforeAndAfterAll
-  with MockitoSugar {
+class EnrichRequestWithOauthSpec
+    extends TestKit(ActorSystem("EnrichRequestWithOauthSpec"))
+    with WordSpecLike
+    with Matchers
+    with BeforeAndAfterAll
+    with MockitoSugar {
 
   override def afterAll {
     TestKit.shutdownActorSystem(system)
   }
 
   implicit val materializer = ActorMaterializer()
-  implicit val timeout = Timeout(1.second)
+  implicit val timeout      = Timeout(1.second)
 
   import system.dispatcher
 
@@ -35,7 +36,8 @@ class EnrichRequestWithOauthSpec extends TestKit(ActorSystem("EnrichRequestWithO
     "Ask token actor, add oauth header" in {
       val session = mock[GoogleSession]
       when(session.getToken()) thenReturn Future.successful("TOKEN")
-      val resultF = Source.single(HttpRequest())
+      val resultF = Source
+        .single(HttpRequest())
         .via(EnrichRequestWithOauth(session))
         .runWith(Sink.last)
 
@@ -48,7 +50,8 @@ class EnrichRequestWithOauthSpec extends TestKit(ActorSystem("EnrichRequestWithO
       val session = mock[GoogleSession]
       when(session.getToken()) thenReturn Future.failed(TokenErrorException())
 
-      val resultF = Source.single(HttpRequest())
+      val resultF = Source
+        .single(HttpRequest())
         .via(EnrichRequestWithOauth(session))
         .runWith(Sink.last)
 

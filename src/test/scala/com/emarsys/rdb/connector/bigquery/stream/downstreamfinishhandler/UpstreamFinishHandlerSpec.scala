@@ -12,13 +12,14 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
 
-class UpstreamFinishHandlerSpec extends TestKit(ActorSystem("UpstreamFinishHandlerSpec"))
-  with WordSpecLike
-  with Matchers
-  with MockitoSugar {
+class UpstreamFinishHandlerSpec
+    extends TestKit(ActorSystem("UpstreamFinishHandlerSpec"))
+    with WordSpecLike
+    with Matchers
+    with MockitoSugar {
 
   implicit val materializer = ActorMaterializer()
-  implicit val timeout = Timeout(1.second)
+  implicit val timeout      = Timeout(1.second)
 
   trait TestScope {
 
@@ -35,7 +36,8 @@ class UpstreamFinishHandlerSpec extends TestKit(ActorSystem("UpstreamFinishHandl
 
     "Do not call handler if there was no timeout" in new TestScope {
       val result =
-        Source.repeat(1)
+        Source
+          .repeat(1)
           .via(timeOutHandler)
           .take(10)
           .runWith(Sink.ignore)
@@ -48,7 +50,8 @@ class UpstreamFinishHandlerSpec extends TestKit(ActorSystem("UpstreamFinishHandl
 
     "Do not call handler if there was no data and cancel was pushed" in new TestScope {
       val result =
-        Source.failed(new Exception)
+        Source
+          .failed(new Exception)
           .via(timeOutHandler)
           .take(5)
           .runWith(Sink.ignore)
@@ -65,7 +68,6 @@ class UpstreamFinishHandlerSpec extends TestKit(ActorSystem("UpstreamFinishHandl
           .runWith(Sink.ignore)
 
       Try(Await.result(result, 3.seconds))
-
 
       calledParams shouldBe Some(3)
     }

@@ -11,9 +11,11 @@ import akka.stream.{FlowShape, Graph}
 import scala.concurrent.duration.FiniteDuration
 
 object Delay {
-  def apply[T](shouldDelay: T => Boolean,
-               maxDelay: Int,
-               delayUnit: TimeUnit = TimeUnit.SECONDS): Graph[FlowShape[T, T], NotUsed] =
+  def apply[T](
+      shouldDelay: T => Boolean,
+      maxDelay: Int,
+      delayUnit: TimeUnit = TimeUnit.SECONDS
+  ): Graph[FlowShape[T, T], NotUsed] =
     GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
 

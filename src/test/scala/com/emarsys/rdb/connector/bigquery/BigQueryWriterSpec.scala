@@ -10,7 +10,7 @@ import org.scalatest.{Matchers, WordSpecLike}
 class BigQueryWriterSpec extends WordSpecLike with Matchers {
 
   private val dataset = "dataset123"
-  val config = BigQueryConnectionConfig("", dataset, "", "")
+  val config          = BigQueryConnectionConfig("", dataset, "", "")
 
   "BigQuerySqlWriters" when {
 
@@ -27,43 +27,45 @@ class BigQueryWriterSpec extends WordSpecLike with Matchers {
       }
 
       Map(
-        "INT64" -> "123",
+        "INT64"   -> "123",
         "FLOAT64" -> "123.123",
         "INTEGER" -> "123",
-        "FLOAT" -> "123,123"
-      ) foreach { case (numericType, numericValue) =>
-        s"use bigquery writer - only numeric equalTo - $numericType" in {
-          val writer = BigQueryWriter(config, Seq(FieldModel("FIELD1", numericType)))
-          import writer._
+        "FLOAT"   -> "123,123"
+      ) foreach {
+        case (numericType, numericValue) =>
+          s"use bigquery writer - only numeric equalTo - $numericType" in {
+            val writer = BigQueryWriter(config, Seq(FieldModel("FIELD1", numericType)))
+            import writer._
 
-          val where = EqualToValue(FieldName("FIELD1"), Value(numericValue))
+            val where = EqualToValue(FieldName("FIELD1"), Value(numericValue))
 
-          where.toSql shouldEqual s"""FIELD1=$numericValue"""
-        }
+            where.toSql shouldEqual s"""FIELD1=$numericValue"""
+          }
       }
 
       Map(
-        "BOOL" -> "1" -> "TRUE",
-        "BOOL" -> "true" -> "TRUE",
-        "BOOL" -> "TRUE" -> "TRUE",
-        "BOOL" -> "0" -> "FALSE",
-        "BOOL" -> "false" -> "FALSE",
-        "BOOL" -> "FALSE" -> "FALSE",
-        "BOOLEAN" -> "1" -> "TRUE",
-        "BOOLEAN" -> "true" -> "TRUE",
-        "BOOLEAN" -> "TRUE" -> "TRUE",
-        "BOOLEAN" -> "0" -> "FALSE",
+        "BOOL"    -> "1"     -> "TRUE",
+        "BOOL"    -> "true"  -> "TRUE",
+        "BOOL"    -> "TRUE"  -> "TRUE",
+        "BOOL"    -> "0"     -> "FALSE",
+        "BOOL"    -> "false" -> "FALSE",
+        "BOOL"    -> "FALSE" -> "FALSE",
+        "BOOLEAN" -> "1"     -> "TRUE",
+        "BOOLEAN" -> "true"  -> "TRUE",
+        "BOOLEAN" -> "TRUE"  -> "TRUE",
+        "BOOLEAN" -> "0"     -> "FALSE",
         "BOOLEAN" -> "false" -> "FALSE",
         "BOOLEAN" -> "FALSE" -> "FALSE"
-      ) foreach { case ((boolType, boolValue), sqlValue) =>
-        s"use bigquery writer - only boolean equalTo $boolValue: $boolType -> $sqlValue" in {
-          val writer = BigQueryWriter(config, Seq(FieldModel("FIELD2", boolType)))
-          import writer._
+      ) foreach {
+        case ((boolType, boolValue), sqlValue) =>
+          s"use bigquery writer - only boolean equalTo $boolValue: $boolType -> $sqlValue" in {
+            val writer = BigQueryWriter(config, Seq(FieldModel("FIELD2", boolType)))
+            import writer._
 
-          val where = EqualToValue(FieldName("FIELD2"), Value(boolValue))
+            val where = EqualToValue(FieldName("FIELD2"), Value(boolValue))
 
-          where.toSql shouldEqual s"""FIELD2=$sqlValue"""
-        }
+            where.toSql shouldEqual s"""FIELD2=$sqlValue"""
+          }
       }
 
       "use bigquery writer - full with str equalTo" in {
@@ -74,7 +76,14 @@ class BigQueryWriterSpec extends WordSpecLike with Matchers {
         val select = SimpleSelect(
           fields = SpecificFields(Seq(FieldName("""FIELD1"""), FieldName("FIELD2"), FieldName("FIELD3"))),
           table = TableName("TABLE1"),
-          where = Some(And(Seq(IsNull(FieldName("FIELD1")), Or(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3"))))))),
+          where = Some(
+            And(
+              Seq(
+                IsNull(FieldName("FIELD1")),
+                Or(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3"))))
+              )
+            )
+          ),
           limit = Some(100)
         )
 
@@ -84,27 +93,43 @@ class BigQueryWriterSpec extends WordSpecLike with Matchers {
 
     "#simpleSelectWithGroupLimitWriter creates the sql we want" in {
       val tableName = "test"
-      val simpleSelect = SimpleSelect(AllField, TableName(tableName),
-        where = Some(Or(Seq(
-          And(Seq(
-            EqualToValue(FieldName("ID"), Value("1")),
-            EqualToValue(FieldName("NAME"), Value("test1"))
-          )),
-          And(Seq(
-            EqualToValue(FieldName("ID"), Value("2")),
-            EqualToValue(FieldName("NAME"), Value("test2"))
-          )),
-          And(Seq(
-            EqualToValue(FieldName("ID"), Value("2")),
-            EqualToValue(FieldName("NAME"), Value("test3"))
-          )),
-          And(Seq(
-            EqualToValue(FieldName("ID"), Value("7")),
-            EqualToValue(FieldName("NAME"), Value("test123"))
-          ))
-        ))))
+      val simpleSelect = SimpleSelect(
+        AllField,
+        TableName(tableName),
+        where = Some(
+          Or(
+            Seq(
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("1")),
+                  EqualToValue(FieldName("NAME"), Value("test1"))
+                )
+              ),
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("2")),
+                  EqualToValue(FieldName("NAME"), Value("test2"))
+                )
+              ),
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("2")),
+                  EqualToValue(FieldName("NAME"), Value("test3"))
+                )
+              ),
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("7")),
+                  EqualToValue(FieldName("NAME"), Value("test123"))
+                )
+              )
+            )
+          )
+        )
+      )
 
-      val writer = BigQueryWriter(config, Seq(FieldModel("ID", "INT"), FieldModel("NAME", "STRING"), FieldModel("DATA", "STRING")))
+      val writer =
+        BigQueryWriter(config, Seq(FieldModel("ID", "INT"), FieldModel("NAME", "STRING"), FieldModel("DATA", "STRING")))
       import writer._
 
       simpleSelect.toSql(simpleSelectWithGroupLimitWriter(Seq("ID", "NAME"), 2)) shouldBe

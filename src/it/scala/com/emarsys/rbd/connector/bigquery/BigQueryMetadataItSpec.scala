@@ -10,11 +10,17 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
 
-class BigQueryMetadataItSpec extends TestKit(ActorSystem()) with MetadataItSpec with WordSpecLike with Matchers with BeforeAndAfterAll with MetaDbInitHelper {
+class BigQueryMetadataItSpec
+    extends TestKit(ActorSystem())
+    with MetadataItSpec
+    with WordSpecLike
+    with Matchers
+    with BeforeAndAfterAll
+    with MetaDbInitHelper {
 
-  implicit override val sys: ActorSystem = system
+  implicit override val sys: ActorSystem                = system
   implicit override val materializer: ActorMaterializer = ActorMaterializer()
-  implicit override val timeout: Timeout = Timeout(30.second)
+  implicit override val timeout: Timeout                = Timeout(30.second)
 
   override val awaitTimeout = 30.seconds
 

@@ -25,8 +25,8 @@ import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 class BigQueryClient(val googleSession: GoogleSession, projectId: String, dataset: String)(
-  implicit timeout: Timeout,
-  materializer: ActorMaterializer
+    implicit timeout: Timeout,
+    materializer: ActorMaterializer
 ) extends BigQueryErrorHandling {
 
   implicit val system: ActorSystem  = materializer.system
@@ -49,13 +49,13 @@ class BigQueryClient(val googleSession: GoogleSession, projectId: String, datase
   def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
     runMetaQuery(fieldListUrl(projectId, dataset, tableName), parseFieldResults).map {
       case Left(TableNotFound(_)) => Left(TableNotFound(tableName))
-      case other => other
+      case other                  => other
     }
   }
 
   private def createQuerySource(request: HttpRequest) =
-    BigQueryStreamSource(request, parseQueryResult, googleSession, Http(), handleTimeout).via(concatWitFieldNamesAsFirst)
-
+    BigQueryStreamSource(request, parseQueryResult, googleSession, Http(), handleTimeout)
+      .via(concatWitFieldNamesAsFirst)
 
   private def createDryQuerySource(request: HttpRequest) =
     BigQueryStreamSource(request, parseDryResult, googleSession, Http(), handleTimeout).mapConcat(identity)
@@ -120,8 +120,8 @@ class BigQueryClient(val googleSession: GoogleSession, projectId: String, datase
 
   private def handleTimeout(tuple: (Boolean, PagingInfo)): Unit = {
     tuple._2.jobId.foreach(jobId => {
-      Source.single(
-        HttpRequest(HttpMethods.POST, cancellationUrl(projectId, jobId)))
+      Source
+        .single(HttpRequest(HttpMethods.POST, cancellationUrl(projectId, jobId)))
         .via(SendRequestWithOauthHandling(googleSession, Http()))
         .runWith(Sink.ignore)(materializer)
     })
@@ -130,9 +130,10 @@ class BigQueryClient(val googleSession: GoogleSession, projectId: String, datase
 
 object BigQueryClient {
 
-  def apply(googleSession: GoogleSession,
-            projectId: String,
-            dataset: String)(implicit timeout: Timeout, materializer: ActorMaterializer): BigQueryClient =
+  def apply(googleSession: GoogleSession, projectId: String, dataset: String)(
+      implicit timeout: Timeout,
+      materializer: ActorMaterializer
+  ): BigQueryClient =
     new BigQueryClient(googleSession, projectId, dataset)
 
   object DryRunJsonProtocol extends DefaultJsonProtocol {
@@ -144,10 +145,12 @@ object BigQueryClient {
 
   object QueryJsonProtocol extends DefaultJsonProtocol {
 
-    case class QueryRequest(query: String,
-                            useLegacySql: Boolean = false,
-                            maxResults: Option[Int] = None,
-                            dryRun: Option[Boolean] = None)
+    case class QueryRequest(
+        query: String,
+        useLegacySql: Boolean = false,
+        maxResults: Option[Int] = None,
+        dryRun: Option[Boolean] = None
+    )
 
     case class QueryResponse(schema: Schema, rows: Option[Seq[Row]])
     case class Schema(fields: Seq[FieldSchema])

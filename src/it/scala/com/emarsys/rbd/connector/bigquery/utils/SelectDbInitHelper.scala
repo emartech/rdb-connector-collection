@@ -169,12 +169,15 @@ trait SelectDbInitHelper extends DbInitUtil {
            |}
        """.stripMargin
 
-    Await.result(for {
-      _ <- runRequest(createTable(createATableSql))
-      _ <- runRequest(createTable(createBTableSql))
-      _ <- runRequest(insertInto(insertADataSql, aTableName))
-      _ <- runRequest(insertInto(insertBDataSql, bTableName))
-    } yield (), timeout.duration)
+    Await.result(
+      for {
+        _ <- runRequest(createTable(createATableSql))
+        _ <- runRequest(createTable(createBTableSql))
+        _ <- runRequest(insertInto(insertADataSql, aTableName))
+        _ <- runRequest(insertInto(insertBDataSql, bTableName))
+      } yield (),
+      timeout.duration
+    )
     sleep()
   }
 

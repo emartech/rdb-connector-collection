@@ -14,7 +14,10 @@ trait BigQuerySimpleSelect {
 
   import cats.instances.future._
 
-  override def simpleSelect(select: SimpleSelect, timeout: FiniteDuration): ConnectorResponse[Source[Seq[String], NotUsed]] = {
+  override def simpleSelect(
+      select: SimpleSelect,
+      timeout: FiniteDuration
+  ): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     EitherT(listFields(select.table.t)).map { fields =>
       val writer = BigQueryWriter(config, fields)
       import writer._
@@ -23,7 +26,12 @@ trait BigQuerySimpleSelect {
     }.value
   }
 
-  override protected def runSelectWithGroupLimit(select: SimpleSelect, groupLimit: Int, references: Seq[String], timeout: FiniteDuration): ConnectorResponse[Source[Seq[String], NotUsed]] = {
+  override protected def runSelectWithGroupLimit(
+      select: SimpleSelect,
+      groupLimit: Int,
+      references: Seq[String],
+      timeout: FiniteDuration
+  ): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     EitherT(listFields(select.table.t)).map { fields =>
       val writer = BigQueryWriter(config, fields)
       import writer._
@@ -35,5 +43,3 @@ trait BigQuerySimpleSelect {
     }.value
   }
 }
-
-

@@ -17,7 +17,8 @@ trait BigQueryRawSelect {
       timeout: FiniteDuration
   ): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     val query = removeEndingSemicolons(rawSql)
-    val limitedQuery = limit.fold(query) { l => wrapInLimit(query, l)
+    val limitedQuery = limit.fold(query) { l =>
+      wrapInLimit(query, l)
     }
     Future.successful(
       Right(

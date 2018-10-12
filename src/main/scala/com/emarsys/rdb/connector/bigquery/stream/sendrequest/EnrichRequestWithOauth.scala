@@ -13,11 +13,13 @@ object EnrichRequestWithOauth {
 
   case class TokenErrorException() extends Exception
 
-  def apply(googleSession: GoogleSession)(implicit ec: ExecutionContext, materializer: Materializer): Flow[HttpRequest, HttpRequest, NotUsed] = {
+  def apply(
+      googleSession: GoogleSession
+  )(implicit ec: ExecutionContext, materializer: Materializer): Flow[HttpRequest, HttpRequest, NotUsed] = {
     Flow[HttpRequest].mapAsync(1) { request =>
-        googleSession.getToken.map {
-          token => request.addHeader(Authorization(OAuth2BearerToken(token)))
-        }
+      googleSession.getToken.map { token =>
+        request.addHeader(Authorization(OAuth2BearerToken(token)))
+      }
     }
   }
 }

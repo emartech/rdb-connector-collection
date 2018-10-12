@@ -2,8 +2,8 @@ package com.emarsys.rdb.connector.bigquery.stream.pagetoken
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Keep, Source}
-import akka.stream.testkit.scaladsl.{TestSink, TestSource}
+import akka.stream.scaladsl.Source
+import akka.stream.testkit.scaladsl.TestSink
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.bigquery.stream.parser.PagingInfo
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
@@ -26,8 +26,7 @@ class EndOfStreamDetectorSpec
     val pagingInfoWithPageToken = PagingInfo(Some("next page"), None)
 
     "terminate processing if retry is false and page token is none" in {
-      val sourceProbe = TestSource.probe[(Boolean, PagingInfo)]
-      val sinkProbe   = TestSink.probe[(Boolean, PagingInfo)]
+      val sinkProbe = TestSink.probe[(Boolean, PagingInfo)]
 
       val probe = Source
         .single((false, emptyPagingInfo))
@@ -35,7 +34,6 @@ class EndOfStreamDetectorSpec
         .runWith(sinkProbe)
 
       probe.expectSubscriptionAndComplete()
-//      probe.expectComplete()
     }
 
     "forward input if retry is true, no matter the page token" in {

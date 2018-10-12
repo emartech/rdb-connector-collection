@@ -13,12 +13,18 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.util.{Failure, Try}
 
-class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) with RawSelectItSpec with SelectDbInitHelper with WordSpecLike with Matchers with BeforeAndAfterAll {
+class BigQueryRawSelectItSpec
+    extends TestKit(ActorSystem())
+    with RawSelectItSpec
+    with SelectDbInitHelper
+    with WordSpecLike
+    with Matchers
+    with BeforeAndAfterAll {
 
-  implicit override val sys: ActorSystem = system
-  implicit override val materializer: ActorMaterializer = ActorMaterializer()
-  implicit override val timeout: Timeout = Timeout(30.second)
-  implicit override val queryTimeout: FiniteDuration = timeout.duration
+  implicit override val sys: ActorSystem                           = system
+  implicit override val materializer: ActorMaterializer            = ActorMaterializer()
+  implicit override val timeout: Timeout                           = Timeout(30.second)
+  implicit override val queryTimeout: FiniteDuration               = timeout.duration
   override implicit val executionContext: ExecutionContextExecutor = sys.dispatcher
 
   override val awaitTimeout = 30.seconds
@@ -35,8 +41,8 @@ class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) with RawSelectItSpe
 
   val dataset = TestHelper.TEST_CONNECTION_CONFIG.dataset
 
-  val simpleSelect = s"SELECT * FROM $dataset.$aTableName;"
-  val badSimpleSelect = s"SELECT * ForM $dataset.$aTableName"
+  val simpleSelect            = s"SELECT * FROM $dataset.$aTableName;"
+  val badSimpleSelect         = s"SELECT * ForM $dataset.$aTableName"
   val simpleSelectNoSemicolon = s"""SELECT * FROM $dataset.$aTableName"""
 
   "#analyzeRawSelect" should {
@@ -63,11 +69,10 @@ class BigQueryRawSelectItSpec extends TestKit(ActorSystem()) with RawSelectItSpe
 
       val source = Await.result(connector.rawSelect(slowSelect, None, 13.second), 30.seconds).right.get
 
-      val result = Try(Await.result(source.runWith(Sink.seq),70.seconds).size)
+      val result = Try(Await.result(source.runWith(Sink.seq), 70.seconds).size)
 
       result should matchPattern { case k: Failure[_] => }
     }
 
   }
 }
-

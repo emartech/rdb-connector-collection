@@ -60,15 +60,19 @@ class GoogleTokenApiSpec
     "call the api as the docs want to" in {
       val http = mock[HttpExt]
       when(
-        http.singleRequest(any[HttpRequest](),
-                           any[HttpsConnectionContext](),
-                           any[ConnectionPoolSettings](),
-                           any[LoggingAdapter]())(any[ActorMaterializer])
+        http.singleRequest(
+          any[HttpRequest](),
+          any[HttpsConnectionContext](),
+          any[ConnectionPoolSettings](),
+          any[LoggingAdapter]()
+        )(any[ActorMaterializer])
       ).thenReturn(
         Future.successful(
           HttpResponse(
-            entity = HttpEntity(ContentTypes.`application/json`,
-                                """{"access_token": "token", "token_type": "String", "expires_in": 3600}""")
+            entity = HttpEntity(
+              ContentTypes.`application/json`,
+              """{"access_token": "token", "token_type": "String", "expires_in": 3600}"""
+            )
           )
         )
       )
@@ -77,15 +81,17 @@ class GoogleTokenApiSpec
       Await.result(api.getAccessToken("email", privateKey), defaultPatience.timeout)
 
       val captor: ArgumentCaptor[HttpRequest] = ArgumentCaptor.forClass(classOf[HttpRequest])
-      verify(http).singleRequest(captor.capture(),
-                                 any[HttpsConnectionContext](),
-                                 any[ConnectionPoolSettings](),
-                                 any[LoggingAdapter]())(any[ActorMaterializer])
+      verify(http).singleRequest(
+        captor.capture(),
+        any[HttpsConnectionContext](),
+        any[ConnectionPoolSettings](),
+        any[LoggingAdapter]()
+      )(any[ActorMaterializer])
       val request: HttpRequest = captor.getValue
       request.uri.toString shouldBe "https://www.googleapis.com/oauth2/v4/token"
       val data = Unmarshal(request.entity).to[String].futureValue
       data should startWith("grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=")
-      val jwt = data.replace("grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=", "")
+      val jwt     = data.replace("grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=", "")
       val decoded = Jwt.decode(jwt, publicKey, Seq(JwtAlgorithm.RS256))
       decoded.isSuccess shouldBe true
       decoded.get should include(""""aud":"https://www.googleapis.com/oauth2/v4/token"""")
@@ -97,15 +103,19 @@ class GoogleTokenApiSpec
     "return the token" in {
       val http = mock[HttpExt]
       when(
-        http.singleRequest(any[HttpRequest](),
-                           any[HttpsConnectionContext](),
-                           any[ConnectionPoolSettings](),
-                           any[LoggingAdapter]())(any[ActorMaterializer])
+        http.singleRequest(
+          any[HttpRequest](),
+          any[HttpsConnectionContext](),
+          any[ConnectionPoolSettings](),
+          any[LoggingAdapter]()
+        )(any[ActorMaterializer])
       ).thenReturn(
         Future.successful(
           HttpResponse(
-            entity = HttpEntity(ContentTypes.`application/json`,
-                                """{"access_token": "token", "token_type": "String", "expires_in": 3600}""")
+            entity = HttpEntity(
+              ContentTypes.`application/json`,
+              """{"access_token": "token", "token_type": "String", "expires_in": 3600}"""
+            )
           )
         )
       )

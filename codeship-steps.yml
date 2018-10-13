@@ -3,12 +3,25 @@
   - name: compile and unit-tests all
     service: rdb-allconnector
     command: sbt test
+    tag: master
   - type: parallel
+    name: it tests
+    tag: master
     steps:
-    - name: mysql it test
+    - name: mysql-it
       service: rdb-mysql-connector
       command: ./run_mysql_it_tests.sh
-  - name: publish
+  - type: parallel
+    name: publish
     tag: master
-    service: dummy
-    command: echo publish
+    steps:
+    - name: common-publish
+      service: rdb-publisher
+      command: ./publish.sh common
+    - name: test-publish
+      service: rdb-publisher
+      command: ./publish.sh test
+    - name: mysql-publish
+      service: rdb-publisher
+      command: ./publish.sh mysql
+

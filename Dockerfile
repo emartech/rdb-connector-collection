@@ -2,10 +2,12 @@ FROM hseeberger/scala-sbt:8u181_2.12.6_1.2.3
 
 ADD build.sbt /rdb-allconnector/build.sbt
 ADD project /rdb-allconnector/project
+ADD ci /rdb-allconnector/ci
 ADD common /rdb-allconnector/common
 ADD test /rdb-allconnector/test
 ADD mysql /rdb-allconnector/mysql
 ADD run_mysql_it_tests.sh /rdb-allconnector/run_mysql_it_tests.sh
+ADD publish.sh /rdb-allconnector/publish.sh
 
 WORKDIR /rdb-allconnector
 

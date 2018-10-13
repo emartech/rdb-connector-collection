@@ -20,6 +20,13 @@ services:
     links:
     - mysql-db:db
 
+  rdb-publisher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    cached: true
+    encrypted_env_file: env.encrypted
+
   mysql-db:
     image: mysql/mysql-server:5.7
     environment:

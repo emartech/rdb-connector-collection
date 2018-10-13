@@ -23,4 +23,6 @@ project/plugins/project/
 
 .env
 
-codeship.aes
+.aes
+.asc
+.tar

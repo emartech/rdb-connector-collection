@@ -14,6 +14,7 @@ lazy val connectorCollection = project
   .aggregate(connectors: _*)
   .settings(Test / fork := true)
   .settings(Global / concurrentRestrictions += Tags.limit(Tags.Test, 1))
+  .settings(meta: _*)
 
 lazy val common = Project(id = "common", base = file("common"))
   .settings(
@@ -21,16 +22,16 @@ lazy val common = Project(id = "common", base = file("common"))
     AutomaticModuleName.settings(s"com.emarsys.rdb.connector.common")
   )
   //.settings(exports(Seq("com.emarsys.rdb.connector.common.*")))
-  .settings(meta: _*)
   .settings(Dependencies.Common: _*)
+  .settings(meta: _*)
 lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(
     name := s"rdb-connector-test",
     AutomaticModuleName.settings(s"com.emarsys.rdb.connector.test")
   )
   .dependsOn(common)
-  .settings(meta: _*)
   .settings(Dependencies.ConnectorTest: _*)
+  .settings(meta: _*)
   //.settings(exports(Seq("com.emarsys.rdb.connector.test.*")))
 
 //lazy val bigQuery = connector("bigquery", Dependencies.BigQuery)
@@ -53,12 +54,13 @@ def connector(projectId: String, additionalSettings: sbt.Def.SettingsDefinition*
     )
     .dependsOn(common, connectorTest % "test")
     .settings(Dependencies.Common: _*)
-    .settings(meta: _*)
     .settings(additionalSettings: _*)
+    .settings(meta: _*)
 
 lazy val meta =
   Seq(
     organization := "com.emarsys",
+    sonatypeProfileName := "com.emarsys",
     licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
     homepage := Some(url("https://github.com/emartech/rdb-connector-collection")),
     developers := List(
@@ -72,8 +74,8 @@ lazy val meta =
     scmInfo := Some(ScmInfo(url("https://github.com/emartech/rdb-connector-collection"), "scm:git:git@github.com:emartech/rdb-connector-collection.git")),
 
     // These are the sbt-release-early settings to configure
-    pgpPublicRing := file("./travis/local.pubring.asc"),
-    pgpSecretRing := file("./travis/local.secring.asc"),
+    pgpPublicRing := file("./ci/pubring.asc"),
+    pgpSecretRing := file("./ci/secring.asc"),
     releaseEarlyWith := SonatypePublisher
   )
 

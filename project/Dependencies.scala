@@ -3,8 +3,6 @@ import sbt._
 
 object Dependencies {
 
-  val releaseVersion = "0.1.0"
-
   val ScalaVersion = "2.12.6"
 
   val akkaVersion = "2.5.6"
@@ -12,7 +10,6 @@ object Dependencies {
   val akkaHttpVersion = "10.0.7"
 
   val Common = Seq(
-    version in ThisBuild := releaseVersion,
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-stream" % akkaVersion,
       "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test,

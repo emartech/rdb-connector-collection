@@ -42,11 +42,15 @@ object SendRequestWithOauthHandling {
   }
 
   import errors._
+
   private def errorFor(response: HttpResponse, body: String): ConnectorError = (response, body) match {
     case SyntaxError(msg)   => SqlSyntaxError(msg)
     case NotFoundTable(msg) => TableNotFound(msg)
-    case _                  => ConnectionError(new IllegalStateException(s"Unexpected error in response: ${response.status}}, $body"))
-
+    case NotFoundDataSet(msg) =>
+      ConnectionError(new IllegalStateException(s"Cannot find dataset - response: ${response.status}, $body"))
+    case NotFoundProject(msg) =>
+      ConnectionError(new IllegalStateException(s"Cannot find project - response: ${response.status}, $body"))
+    case _ => ErrorWithMessage(s"Unexpected error in response: ${response.status}, $body")
   }
 
   private object errors {
@@ -62,6 +66,23 @@ object SendRequestWithOauthHandling {
       def unapply(r: (HttpResponse, String)): Option[String] = {
         val (response, body) = r
         if (response.status == NotFound && body.contains("Not found: Table")) errorMessageFrom(body)
+        else None
+      }
+    }
+
+    object NotFoundDataSet {
+      def unapply(r: (HttpResponse, String)): Option[String] = {
+        val (response, body) = r
+        if (response.status == NotFound && body.contains("Not found: Dataset")) errorMessageFrom(body)
+        else None
+      }
+    }
+
+    object NotFoundProject {
+      def unapply(r: (HttpResponse, String)): Option[String] = {
+        val (response, body) = r
+        if (response.status == BadRequest && body.contains("The project") && body.contains("has not enabled"))
+          errorMessageFrom(body)
         else None
       }
     }

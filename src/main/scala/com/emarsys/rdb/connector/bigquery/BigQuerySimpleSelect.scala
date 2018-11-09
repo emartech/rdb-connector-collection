@@ -22,7 +22,7 @@ trait BigQuerySimpleSelect {
       val writer = BigQueryWriter(config, fields)
       import writer._
 
-      bigQueryClient.streamingQuery(select.toSql).completionTimeout(timeout)
+      bigQueryClient.streamingQuery(select.toSql).completionTimeout(timeout).recoverWithRetries(1, streamErrorHandler)
     }.value
   }
 
@@ -40,6 +40,7 @@ trait BigQuerySimpleSelect {
         .streamingQuery(select.toSql(simpleSelectWithGroupLimitWriter(references, groupLimit)))
         .completionTimeout(timeout)
         .map(_.dropRight(1))
+        .recoverWithRetries(1, streamErrorHandler)
     }.value
   }
 }

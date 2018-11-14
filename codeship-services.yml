@@ -6,6 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     cached: true
+    encrypted_env_file: itenv.encrypted
 
   rdb-mysql-connector:
     build:
@@ -19,6 +20,26 @@ services:
       DATABASE_HOST: "db"
     links:
     - mysql-db:db
+
+  rdb-mssql-connector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    cached: true
+    environment:
+      DATABASE_HOST: "db"
+    links:
+    - mssql-db:db
+
+  rdb-postgresql-connector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    cached: true
+    environment:
+      DATABASE_HOST: "db"
+    links:
+    - postgresql-db:db
 
   rdb-publisher:
     build:
@@ -38,6 +59,29 @@ services:
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
+
+  mssql-db:
+    image: mcmoe/mssqldocker
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: "pwPW123!"
+      MSSQL_DB: "it_test_db"
+      MSSQL_USER: "it_test_user"
+      MSSQL_PASSWORD: "it_test_PW_1!"
+    cached: true
+    volumes:
+    - ./mssql/mssql/mssql.conf:/var/opt/mssql/mssql.conf:ro
+    - ./mssql/mssql/mssql_db.key:/etc/ssl/private/mssql.key:ro
+    - ./mssql/mssql/mssql_db.pem:/etc/ssl/certs/mssql.pem:ro
+    - ./mssql/mssql/setup.sql:/usr/config/setup.sql
+
+  postgresql-db:
+    build: ./postgresql/postgresql
+    environment:
+      POSTGRES_PASSWORD: "it-test-pw"
+      POSTGRES_USER: "it-test-user"
+      POSTGRES_DB: "it-test-db"
+    cached: true
 
   dummy:
     image: alpine

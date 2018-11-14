@@ -11,6 +11,18 @@
     - name: mysql-it
       service: rdb-mysql-connector
       command: ./run_mysql_it_tests.sh
+    - name: bigquery-it
+      service: rdb-allconnector
+      command: sbt bigquery/it:test
+    - name: mssql-it
+      service: rdb-mssql-connector
+      command: sbt mssql/it:test
+    - name: postgresql-it
+      service: rdb-postgresql-connector
+      command: sbt postgresql/it:test
+    - name: redshift-it
+      service: rdb-allconnector
+      command: sbt redshift/it:test
   - type: serial
     name: publish
     tag: master
@@ -24,4 +36,16 @@
     - name: publish-mysql
       service: rdb-publisher
       command: ./publish.sh mysql
+    - name: publish-bigquery
+      service: rdb-publisher
+      command: ./publish.sh bigquery
+    - name: publish-mssql
+      service: rdb-publisher
+      command: ./publish.sh mssql
+    - name: publish-postgresql
+      service: rdb-publisher
+      command: ./publish.sh postgresql
+    - name: publish-redshift
+      service: rdb-publisher
+      command: ./publish.sh redshift
 

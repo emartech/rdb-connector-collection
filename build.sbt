@@ -1,10 +1,10 @@
 
 lazy val connectors: Seq[ProjectReference] = Seq(
-//  bigQuery,
-//  mssql,
+  bigQuery,
+  mssql,
   mysql,
-//  postgres,
-//  redshift
+  postgres,
+  redshift
 )
 
 lazy val connectorCollection = project
@@ -34,11 +34,11 @@ lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(meta: _*)
   //.settings(exports(Seq("com.emarsys.rdb.connector.test.*")))
 
-//lazy val bigQuery = connector("bigquery", Dependencies.BigQuery)
-//lazy val mssql = connector("mssql", Dependencies.Mssql)
+lazy val bigQuery = connector("bigquery", Dependencies.BigQuery)
+lazy val mssql = connector("mssql", Dependencies.Mssql)
 lazy val mysql = connector("mysql", Dependencies.Mysql)
-//lazy val postgres = connector("postgresql", Dependencies.Postgresql)
-//lazy val redshift = connector("redshift", Dependencies.Redshift)
+lazy val postgres = connector("postgresql", Dependencies.Postgresql)
+lazy val redshift = connector("redshift", Dependencies.Redshift)
 
 lazy val ItTest = config("it") extend Test
 

@@ -13,3 +13,26 @@ services:
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
+  mssql-db:
+    image: mcmoe/mssqldocker
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: "pwPW123!"
+      MSSQL_DB: "it_test_db"
+      MSSQL_USER: "it_test_user"
+      MSSQL_PASSWORD: "it_test_PW_1!"
+    ports:
+    - "1433:1433"
+    volumes:
+    - ./mssql/mssql/mssql.conf:/var/opt/mssql/mssql.conf:ro
+    - ./mssql/mssql/mssql_db.key:/etc/ssl/private/mssql.key:ro
+    - ./mssql/mssql/mssql_db.pem:/etc/ssl/certs/mssql.pem:ro
+    - ./mssql/mssql/setup.sql:/usr/config/setup.sql
+  postgresql-db:
+    build: ./postgresql/postgresql
+    ports:
+    - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: "it-test-pw"
+      POSTGRES_USER: "it-test-user"
+      POSTGRES_DB: "it-test-db"

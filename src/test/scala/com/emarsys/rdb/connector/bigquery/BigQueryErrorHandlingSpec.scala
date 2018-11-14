@@ -21,8 +21,8 @@ class BigQueryErrorHandlingSpec extends WordSpecLike with Matchers {
     }
 
     "convert RejectedExecutionException to TooManyQueries" in new BigQueryErrorHandling {
-      val exception = new RejectedExecutionException
-      eitherErrorHandler.apply(exception) shouldEqual Left(TooManyQueries)
+      val exception = new RejectedExecutionException("msg")
+      eitherErrorHandler.apply(exception) shouldEqual Left(TooManyQueries("msg"))
     }
 
     "convert unidentified exception to ErrorWithMessage" in new BigQueryErrorHandling {

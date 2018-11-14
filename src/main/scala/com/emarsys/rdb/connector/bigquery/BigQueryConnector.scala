@@ -36,7 +36,7 @@ class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQ
       criteria: Criteria,
       limit: Option[Int],
       timeout: FiniteDuration
-  ): ConnectorResponse[Source[Seq[String], NotUsed]] = notImplementedOperation
+  ): ConnectorResponse[Source[Seq[String], NotUsed]] = notImplementedOperation("rawSearch not implemented")
 
   override def close(): Future[Unit] = {
     Future.unit

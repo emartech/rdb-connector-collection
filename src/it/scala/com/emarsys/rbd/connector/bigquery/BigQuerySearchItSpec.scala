@@ -44,7 +44,7 @@ class BigQuerySearchItSpec
     "return NotImplementedOperation" in {
       val result =
         Await.result(connector.search(tableName, Map("C" -> StringValue("c12")), None, awaitTimeout), awaitTimeout)
-      result shouldEqual Left(NotImplementedOperation)
+      result shouldEqual Left(NotImplementedOperation("rawSearch not implemented"))
     }
   }
 

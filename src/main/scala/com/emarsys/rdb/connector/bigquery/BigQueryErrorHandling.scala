@@ -11,10 +11,10 @@ import scala.concurrent.TimeoutException
 trait BigQueryErrorHandling {
 
   protected def errorHandler: PartialFunction[Throwable, ConnectorError] = {
-    case ce: ConnectorError            => ce
-    case to: TimeoutException          => QueryTimeout(to.getMessage)
-    case _: RejectedExecutionException => TooManyQueries
-    case ex: Exception                 => ErrorWithMessage(ex.toString)
+    case ce: ConnectorError             => ce
+    case to: TimeoutException           => QueryTimeout(to.getMessage)
+    case ex: RejectedExecutionException => TooManyQueries(ex.getMessage)
+    case ex: Exception                  => ErrorWithMessage(ex.toString)
   }
 
   protected def eitherErrorHandler[T]: PartialFunction[Throwable, Either[ConnectorError, T]] =

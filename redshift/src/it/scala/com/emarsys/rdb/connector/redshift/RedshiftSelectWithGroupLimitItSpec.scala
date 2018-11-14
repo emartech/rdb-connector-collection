@@ -3,6 +3,7 @@ package com.emarsys.rdb.connector.redshift
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
+import akka.util.Timeout
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.redshift.utils.TestHelper
 import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
@@ -14,9 +15,11 @@ import scala.concurrent.duration._
 class RedshiftSelectWithGroupLimitItSpec extends TestKit(ActorSystem()) with SelectWithGroupLimitItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
   override implicit val materializer: Materializer = ActorMaterializer()
+  override val awaitTimeout = 20.seconds
+  override val queryTimeout = 20.seconds
 
   val connector: Connector =
-    Await.result(RedshiftConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(RedshiftConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), awaitTimeout).right.get
 
   override def afterAll(): Unit = {
     system.terminate()
@@ -47,12 +50,12 @@ class RedshiftSelectWithGroupLimitItSpec extends TestKit(ActorSystem()) with Sel
     Await.result(for {
       _ <- TestHelper.executeQuery(createTableSql)
       _ <- TestHelper.executeQuery(insertDataSql)
-    } yield (), 5.seconds)
+    } yield (), awaitTimeout)
   }
 
   override def cleanUpDb(): Unit = {
     val dropCTableSql = s"""DROP TABLE $tableName;"""
-    Await.result(TestHelper.executeQuery(dropCTableSql), 5.seconds)
+    Await.result(TestHelper.executeQuery(dropCTableSql), awaitTimeout)
   }
 }
 
@@ -67,7 +70,7 @@ class RedshiftSelectWithGroupLimitWithSchemaItSpec extends TestKit(ActorSystem()
       RedshiftConnector(TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema"))(
         AsyncExecutor.default()
       ),
-      5.seconds
+      awaitTimeout
     )
     .right
     .get
@@ -100,11 +103,11 @@ class RedshiftSelectWithGroupLimitWithSchemaItSpec extends TestKit(ActorSystem()
     Await.result(for {
       _ <- TestHelper.executeQuery(createTableSql)
       _ <- TestHelper.executeQuery(insertDataSql)
-    } yield (), 5.seconds)
+    } yield (), awaitTimeout)
   }
 
   override def cleanUpDb(): Unit = {
     val dropCTableSql = s"""DROP TABLE "$schema".$tableName;"""
-    Await.result(TestHelper.executeQuery(dropCTableSql), 5.seconds)
+    Await.result(TestHelper.executeQuery(dropCTableSql), awaitTimeout)
   }
 }

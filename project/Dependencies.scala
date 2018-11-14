@@ -22,12 +22,14 @@ object Dependencies {
       "-encoding",
       "UTF-8",
       "-feature",
+      "-language:_",
       "-unchecked",
       "-deprecation",
       //"-Xfatal-warnings",
       "-Xlint",
       "-Yno-adapted-args",
       "-Ywarn-dead-code",
+      "-Ypartial-unification",
       "-Xfuture",
       "-target:jvm-1.8"
     )
@@ -79,6 +81,9 @@ object Dependencies {
   )
 
   val Redshift = Seq(
+    resolvers ++= Seq(
+      "Amazon" at "http://redshift-maven-repository.s3-website-us-east-1.amazonaws.com/release",
+    ),
     libraryDependencies ++= Seq(
       "com.typesafe.slick"  %% "slick"                % slickVersion,
       "com.typesafe.slick"  %% "slick-hikaricp"       % slickVersion,

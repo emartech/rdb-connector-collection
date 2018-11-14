@@ -5,6 +5,8 @@ package object models {
   case class CommonConnectionReadableData(`type`: String, location: String, dataset: String, user: String)
 
   trait ConnectionConfig {
+    def replica[C <: this.type]: Option[C] = None
+
     def toCommonFormat: CommonConnectionReadableData
 
     final override def toString: String = {

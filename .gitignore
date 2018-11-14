@@ -23,6 +23,6 @@ project/plugins/project/
 
 .env
 
-.aes
-.asc
-.tar
+*.aes
+*.asc
+*.tar

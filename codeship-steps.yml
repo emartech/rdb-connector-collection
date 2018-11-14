@@ -4,7 +4,7 @@
     service: rdb-allconnector
     command: sbt test
     tag: master
-  - type: parallel
+  - type: serial
     name: it tests
     tag: master
     steps:

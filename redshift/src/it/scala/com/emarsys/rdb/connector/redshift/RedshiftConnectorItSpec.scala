@@ -93,14 +93,14 @@ class RedshiftConnectorItSpec
 
     "custom error handling" should {
       "recognize syntax errors" in new QueryRunnerScope {
-        val result = Await.result(runQuery("select from table"), 2.second)
+        val result = Await.result(runQuery("select from table"), timeout)
 
         result shouldBe a[Left[_, _]]
         result.left.get shouldBe an[SqlSyntaxError]
       }
 
       "recognize if a table is not found" in new QueryRunnerScope {
-        val result = Await.result(runQuery("select * from a_non_existing_table"), 2.second)
+        val result = Await.result(runQuery("select * from a_non_existing_table"), timeout)
 
         result shouldBe a[Left[_, _]]
         result.left.get shouldBe a[TableNotFound]

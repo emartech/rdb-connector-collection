@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  rdb-allconnector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    cached: true
+
+  rdb-mysql-connector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    cached: true
+    depends_on:
+      - rdb-allconnector
+      - mysql-db
+    environment:
+      DATABASE_HOST: "db"
+    links:
+    - mysql-db:db
+
+  rdb-publisher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    cached: true
+    encrypted_env_file: env.encrypted
+
+  mysql-db:
+    image: mysql/mysql-server:5.7
+    environment:
+      MYSQL_USER: "it-test-user"
+      MYSQL_PASSWORD: "it-test-pw"
+      MYSQL_DATABASE: "it-test-db"
+      MYSQL_ROOT_PASSWORD: "it-test-root-pw"
+    cached: true
+    volumes:
+      - ./mysql/mysql/ssl:/etc/mysql
+      - ./mysql/mysql/my.cnf:/etc/my.cnf
+
+  dummy:
+    image: alpine

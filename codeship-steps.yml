@@ -1,0 +1,27 @@
+- type: serial
+  steps:
+  - name: compile and unit-tests all
+    service: rdb-allconnector
+    command: sbt test
+    tag: master
+  - type: parallel
+    name: it tests
+    tag: master
+    steps:
+    - name: mysql-it
+      service: rdb-mysql-connector
+      command: ./run_mysql_it_tests.sh
+  - type: serial
+    name: publish
+    tag: master
+    steps:
+    - name: publish-common
+      service: rdb-publisher
+      command: ./publish.sh common
+    - name: publish-test
+      service: rdb-publisher
+      command: ./publish.sh connectorTest
+    - name: publish-mysql
+      service: rdb-publisher
+      command: ./publish.sh mysql
+

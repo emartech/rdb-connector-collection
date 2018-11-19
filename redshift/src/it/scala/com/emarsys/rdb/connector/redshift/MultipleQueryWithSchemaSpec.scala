@@ -22,8 +22,8 @@ class MultipleQueryWithSchemaSpec
   val uuid      = uuidGenerate
   val tableName = s"multiple_query_table_$uuid"
 
-  val queryTimeout                                = 5.seconds
-  val awaitTimeout                                = 15.seconds
+  val queryTimeout                                = 30.seconds
+  val awaitTimeout                                = 90.seconds
   implicit val materializer: Materializer         = ActorMaterializer()
   implicit val executionContext: ExecutionContext = system.dispatcher
 

@@ -6,7 +6,7 @@ object Dependencies {
   val ScalaVersion = "2.12.6"
 
   val akkaVersion = "2.5.6"
-  val slickVersion = "3.2.0"
+  val slickVersion = "3.2.2"
   val akkaHttpVersion = "10.0.7"
 
   val Common = Seq(

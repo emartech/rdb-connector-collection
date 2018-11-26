@@ -9,7 +9,7 @@ import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import akka.util.Timeout
 import com.emarsys.rdb.connector.bigquery.GoogleSession
-import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
+import com.emarsys.rdb.connector.common.models.Errors.{ErrorWithMessage, TooManyQueries}
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
@@ -25,7 +25,7 @@ class SendRequestWithOauthHandlingSpec
     with BeforeAndAfterAll
     with MockitoSugar {
 
-  override def afterAll {
+  override def afterAll = {
     TestKit.shutdownActorSystem(system)
   }
 
@@ -33,6 +33,26 @@ class SendRequestWithOauthHandlingSpec
   implicit val timeout      = Timeout(1.second)
 
   import system.dispatcher
+
+
+  val rateLimitResponse =
+    """
+      |{
+      | "error": {
+      |  "errors": [
+      |   {
+      |    "domain": "global",
+      |    "reason": "rateLimitExceeded",
+      |    "message": "Exceeded rate limits: Your project exceeded quota for concurrent queries. For more information, see https://cloud.google.com/bigquery/troubleshooting-errors",
+      |    "locationType": "other",
+      |    "location": "dummy_connection"
+      |   }
+      |  ],
+      |  "code": 403,
+      |  "message": "Exceeded rate limits: Your project exceeded quota for concurrent queries. For more information, see https://cloud.google.com/bigquery/troubleshooting-errors"
+      | }
+      |}
+    """.stripMargin
 
   "SendRequestWithOauthHandling" must {
 
@@ -60,5 +80,28 @@ class SendRequestWithOauthHandlingSpec
       )
     }
 
+  }
+
+  "handle rate limit" in {
+    val session = mock[GoogleSession]
+    when(session.getToken()) thenReturn Future.successful("TOKEN")
+
+    val http = mock[HttpExt]
+    when(
+      http.singleRequest(
+        HttpRequest()
+          .addHeader(Authorization(OAuth2BearerToken("TOKEN")))
+      )
+    ) thenReturn Future.successful(HttpResponse(StatusCodes.Forbidden, Nil, HttpEntity(rateLimitResponse)))
+
+    val resultF = Source
+      .single(HttpRequest())
+      .via(SendRequestWithOauthHandling(session, http))
+      .runWith(Sink.last)
+
+    val result = Try(Await.result(resultF, 1.second))
+    result shouldEqual Failure(
+      TooManyQueries("Exceeded rate limits: Your project exceeded quota for concurrent queries. For more information, see https://cloud.google.com/bigquery/troubleshooting-errors")
+    )
   }
 }

@@ -46,6 +46,7 @@ object SendRequestWithOauthHandling {
   private def errorFor(response: HttpResponse, body: String): ConnectorError = (response, body) match {
     case SyntaxError(msg)   => SqlSyntaxError(msg)
     case NotFoundTable(msg) => TableNotFound(msg)
+    case RateLimit(msg) => TooManyQueries(msg)
     case NotFoundDataSet(msg) =>
       ConnectionError(new IllegalStateException(s"Cannot find dataset - response: ${response.status}, $body"))
     case NotFoundProject(msg) =>
@@ -86,6 +87,16 @@ object SendRequestWithOauthHandling {
         else None
       }
     }
+
+    object RateLimit {
+      def unapply(r: (HttpResponse, String)): Option[String] = {
+        val (response, body) = r
+        if (response.status == Forbidden && body.contains("rateLimitExceeded") && body.contains("Exceeded rate limits"))
+          errorMessageFrom(body)
+        else None
+      }
+    }
+
 
     import spray.json._
     import DefaultJsonProtocol._

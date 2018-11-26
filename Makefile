@@ -25,4 +25,7 @@ mssql: ## Open SQL Server console
 help: ## This help message
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' -e 's/:.*#/: #/' | column -t -s '##'
 
+restart: ## Restart every container
+	$(compose) restart
+
 .PHONY: mysql mssql

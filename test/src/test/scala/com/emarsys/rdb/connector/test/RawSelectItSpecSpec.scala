@@ -22,7 +22,7 @@ class RawSelectItSpecSpec extends TestKit(ActorSystem()) with RawSelectItSpec wi
 
   override def beforeAll(): Unit = ()
 
-  override def afterAll {
+  override def afterAll = {
     TestKit.shutdownActorSystem(system)
   }
 

@@ -17,7 +17,7 @@ class SplitterSpec
     with Matchers
     with BeforeAndAfterAll {
 
-  override def afterAll {
+  override def afterAll = {
     TestKit.shutdownActorSystem(system)
   }
 

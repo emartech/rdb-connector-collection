@@ -26,7 +26,7 @@ class ReplaceSpecSpec extends TestKit(ActorSystem()) with ReplaceItSpec with Moc
 
   override def cleanUpDb(): Unit = ()
 
-  override def afterAll {
+  override def afterAll = {
     TestKit.shutdownActorSystem(system)
   }
 

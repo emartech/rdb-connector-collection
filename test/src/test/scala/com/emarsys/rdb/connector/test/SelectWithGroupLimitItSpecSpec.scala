@@ -54,7 +54,7 @@ class SelectWithGroupLimitItSpecSpec extends TestKit(ActorSystem()) with SelectW
 
   override def cleanUpDb(): Unit = ()
 
-  override def afterAll {
+  override def afterAll = {
     TestKit.shutdownActorSystem(system)
   }
 

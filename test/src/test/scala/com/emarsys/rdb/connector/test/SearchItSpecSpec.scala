@@ -24,7 +24,7 @@ class SearchItSpecSpec extends TestKit(ActorSystem()) with SearchItSpec with Moc
 
   override def cleanUpDb(): Unit = ()
 
-  override def afterAll {
+  override def afterAll = {
     TestKit.shutdownActorSystem(system)
   }
 

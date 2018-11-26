@@ -28,7 +28,7 @@ class UpdateItSpecSpec extends TestKit(ActorSystem()) with UpdateItSpec with Moc
 
     override def cleanUpDb(): Unit = ()
 
-    override def afterAll {
+    override def afterAll = {
       TestKit.shutdownActorSystem(system)
     }
 

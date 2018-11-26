@@ -17,7 +17,7 @@ import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.bigquery.stream.parser.PagingInfo
 import com.emarsys.rdb.connector.bigquery.stream.sendrequest.SendRequestWithOauthHandling
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectionError, TableNotFound}
+import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, TableModel}
 import spray.json._
 

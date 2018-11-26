@@ -18,7 +18,7 @@ class ParserSpec extends TestKit(ActorSystem("ParserSpec")) with WordSpecLike wi
   implicit val ec: ExecutionContext            = system.dispatcher
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-  override def afterAll {
+  override def afterAll = {
     TestKit.shutdownActorSystem(system)
   }
 

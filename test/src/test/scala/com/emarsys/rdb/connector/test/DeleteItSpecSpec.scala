@@ -24,7 +24,7 @@ class DeleteItSpecSpec extends TestKit(ActorSystem()) with DeleteItSpec with Moc
 
   override def cleanUpDb(): Unit = ()
 
-  override def afterAll {
+  override def afterAll = {
     TestKit.shutdownActorSystem(system)
   }
 

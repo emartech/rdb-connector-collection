@@ -24,7 +24,7 @@ class SimpleSelectItSpecSpec extends TestKit(ActorSystem()) with SimpleSelectItS
 
   override def cleanUpDb(): Unit = ()
 
-  override def afterAll {
+  override def afterAll = {
     TestKit.shutdownActorSystem(system)
   }
 

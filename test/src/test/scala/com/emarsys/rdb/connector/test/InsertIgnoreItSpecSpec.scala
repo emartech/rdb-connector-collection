@@ -27,7 +27,7 @@ class InsertIgnoreItSpecSpec extends TestKit(ActorSystem()) with InsertItSpec wi
 
   override def cleanUpDb(): Unit = ()
 
-  override def afterAll {
+  override def afterAll = {
     TestKit.shutdownActorSystem(system)
   }
 

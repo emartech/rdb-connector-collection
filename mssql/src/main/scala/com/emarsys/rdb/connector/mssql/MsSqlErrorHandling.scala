@@ -14,11 +14,12 @@ trait MsSqlErrorHandling {
   val MSSQL_STATE_SYNTAX_ERROR        = "S0001"
   val MSSQL_STATE_PERMISSION_DENIED   = "S0005"
   val MSSQL_STATE_INVALID_OBJECT_NAME = "S0002"
+  val MSSQL_BAD_HOST_ERROR = "08S01"
 
-  val MMSQL_BAD_HOST_ERROR = "08S01"
+  val MSSQL_EXPLAIN_PERMISSION_DENIED   = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"
 
   val connectionErrors = Seq(
-    MMSQL_BAD_HOST_ERROR
+    MSSQL_BAD_HOST_ERROR
   )
 
   protected def errorHandler(): PartialFunction[Throwable, ConnectorError] = {
@@ -27,6 +28,7 @@ trait MsSqlErrorHandling {
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SYNTAX_ERROR        => SqlSyntaxError(ex.getMessage)
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_PERMISSION_DENIED   => AccessDeniedError(ex.getMessage)
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_INVALID_OBJECT_NAME => TableNotFound(ex.getMessage)
+    case ex: SQLException if ex.getMessage == MSSQL_EXPLAIN_PERMISSION_DENIED        => AccessDeniedError(ex.getMessage)
     case ex: SQLException if connectionErrors.contains(ex.getSQLState)               => ConnectionError(ex)
     case ex: SQLException                                                            => ErrorWithMessage(s"[${ex.getSQLState}] - ${ex.getMessage}")
     case ex: Exception                                                               => ErrorWithMessage(ex.getMessage)

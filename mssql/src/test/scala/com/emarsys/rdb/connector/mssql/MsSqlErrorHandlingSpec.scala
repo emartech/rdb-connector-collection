@@ -50,11 +50,17 @@ class MsSqlErrorHandlingSpec extends WordSpecLike with Matchers with MockitoSuga
       eitherErrorHandler().apply(error) shouldBe
         Left(ErrorWithMessage("[not-handled-state] - not-handled-message"))
     }
-
+    ("HY000", "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table", TableNotFound("msg"))
     "handle unexpected exception" in new MsSqlErrorHandling {
       val error = new Exception("not-handled-message")
       eitherErrorHandler().apply(error) shouldBe
         Left(ErrorWithMessage("not-handled-message"))
+    }
+
+    "handle EXPLAIN/SHOW can not be issued" in new MsSqlErrorHandling {
+      val error = new SQLException("EXPLAIN/SHOW can not be issued; lacking privileges for underlying table", "HY000")
+      eitherErrorHandler().apply(error) shouldBe
+        Left(AccessDeniedError("EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"))
     }
   }
 }

@@ -11,6 +11,8 @@ import com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException
 
 trait MySqlErrorHandling {
 
+  val MYSQL_EXPLAIN_PERMISSION_DENIED = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"
+
   protected def handleNotExistingTable[T](
       table: String
   ): PartialFunction[Throwable, Either[ConnectorError, T]] = {
@@ -25,14 +27,15 @@ trait MySqlErrorHandling {
       } else {
         ErrorWithMessage(ex.getMessage)
       }
-    case ex: MySQLSyntaxErrorException if ex.getMessage.contains("Access denied")   => AccessDeniedError(ex.getMessage)
-    case ex: MySQLSyntaxErrorException                                              => SqlSyntaxError(ex.getMessage)
-    case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled")           => QueryTimeout(ex.getMessage)
-    case ex: MySQLTimeoutException                                                  => ConnectionTimeout(ex.getMessage)
-    case ex: RejectedExecutionException                                             => TooManyQueries(ex.getMessage)
-    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out") => ConnectionTimeout(ex.getMessage)
-    case ex: SQLException                                                           => ErrorWithMessage(s"[${ex.getSQLState}] - ${ex.getMessage}")
-    case ex                                                                         => ErrorWithMessage(ex.getMessage)
+    case ex: MySQLSyntaxErrorException if ex.getMessage.contains("Access denied")    => AccessDeniedError(ex.getMessage)
+    case ex: MySQLSyntaxErrorException                                               => SqlSyntaxError(ex.getMessage)
+    case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled")            => QueryTimeout(ex.getMessage)
+    case ex: MySQLTimeoutException                                                   => ConnectionTimeout(ex.getMessage)
+    case ex: RejectedExecutionException                                              => TooManyQueries(ex.getMessage)
+    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out")  => ConnectionTimeout(ex.getMessage)
+    case ex: SQLException if ex.getMessage.contains(MYSQL_EXPLAIN_PERMISSION_DENIED) => AccessDeniedError(ex.getMessage)
+    case ex: SQLException                                                            => ErrorWithMessage(s"[${ex.getSQLState}] - ${ex.getMessage}")
+    case ex                                                                          => ErrorWithMessage(ex.getMessage)
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =

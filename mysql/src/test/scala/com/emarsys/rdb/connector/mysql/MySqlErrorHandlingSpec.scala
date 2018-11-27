@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.mysql
 
-import java.sql.SQLTransientConnectionException
+import java.sql.{SQLException, SQLTransientConnectionException}
 import java.util.concurrent.RejectedExecutionException
 
 import com.emarsys.rdb.connector.common.models.Errors
@@ -17,6 +17,12 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
       val msg = "Connection is not available, request timed out after"
       val e   = new SQLTransientConnectionException(msg)
       eitherErrorHandler.apply(e) shouldEqual Left(ConnectionTimeout(msg))
+    }
+
+    "convert lacking privileges error to access denied" in new MySqlErrorHandling {
+      val msg = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying tablev"
+      val e   = new SQLException(msg)
+      eitherErrorHandler.apply(e) shouldEqual Left(AccessDeniedError(msg))
     }
 
     "convert sql error to error with message and state if not timeout" in new MySqlErrorHandling {

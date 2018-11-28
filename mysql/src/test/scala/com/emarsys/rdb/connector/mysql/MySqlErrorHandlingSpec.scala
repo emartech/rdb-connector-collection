@@ -20,7 +20,7 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
     }
 
     "convert lacking privileges error to access denied" in new MySqlErrorHandling {
-      val msg = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying tablev"
+      val msg = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"
       val e   = new SQLException(msg)
       eitherErrorHandler.apply(e) shouldEqual Left(AccessDeniedError(msg))
     }

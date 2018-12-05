@@ -10,12 +10,13 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
 
   "MySqlErrorHandling" should {
 
-    val possibleSQLErrorsCodes = Seq(
-      ("HY000", "connection timeout", ConnectionTimeout("msg")),
-      ("57014", "query cancelled", QueryTimeout("msg")),
-      ("42601", "sql syntax error", SqlSyntaxError("msg")),
-      ("42501", "permission denied", AccessDeniedError("msg")),
-      ("42P01", "relation not found", TableNotFound("msg"))
+    val possibleSQLErrors = Seq(
+      (null, "Connection is not available, request timed out after", ConnectionTimeout("Connection is not available, request timed out after")),
+      ("HY000", "connection timeout", ConnectionTimeout("connection timeout")),
+      ("57014", "query cancelled", QueryTimeout("query cancelled")),
+      ("42601", "sql syntax error", SqlSyntaxError("sql syntax error")),
+      ("42501", "permission denied", AccessDeniedError("permission denied")),
+      ("42P01", "relation not found", TableNotFound("relation not found"))
     )
 
     val possibleConnectionErrors = Seq(
@@ -25,21 +26,20 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
       ("28P01", "invalid password")
     )
 
-    possibleSQLErrorsCodes.foreach(
-      errorWithResponse =>
-        s"""convert ${errorWithResponse._2} to ${errorWithResponse._3.getClass.getSimpleName}""" in new RedshiftErrorHandling {
-          val e = new SQLException("msg", errorWithResponse._1)
-          eitherErrorHandler.apply(e) shouldEqual Left(errorWithResponse._3)
+    possibleSQLErrors.foreach {
+      case (sqlState, message, error) =>
+        s"""convert $message to ${error.getClass.getSimpleName}""" in new RedshiftErrorHandling {
+          val e = new SQLException(message, sqlState)
+          eitherErrorHandler.apply(e) shouldEqual Left(error)
         }
-    )
+    }
 
-    possibleConnectionErrors.foreach(
-      errorCode =>
-        s"""convert ${errorCode._2} to ConnectionError""" in new RedshiftErrorHandling {
-          val e = new SQLException("msg", errorCode._1)
-          eitherErrorHandler.apply(e) shouldEqual Left(ConnectionError(e))
-        }
-    )
+    possibleConnectionErrors.foreach { case (sqlState, message) =>
+      s"""convert $message to ConnectionError""" in new RedshiftErrorHandling {
+        val e = new SQLException("msg", sqlState)
+        eitherErrorHandler.apply(e) shouldEqual Left(ConnectionError(e))
+      }
+    }
 
     "convert RejectedExecutionException to TooManyQueries" in new RedshiftErrorHandling {
       val e = new RejectedExecutionException("msg")

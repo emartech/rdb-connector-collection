@@ -14,6 +14,8 @@ trait RedshiftErrorHandling {
   val REDSHIFT_STATE_PERMISSION_DENIED  = "42501"
   val REDSHIFT_STATE_RELATION_NOT_FOUND = "42P01"
 
+  val REDSHIFT_MESSAGE_CONNECTION_TIMEOUT = "Connection is not available, request timed out after"
+
   val REDSHIFT_STATE_UNABLE_TO_CONNECT       = "08001"
   val REDSHIFT_AUTHORIZATION_NAME_IS_INVALID = "28000"
   val REDSHIFT_SERVER_PROCESS_IS_TERMINATING = "08006"
@@ -29,6 +31,7 @@ trait RedshiftErrorHandling {
   private def errorHandler: PartialFunction[Throwable, ConnectorError] = {
     case ex: RejectedExecutionException                                          => TooManyQueries(ex.getMessage)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_CONNECTION_TIMEOUT => ConnectionTimeout(ex.getMessage)
+    case ex: SQLException if ex.getMessage.contains(REDSHIFT_MESSAGE_CONNECTION_TIMEOUT) => ConnectionTimeout(ex.getMessage)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_QUERY_CANCELLED    => QueryTimeout(ex.getMessage)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_SYNTAX_ERROR       => SqlSyntaxError(ex.getMessage)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_PERMISSION_DENIED  => AccessDeniedError(ex.getMessage)

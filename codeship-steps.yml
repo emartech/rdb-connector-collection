@@ -29,7 +29,7 @@
       command: sbt redshift/it:test
   - type: serial
     name: publish
-    tag: master
+    tag: ^(master|v\d+\.\d+\.\d+)$
     steps:
     - name: publish-common
       service: rdb-publisher

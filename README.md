@@ -1,6 +1,6 @@
 # Rdb - connector - collection
 
-[ ![Codeship Status for emartech/rdb-connector-collection](https://app.codeship.com/projects/bda87020-b021-0136-2e3a-02cacefff18b/status?branch=master)](https://app.codeship.com/projects/310361)
+[ ![Codeship Status for emartech/rdb-connector-collection](https://app.codeship.com/projects/bda87020-b021-0136-2e3a-02cacefff18b/status?branch=master)](https://app.codeship.com/projects/310361) [![Maven Central](https://img.shields.io/maven-central/v/com.emarsys/rdb-connector-redshift_2.12.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.emarsys%22%20AND%20a:%22rdb-connector-redshift_2.12%22)
 
 ## Definitions:
 

@@ -68,7 +68,8 @@ object Dependencies {
     libraryDependencies ++= Seq(
     "com.typesafe.slick"  %% "slick"                 % slickVersion,
     "com.typesafe.slick"  %% "slick-hikaricp"        % slickVersion,
-    "mysql"               %  "mysql-connector-java"  % "5.1.38"
+    "mysql"               %  "mysql-connector-java"  % "5.1.38",
+    "org.typelevel"       %% "cats-core"             %  "1.0.1"
     )
   )
 
@@ -90,6 +91,4 @@ object Dependencies {
       "com.amazon.redshift" %  "redshift-jdbc42"      % "1.2.8.1005"
     )
   )
-
-
 }

@@ -6,8 +6,8 @@ import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
 import com.emarsys.rdb.connector.mysql.MySqlWriters._
 import slick.jdbc.MySQLProfile.api._
-
-import scala.concurrent.Future
+import cats.data.EitherT
+import cats.implicits._
 
 trait MySqlMetadata {
   self: MySqlConnector =>
@@ -28,19 +28,20 @@ trait MySqlMetadata {
   }
 
   override def listTablesWithFields(): ConnectorResponse[Seq[FullTableModel]] = {
-    val futureMap = listAllFields()
-    for {
-      tablesE <- listTables()
-      map     <- futureMap
-    } yield tablesE.map(makeTablesWithFields(_, map))
+    (for {
+      tables <- EitherT(listTables())
+      fieldsByTable <- EitherT(listAllFieldsByTable())
+    } yield makeTablesWithFields(tables, fieldsByTable)).value
   }
 
-  private def listAllFields(): Future[Map[String, Seq[FieldModel]]] = {
+  private def listAllFieldsByTable(): ConnectorResponse[Map[String, Seq[FieldModel]]] = {
     db.run(
         sql"select TABLE_NAME, COLUMN_NAME, DATA_TYPE from information_schema.columns where table_schema = DATABASE();"
           .as[(String, String, String)]
       )
       .map(_.groupBy(_._1).mapValues(_.map(x => parseToFiledModel(x._2 -> x._3)).toSeq))
+      .map(Right(_))
+      .recover(eitherErrorHandler())
   }
 
   private def makeTablesWithFields(

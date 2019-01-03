@@ -3,11 +3,13 @@ package com.emarsys.rdb.connector.mysql
 import java.sql.SQLTransientException
 import java.util.UUID
 
+import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.common.models._
+import com.emarsys.rdb.connector.mysql.CertificateUtil.createKeystoreTempUrlFromCertificateString
 import com.emarsys.rdb.connector.mysql.MySqlConnector.{MySqlConnectionConfig, MySqlConnectorConfig}
-import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory, Config => TypesafeConfig}
 import slick.jdbc.MySQLProfile.api._
 import slick.jdbc.MySQLProfile.backend
 import slick.util.AsyncExecutor
@@ -87,94 +89,126 @@ object MySqlConnector extends MySqlConnectorTrait {
 }
 
 trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
+  import cats.instances.future._
+  import cats.syntax.flatMap._
 
-  val defaultConfig = MySqlConnectorConfig(
-    queryTimeout = 20.minutes,
-    streamChunkSize = 5000
-  )
-
+  val defaultConfig   = MySqlConnectorConfig(queryTimeout = 20.minutes, streamChunkSize = 5000)
   val useSSL: Boolean = Config.db.useSsl
-
   override def meta() = MetaData("`", "'", "\\")
 
   def apply(
       config: MySqlConnectionConfig,
       connectorConfig: MySqlConnectorConfig = defaultConfig,
       configPath: String = "mysqldb"
-  )(executor: AsyncExecutor)(implicit executionContext: ExecutionContext): ConnectorResponse[MySqlConnector] = {
-    val keystoreUrl = CertificateUtil.createKeystoreTempUrlFromCertificateString(config.certificate)
-    val poolName    = UUID.randomUUID.toString
+  )(executor: AsyncExecutor)(implicit e: ExecutionContext): ConnectorResponse[MySqlConnector] = {
+    val poolName          = UUID.randomUUID.toString
+    val jdbcUrl           = createJdbcUrl(config)
+    val unsecuredDbConfig = createUnsecuredDbConfig(jdbcUrl, config.dbUser, config.dbPassword, configPath, poolName)
 
-    if (useSSL && keystoreUrl.isEmpty) {
-      Future.successful(Left(ConnectionConfigError("Wrong SSL cert format")))
+    if (useSSL) {
+      createSecuredMySqlConnector(config.certificate, connectorConfig, poolName, useSslWithCertificateToDbConfig(unsecuredDbConfig))
     } else {
-      configureDb(config, configPath, keystoreUrl, poolName).flatMap(checkSslConfig(connectorConfig, poolName))
+      createUnsecuredMySqlConnector(connectorConfig, poolName, unsecuredDbConfig)
     }
   }
 
-  private[mysql] def configureDb(
-      config: MySqlConnectionConfig,
+  private def createSecuredMySqlConnector(
+      certificate: String,
+      connectorConfig: MySqlConnectorConfig,
+      poolName: String,
+      addSslToDbConfig: String => TypesafeConfig
+  )(implicit e: ExecutionContext): Future[Either[ConnectorError, MySqlConnector]] = {
+    (for {
+      keystoreUrl <- createKeystoreUrl(certificate)
+      database = Database.forConfig("", addSslToDbConfig(keystoreUrl))
+      mySqlConnector <- createSecuredConnector(connectorConfig, poolName, database)
+    } yield mySqlConnector).value
+  }
+
+  private def createKeystoreUrl(
+      certificate: String
+  )(implicit e: ExecutionContext): EitherT[Future, ConnectorError, String] = {
+    EitherT
+      .fromOption[Future](
+        createKeystoreTempUrlFromCertificateString(certificate),
+        ConnectionConfigError("Wrong SSL cert format"): ConnectorError
+      )
+  }
+
+  private def useSslWithCertificateToDbConfig(unsecuredDbConfig: TypesafeConfig)(keystoreUrl: String): TypesafeConfig = {
+    unsecuredDbConfig
+      .withValue("properties.properties.useSSL", ConfigValueFactory.fromAnyRef("true"))
+      .withValue("properties.properties.verifyServerCertificate", ConfigValueFactory.fromAnyRef("false"))
+      .withValue("properties.properties.clientCertificateKeyStoreUrl", ConfigValueFactory.fromAnyRef(keystoreUrl))
+  }
+
+  private def createSecuredConnector(connectorConfig: MySqlConnectorConfig, poolName: String, db: backend.Database)(
+      implicit ec: ExecutionContext
+  ): EitherT[Future, ConnectorError, MySqlConnector] = {
+    EitherT(
+      isSslUsedForConnection(db)
+        .ifM(
+          Future.successful(Right(new MySqlConnector(db, connectorConfig, poolName))),
+          Future.successful(Left(ConnectionConfigError("SSL Error")))
+        )
+        .recover(eitherErrorHandler())
+    ).leftMap { connectorError =>
+      db.shutdown
+      connectorError
+    }
+  }
+
+  private def isSslUsedForConnection(db: Database)(implicit e: ExecutionContext): Future[Boolean] = {
+    db.run(sql"SHOW STATUS LIKE 'ssl_cipher'".as[(String, String)])
+      .map(ssl => ssl.head._2.contains("RSA-AES") || ssl.head._2.matches(".*AES\\d+-SHA.*"))
+  }
+
+  private def createUnsecuredMySqlConnector(
+      connectorConfig: MySqlConnectorConfig,
+      poolName: String,
+      typesafeConfig: TypesafeConfig
+  )(implicit e: ExecutionContext): Future[Either[ConnectorError, MySqlConnector]] = {
+    val database = Database.forConfig("", typesafeConfig)
+    Future.successful[Either[ConnectorError, MySqlConnector]](
+      Right(new MySqlConnector(database, connectorConfig, poolName))
+    )
+  }
+
+  private def createUnsecuredDbConfig(
+      jdbcUrl: String,
+      user: String,
+      password: String,
       configPath: String,
-      keystoreUrlO: Option[String],
       poolName: String
-  ) = {
-    val keystoreUrl = keystoreUrlO.get
-    val url: String = createUrl(config)
-    val customDbConf = ConfigFactory
+  ): TypesafeConfig = {
+    dbConfig(jdbcUrl, user, password, configPath, poolName)
+      .withValue("properties.properties.useSSL", ConfigValueFactory.fromAnyRef("false"))
+      .withValue("properties.properties.verifyServerCertificate", ConfigValueFactory.fromAnyRef("false"))
+  }
+
+  private def dbConfig(
+      jdbcUrl: String,
+      user: String,
+      password: String,
+      configPath: String,
+      poolName: String
+  ): TypesafeConfig = {
+    ConfigFactory
       .load()
       .getConfig(configPath)
       .withValue("poolName", ConfigValueFactory.fromAnyRef(poolName))
       .withValue("registerMbeans", ConfigValueFactory.fromAnyRef(true))
-      .withValue("properties.url", ConfigValueFactory.fromAnyRef(url))
-      .withValue("properties.user", ConfigValueFactory.fromAnyRef(config.dbUser))
-      .withValue("properties.password", ConfigValueFactory.fromAnyRef(config.dbPassword))
+      .withValue("properties.url", ConfigValueFactory.fromAnyRef(jdbcUrl))
+      .withValue("properties.user", ConfigValueFactory.fromAnyRef(user))
+      .withValue("properties.password", ConfigValueFactory.fromAnyRef(password))
       .withValue("properties.driver", ConfigValueFactory.fromAnyRef("slick.jdbc.MySQLProfile"))
-    val sslConfig = if (useSSL) {
-      customDbConf
-        .withValue("properties.properties.useSSL", ConfigValueFactory.fromAnyRef("true"))
-        .withValue("properties.properties.verifyServerCertificate", ConfigValueFactory.fromAnyRef("false"))
-        .withValue(
-          "properties.properties.clientCertificateKeyStoreUrl",
-          ConfigValueFactory.fromAnyRef(keystoreUrl)
-        )
-    } else customDbConf
-
-    Future.successful(Database.forConfig("", sslConfig))
   }
 
-  private[mysql] def checkSslConfig(connectorConfig: MySqlConnectorConfig, poolName: String)(
-      db: backend.Database
-  )(implicit ec: ExecutionContext) = {
-    isSslConfiguredProperly(db) map [Either[ConnectorError, MySqlConnector]] {
-      if (_) {
-        Right(new MySqlConnector(db, connectorConfig, poolName))
-      } else {
-        Left(ConnectionConfigError("SSL Error"))
-      }
-    } recover eitherErrorHandler() map {
-      case Left(e) =>
-        db.shutdown
-        Left(e)
-      case r => r
-    }
-  }
-
-  private[mysql] def isSslConfiguredProperly(
-      db: Database
-  )(implicit executionContext: ExecutionContext): Future[Boolean] = {
-    if (useSSL) {
-      db.run(sql"SHOW STATUS LIKE 'ssl_cipher'".as[(String, String)])
-        .map(ssl => ssl.head._2.contains("RSA-AES") || ssl.head._2.matches(".*AES\\d+-SHA.*"))
-    } else {
-      Future.successful(true)
-    }
-  }
-
-  private[mysql] def createUrl(config: MySqlConnectionConfig) = {
+  private[mysql] def createJdbcUrl(config: MySqlConnectionConfig): String = {
     s"jdbc:mysql://${config.host}:${config.port}/${config.dbName}${safeConnectionParams(config.connectionParams)}"
   }
 
-  private[mysql] def safeConnectionParams(connectionParams: String) = {
+  private def safeConnectionParams(connectionParams: String): String = {
     if (connectionParams.startsWith("?") || connectionParams.isEmpty) {
       connectionParams
     } else {

@@ -49,17 +49,17 @@ class MySqlConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
     "#createUrl" should {
 
       "creates url from config" in {
-        MySqlConnector.createUrl(exampleConnection) shouldBe "jdbc:mysql://host:123/database?param1=asd"
+        MySqlConnector.createJdbcUrl(exampleConnection) shouldBe "jdbc:mysql://host:123/database?param1=asd"
       }
 
       "handle missing ? in params" in {
         val exampleWithoutMark = exampleConnection.copy(connectionParams = "param1=asd")
-        MySqlConnector.createUrl(exampleWithoutMark) shouldBe "jdbc:mysql://host:123/database?param1=asd"
+        MySqlConnector.createJdbcUrl(exampleWithoutMark) shouldBe "jdbc:mysql://host:123/database?param1=asd"
       }
 
       "handle empty params" in {
         val exampleWithoutMark = exampleConnection.copy(connectionParams = "")
-        MySqlConnector.createUrl(exampleWithoutMark) shouldBe "jdbc:mysql://host:123/database"
+        MySqlConnector.createJdbcUrl(exampleWithoutMark) shouldBe "jdbc:mysql://host:123/database"
       }
     }
 

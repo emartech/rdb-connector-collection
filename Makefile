@@ -28,4 +28,7 @@ help: ## This help message
 restart: ## Restart every container
 	$(compose) restart
 
+logs: ## Shows containers' logs
+	$(compose) logs
+
 .PHONY: mysql mssql

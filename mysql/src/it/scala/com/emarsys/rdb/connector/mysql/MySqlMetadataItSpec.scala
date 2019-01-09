@@ -4,7 +4,6 @@ import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel}
 import com.emarsys.rdb.connector.mysql.utils.TestHelper
 import com.emarsys.rdb.connector.test.MetadataItSpec
-import slick.util.AsyncExecutor
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -13,7 +12,7 @@ import scala.concurrent.duration._
 class MySqlMetadataItSpec extends MetadataItSpec {
 
   val connector: Connector =
-    Await.result(MySqlConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(MySqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
 
   def initDb(): Unit = {
     val createTableSql = s"""CREATE TABLE `$tableName` (

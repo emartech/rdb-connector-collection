@@ -6,7 +6,6 @@ import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
 import com.emarsys.rdb.connector.mysql.utils.TestHelper
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import slick.util.AsyncExecutor
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -21,7 +20,7 @@ class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
   val index2Name = s"is_optimized_index2_$uuid"
 
   val connector: Connector =
-    Await.result(MySqlConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(MySqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
 
   override def beforeAll(): Unit = {
     initDb()

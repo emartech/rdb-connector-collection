@@ -9,7 +9,6 @@ import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.mysql.utils.TestHelper
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import slick.util.AsyncExecutor
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -21,8 +20,8 @@ class MySqlConnectorItSpec
     with Matchers
     with BeforeAndAfterAll {
 
-  implicit val mat      = ActorMaterializer()
-  override def afterAll = TestKit.shutdownActorSystem(system)
+  implicit val mat: ActorMaterializer = ActorMaterializer()
+  override def afterAll: Unit = shutdown()
 
   "MySqlConnectorItSpec" when {
 
@@ -31,7 +30,7 @@ class MySqlConnectorItSpec
     "create connector" should {
 
       "connect success" in {
-        val connectorEither = Await.result(MySqlConnector(testConnection)(AsyncExecutor.default()), 5.seconds)
+        val connectorEither = Await.result(MySqlConnector.create(testConnection), 5.seconds)
 
         connectorEither shouldBe a[Right[_, _]]
 
@@ -42,7 +41,7 @@ class MySqlConnectorItSpec
         val conn = testConnection.copy(
           connectionParams = "useSSL=false"
         )
-        val connectorEither = Await.result(MySqlConnector(conn)(AsyncExecutor.default()), 5.seconds)
+        val connectorEither = Await.result(MySqlConnector.create(conn), 5.seconds)
 
         connectorEither shouldBe Left(ConnectionConfigError("SSL Error"))
       }
@@ -52,25 +51,23 @@ class MySqlConnectorItSpec
           connectionParams = "useSSL=false"
         )
 
-        object MySqlConnWithoutSSL extends MySqlConnectorTrait {
-          override val useSSL: Boolean = false
-        }
+        val configWithoutSSL = MySqlConnector.defaultConfig.copy(useSsl = false, verifyServerCertificate = false)
 
-        val connectorEither = Await.result(MySqlConnWithoutSSL(conn)(AsyncExecutor.default()), 5.seconds)
+        val connectorEither = Await.result(MySqlConnector.create(config = conn, connectorConfig = configWithoutSSL), 5.seconds)
 
         connectorEither shouldBe a[Right[_, _]]
       }
 
       "connect fail when wrong certificate" in {
         val conn            = testConnection.copy(certificate = "")
-        val connectorEither = Await.result(MySqlConnector(conn)(AsyncExecutor.default()), 5.seconds)
+        val connectorEither = Await.result(MySqlConnector.create(conn), 5.seconds)
 
         connectorEither shouldBe Left(ConnectionConfigError("Wrong SSL cert format"))
       }
 
       "connect fail when wrong host" in {
         val conn            = testConnection.copy(host = "wrong")
-        val connectorEither = Await.result(MySqlConnector(conn)(AsyncExecutor.default()), 5.seconds)
+        val connectorEither = Await.result(MySqlConnector.create(conn), 5.seconds)
 
         connectorEither shouldBe a[Left[_, _]]
         connectorEither.left.get shouldBe an[ConnectionTimeout]
@@ -78,7 +75,7 @@ class MySqlConnectorItSpec
 
       "connect fail when wrong user" in {
         val conn            = testConnection.copy(dbUser = "")
-        val connectorEither = Await.result(MySqlConnector(conn)(AsyncExecutor.default()), 5.seconds)
+        val connectorEither = Await.result(MySqlConnector.create(conn), 5.seconds)
 
         connectorEither shouldBe a[Left[_, _]]
         connectorEither.left.get shouldBe an[ConnectionTimeout]
@@ -86,7 +83,7 @@ class MySqlConnectorItSpec
 
       "connect fail when wrong password" in {
         val conn            = testConnection.copy(dbPassword = "")
-        val connectorEither = Await.result(MySqlConnector(conn)(AsyncExecutor.default()), 5.seconds)
+        val connectorEither = Await.result(MySqlConnector.create(conn), 5.seconds)
 
         connectorEither shouldBe a[Left[_, _]]
         connectorEither.left.get shouldBe an[ConnectionTimeout]
@@ -97,7 +94,7 @@ class MySqlConnectorItSpec
     "test connection" should {
 
       "success" in {
-        val connectorEither = Await.result(MySqlConnector(testConnection)(AsyncExecutor.default()), 5.seconds)
+        val connectorEither = Await.result(MySqlConnector.create(testConnection), 5.seconds)
 
         connectorEither shouldBe a[Right[_, _]]
 
@@ -115,7 +112,7 @@ class MySqlConnectorItSpec
     "custom error handling" should {
       def runQuery(q: String): ConnectorResponse[Unit] =
         for {
-          Right(connector) <- MySqlConnector(testConnection)(AsyncExecutor.default())
+          Right(connector) <- MySqlConnector.create(testConnection)
           Right(source)    <- connector.rawSelect(q, limit = None, timeout = 1.second)
           res              <- sinkOrLeft(source)
           _ = connector.close()

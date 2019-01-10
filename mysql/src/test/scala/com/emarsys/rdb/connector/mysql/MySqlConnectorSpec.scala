@@ -10,11 +10,11 @@ import com.mysql.jdbc.exceptions.jdbc4.MySQLTransactionRollbackException
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{Matchers, WordSpecLike}
-import spray.json._
+import org.scalatest.{Matchers, WordSpec}
 import slick.jdbc.MySQLProfile.api._
+import spray.json._
 
-class MySqlConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
+class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
 
   "MySqlConnectorSpec" when {
 
@@ -113,8 +113,6 @@ class MySqlConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
         val metricsJson = connector.innerMetrics().parseJson.asJsObject
         metricsJson.fields.size shouldEqual 0
       }
-
     }
-
   }
 }

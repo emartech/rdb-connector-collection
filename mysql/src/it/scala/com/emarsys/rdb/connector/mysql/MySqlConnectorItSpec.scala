@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class MySqlConnectorItSpec
-    extends TestKit(ActorSystem("connector-it-test"))
+    extends TestKit(ActorSystem("mysql-connector-it-test"))
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll {
@@ -46,17 +46,6 @@ class MySqlConnectorItSpec
         connectorEither shouldBe Left(ConnectionConfigError("SSL Error"))
       }
 
-      "connect ok when ssl disabled but check is disabled" in {
-        val conn = testConnection.copy(
-          connectionParams = "useSSL=false"
-        )
-
-        val configWithoutSSL = MySqlConnector.defaultConfig.copy(useSsl = false, verifyServerCertificate = false)
-
-        val connectorEither = Await.result(MySqlConnector.create(config = conn, connectorConfig = configWithoutSSL), 5.seconds)
-
-        connectorEither shouldBe a[Right[_, _]]
-      }
 
       "connect fail when wrong certificate" in {
         val conn            = testConnection.copy(certificate = "")

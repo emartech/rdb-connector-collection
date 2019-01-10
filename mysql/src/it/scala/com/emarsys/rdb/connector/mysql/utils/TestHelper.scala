@@ -23,9 +23,8 @@ object TestHelper {
     connectionParams = config.getString("dbconf.connectionParams")
   )
 
-  private lazy val executor = AsyncExecutor.default()
   private lazy val db: Database = {
-    val keystoreUrl = CertificateUtil.createKeystoreTempUrlFromCertificateString(TEST_CONNECTION_CONFIG.certificate).get
+    val keystoreUrl = CertificateUtil.createTrustStoreTempUrl(TEST_CONNECTION_CONFIG.certificate).get
 
     val prop = new Properties()
     prop.setProperty("useSSL", "true")
@@ -40,7 +39,7 @@ object TestHelper {
       user = TEST_CONNECTION_CONFIG.dbUser,
       password = TEST_CONNECTION_CONFIG.dbPassword,
       prop = prop,
-      executor = executor
+      executor = AsyncExecutor.default()
     )
   }
 

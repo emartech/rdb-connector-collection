@@ -6,7 +6,7 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.postgresql.utils.TestHelper
 import com.emarsys.rdb.connector.test.SearchItSpec
-import slick.util.AsyncExecutor
+
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -15,7 +15,7 @@ class PostgreSqlSearchItSpec extends TestKit(ActorSystem()) with SearchItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val connector: Connector =
-    Await.result(PostgreSqlConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(PostgreSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
 
   override implicit val materializer: Materializer = ActorMaterializer()
 

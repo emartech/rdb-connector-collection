@@ -76,9 +76,10 @@ object Dependencies {
 
   val Postgresql = Seq(
     libraryDependencies ++= Seq(
-    "com.typesafe.slick"  %% "slick"                % slickVersion,
-    "com.typesafe.slick"  %% "slick-hikaricp"       % slickVersion,
-    "org.postgresql"      %  "postgresql"           % "42.1.4"
+      "com.typesafe.slick" %% "slick"          % slickVersion,
+      "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
+      "org.postgresql"     % "postgresql"      % "42.1.4",
+      "org.typelevel"      %% "cats-core"      % "1.0.1"
     )
   )
 

@@ -6,7 +6,6 @@ import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
 import com.emarsys.rdb.connector.postgresql.utils.TestHelper
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import slick.util.AsyncExecutor
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -31,7 +30,7 @@ class PostgreSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAn
   }
 
   val connector: Connector = Await
-    .result(PostgreSqlConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), awaitTimeoutLong)
+    .result(PostgreSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), awaitTimeoutLong)
     .right
     .get
 

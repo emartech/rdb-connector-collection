@@ -26,7 +26,7 @@ class PostgreSqlRawSelectItSpec
   override val awaitTimeout = 15.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     cleanUpDb()
     connector.close()
   }

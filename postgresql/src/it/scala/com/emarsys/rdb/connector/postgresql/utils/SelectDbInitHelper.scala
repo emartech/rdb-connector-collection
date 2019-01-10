@@ -2,7 +2,6 @@ package com.emarsys.rdb.connector.postgresql.utils
 
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector
-import slick.util.AsyncExecutor
 
 import concurrent.duration._
 import scala.concurrent.Await
@@ -15,7 +14,7 @@ trait SelectDbInitHelper {
   val bTableName: String
 
   val connector: Connector =
-    Await.result(PostgreSqlConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(PostgreSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
 
   def initDb(): Unit = {
     val createATableSql =

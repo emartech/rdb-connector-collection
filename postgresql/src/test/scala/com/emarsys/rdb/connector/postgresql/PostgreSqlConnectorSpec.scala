@@ -44,26 +44,26 @@ class PostgreSqlConnectorSpec extends WordSpecLike with Matchers with MockitoSug
 
     }
 
-    "#checkSsl" should {
+    "#isSslDisabledOrTamperedWith" should {
 
-      "return true if empty connection params" in {
-        PostgreSqlConnector.checkSsl("") shouldBe true
+      "return false if empty connection params" in {
+        PostgreSqlConnector.isSslDisabledOrTamperedWith("") shouldBe false
       }
 
-      "return true if not contains ssl=false or sslrootcert or sslmode" in {
-        PostgreSqlConnector.checkSsl("?param1=param&param2=param2") shouldBe true
+      "return false if not contains ssl=false or sslrootcert or sslmode" in {
+        PostgreSqlConnector.isSslDisabledOrTamperedWith("?param1=param&param2=param2") shouldBe false
       }
 
-      "return false if contains ssl=false" in {
-        PostgreSqlConnector.checkSsl("?param1=param&ssl=false&param2=param2") shouldBe false
+      "return true if contains ssl=false" in {
+        PostgreSqlConnector.isSslDisabledOrTamperedWith("?param1=param&ssl=false&param2=param2") shouldBe true
       }
 
-      "return false if contains sslrootcert" in {
-        PostgreSqlConnector.checkSsl("?param1=param&sslrootcert=false&param2=param2") shouldBe false
+      "return true if contains sslrootcert" in {
+        PostgreSqlConnector.isSslDisabledOrTamperedWith("?param1=param&sslrootcert=false&param2=param2") shouldBe true
       }
 
-      "return false if contains sslmode" in {
-        PostgreSqlConnector.checkSsl("?param1=param&sslmode=false&param2=param2") shouldBe false
+      "return true if contains sslmode" in {
+        PostgreSqlConnector.isSslDisabledOrTamperedWith("?param1=param&sslmode=false&param2=param2") shouldBe true
       }
 
     }

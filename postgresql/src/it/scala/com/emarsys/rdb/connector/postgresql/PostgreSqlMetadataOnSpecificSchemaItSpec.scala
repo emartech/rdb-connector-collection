@@ -39,7 +39,7 @@ class PostgreSqlMetadataOnSpecificSchemaItSpec extends MetadataItSpec {
   }
 
   val connector: Connector =
-    Await.result(PostgreSqlConnector(configWithSchema)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(PostgreSqlConnector.create(configWithSchema), 5.seconds).right.get
 
   override val awaitTimeout = 15.seconds
 

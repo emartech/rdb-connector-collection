@@ -3,16 +3,15 @@ package com.emarsys.rdb.connector.postgresql
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.postgresql.utils.TestHelper
 import com.emarsys.rdb.connector.test.MetadataItSpec
-import slick.util.AsyncExecutor
 
-import concurrent.duration._
 import scala.concurrent.Await
-import concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 class PostgreSqlMetadataItSpec extends MetadataItSpec {
 
   val connector: Connector =
-    Await.result(PostgreSqlConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(PostgreSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
 
   override val awaitTimeout = 15.seconds
 

@@ -20,6 +20,8 @@ object Errors {
 
   case class ConnectionTimeout(message: String) extends ConnectorError(message)
 
+  case class CompletionTimeout(message: String) extends ConnectorError(message)
+
   case class QueryTimeout(message: String) extends ConnectorError(message)
 
   case class FailedValidation(validationResult: ValidationResult) extends ConnectorError

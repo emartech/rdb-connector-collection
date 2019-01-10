@@ -12,7 +12,6 @@ import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import com.typesafe.config.{Config, ConfigFactory}
 import slick.jdbc.PostgresProfile.api._
 
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -73,7 +72,6 @@ object PostgreSqlConnector extends PostgreSqlConnectorTrait {
   }
 
   case class PostgreSqlConnectorConfig(
-      queryTimeout: FiniteDuration,
       streamChunkSize: Int,
       configPath: String,
       sslMode: String
@@ -86,7 +84,6 @@ trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHa
   import cats.syntax.functor._
 
   private[postgresql] val defaultConfig = PostgreSqlConnectorConfig(
-    queryTimeout = 20.minutes,
     streamChunkSize = 5000,
     configPath = "postgredb",
     sslMode = "verify-ca"

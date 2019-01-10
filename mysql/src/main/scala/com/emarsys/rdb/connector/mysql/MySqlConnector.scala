@@ -13,7 +13,6 @@ import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import com.typesafe.config.{Config, ConfigFactory}
 import slick.jdbc.MySQLProfile.api._
 
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -84,8 +83,6 @@ object MySqlConnector extends MySqlConnectorTrait {
   }
 
   case class MySqlConnectorConfig(
-      queryTimeout: FiniteDuration,
-      streamChunkSize: Int,
       configPath: String,
       verifyServerCertificate: Boolean
   )
@@ -98,8 +95,6 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
 
   val defaultConfig =
     MySqlConnectorConfig(
-      queryTimeout = 20.minutes,
-      streamChunkSize = 5000,
       configPath = "mysqldb",
       verifyServerCertificate = true
     )

@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.redshift
 
 import java.sql.SQLException
-import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
@@ -37,7 +37,7 @@ trait RedshiftErrorHandling {
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_PERMISSION_DENIED  => AccessDeniedError(ex.getMessage)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_RELATION_NOT_FOUND => TableNotFound(ex.getMessage)
     case ex: SQLException if connectionErrors.contains(ex.getSQLState)           => ConnectionError(ex)
-
+    case ex: TimeoutException                                                    => CompletionTimeout(ex.getMessage)
     case ex: SQLException => ErrorWithMessage(s"[${ex.getSQLState}] ${ex.getMessage}")
     case ex: Exception    => ErrorWithMessage(ex.getMessage)
   }

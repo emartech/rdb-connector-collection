@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.mssql
 
 import java.sql.SQLException
-import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
@@ -34,6 +34,7 @@ trait MsSqlErrorHandling {
     case ex: SQLException if ex.getMessage.contains(MSSQL_EXPLAIN_PERMISSION_DENIED)        => AccessDeniedError(ex.getMessage)
     case ex: SQLException if connectionErrors.contains(ex.getSQLState)                      => ConnectionError(ex)
     case ex: SQLException                                                                   => ErrorWithMessage(s"[${ex.getSQLState}] - ${ex.getMessage}")
+    case ex: TimeoutException                                                        => CompletionTimeout(ex.getMessage)
     case ex: Exception                                                                      => ErrorWithMessage(ex.getMessage)
   }
 

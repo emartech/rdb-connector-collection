@@ -10,7 +10,7 @@ import com.emarsys.rdb.connector.mysql.MySqlWriters._
 import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 
 trait MySqlRawDataManipulation {
   self: MySqlConnector =>
@@ -65,7 +65,7 @@ trait MySqlRawDataManipulation {
   override def rawQuery(rawSql: String, timeout: FiniteDuration): ConnectorResponse[Int] = {
     val sql = sqlu"#$rawSql"
       .withStatementParameters(
-        statementInit = _.setQueryTimeout(timeout.toSeconds.toInt)
+        statementInit = _.setQueryTimeout((timeout - 10.seconds).toSeconds.toInt)
       )
     db.run(sql)
       .map(result => Right(result))

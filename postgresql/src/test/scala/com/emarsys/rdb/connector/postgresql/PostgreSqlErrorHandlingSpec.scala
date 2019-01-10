@@ -1,13 +1,8 @@
 package com.emarsys.rdb.connector.postgresql
 
-import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
-import com.emarsys.rdb.connector.common.models.Errors.{
-  ConnectionError,
-  ErrorWithMessage,
-  SqlSyntaxError,
-  TooManyQueries
-}
+import com.emarsys.rdb.connector.common.models.Errors._
 import org.postgresql.util.{PSQLException, PSQLState}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{Matchers, PrivateMethodTester, WordSpecLike}
@@ -47,5 +42,12 @@ class PostgreSqlErrorHandlingSpec extends WordSpecLike with Matchers with Mockit
         eitherErrorHandler.apply(test._3) shouldEqual Left(test._4)
       }
     }
+
+    "convert TimeoutException to CompletionTimeout" in new PostgreSqlErrorHandling {
+      val error = new TimeoutException("msg")
+      eitherErrorHandler().apply(error) shouldBe
+        Left(ConnectionTimeout("msg"))
+    }
+
   }
 }

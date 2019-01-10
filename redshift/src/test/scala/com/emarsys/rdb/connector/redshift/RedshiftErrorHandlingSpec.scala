@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.redshift
 
 import java.sql.SQLException
-import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors._
 import org.scalatest.{Matchers, WordSpecLike}
@@ -55,5 +55,12 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
       val e = new Exception("msg")
       eitherErrorHandler.apply(e) shouldEqual Left(ErrorWithMessage("msg"))
     }
+
+    "convert TimeoutException to CompletionTimeout" in new RedshiftErrorHandling {
+      val error = new TimeoutException("msg")
+      eitherErrorHandler.apply(error) shouldBe
+        Left(ConnectionTimeout("msg"))
+    }
+
   }
 }

@@ -35,12 +35,10 @@ object MsSqlAzureConnector extends MsSqlAzureConnectorTrait {
   }
 
   case class MsSqlAzureConnectorConfig(
-      queryTimeout: FiniteDuration,
-      streamChunkSize: Int,
       configPath: String
   ) {
     def toMsSqlConnectorConfig: MsSqlConnectorConfig =
-      MsSqlConnectorConfig(queryTimeout, streamChunkSize, configPath, trustServerCertificate = true)
+      MsSqlConnectorConfig(configPath, trustServerCertificate = true)
   }
 }
 
@@ -49,8 +47,6 @@ trait MsSqlAzureConnectorTrait extends MsSqlConnectorHelper {
   import cats.syntax.functor._
 
   val defaultConfig = MsSqlAzureConnectorConfig(
-    queryTimeout = 20.minutes,
-    streamChunkSize = 5000,
     configPath = "mssqldb"
   )
 

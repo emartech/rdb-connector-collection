@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.mysql
 
 import java.sql.{SQLException, SQLTransientConnectionException}
-import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors
 import com.emarsys.rdb.connector.common.models.Errors._
@@ -47,6 +47,12 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
       val msg = "Other timeout error"
       val e   = new MySQLTimeoutException(msg)
       eitherErrorHandler.apply(e) shouldEqual Left(ConnectionTimeout(msg))
+    }
+
+    "convert TimeoutException to CompletionTimeout" in new MySqlErrorHandling {
+      val error = new TimeoutException("msg")
+      eitherErrorHandler().apply(error) shouldBe
+        Left(ConnectionTimeout("msg"))
     }
 
     "convert syntax error exception to access denied error if the message implies that" in new MySqlErrorHandling {

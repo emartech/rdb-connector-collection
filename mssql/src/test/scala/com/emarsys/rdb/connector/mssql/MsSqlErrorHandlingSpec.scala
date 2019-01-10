@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.mssql
 
 import java.sql.SQLException
-import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.microsoft.sqlserver.jdbc.SQLServerException
@@ -43,6 +43,12 @@ class MsSqlErrorHandlingSpec extends WordSpecLike with Matchers with MockitoSuga
       val error = new RejectedExecutionException("msg")
       eitherErrorHandler().apply(error) shouldBe
         Left(TooManyQueries("msg"))
+    }
+
+    "convert TimeoutException to CompletionTimeout" in new MsSqlErrorHandling {
+      val error = new TimeoutException("msg")
+      eitherErrorHandler().apply(error) shouldBe
+        Left(ConnectionTimeout("msg"))
     }
 
     "handle unexpected SqlException" in new MsSqlErrorHandling {

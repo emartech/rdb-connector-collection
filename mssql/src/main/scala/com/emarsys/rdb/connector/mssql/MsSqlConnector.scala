@@ -75,8 +75,6 @@ object MsSqlConnector extends MsSqlConnectorTrait {
   }
 
   case class MsSqlConnectorConfig(
-      queryTimeout: FiniteDuration,
-      streamChunkSize: Int,
       configPath: String,
       trustServerCertificate: Boolean
   )
@@ -88,8 +86,6 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
   import cats.syntax.functor._
 
   val defaultConfig = MsSqlConnectorConfig(
-    queryTimeout = 20.minutes,
-    streamChunkSize = 5000,
     configPath = "mssqldb",
     trustServerCertificate = true
   )

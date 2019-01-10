@@ -11,7 +11,6 @@ import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import slick.jdbc.PostgresProfile.api._
 import slick.util.AsyncExecutor
 
-import scala.concurrent.duration.{FiniteDuration, _}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -70,15 +69,13 @@ object RedshiftConnector extends RedshiftConnectorTrait {
   }
 
   case class RedshiftConnectorConfig(
-      queryTimeout: FiniteDuration,
-      streamChunkSize: Int
+    streamChunkSize: Int
   )
 
 }
 
 trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandling {
   private[redshift] val defaultConfig = RedshiftConnectorConfig(
-    queryTimeout = 20.minutes,
     streamChunkSize = 5000
   )
 

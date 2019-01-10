@@ -9,7 +9,7 @@ import slick.jdbc.{GetResult, PositionedResult}
 import slick.jdbc.SQLServerProfile.api._
 
 import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 
 trait MsSqlStreamingQuery {
   self: MsSqlConnector =>
@@ -21,14 +21,14 @@ trait MsSqlStreamingQuery {
       .as(resultConverter)
       .transactionally
       .withStatementParameters(
-        statementInit = _.setQueryTimeout(timeout.toSeconds.toInt)
+        statementInit = _.setQueryTimeout((timeout - 10.seconds).toSeconds.toInt)
       )
 
     val publisher = db.stream(sql)
     val dbSource = Source
       .fromPublisher(publisher)
-      .idleTimeout(connectorConfig.queryTimeout)
-      .initialTimeout(connectorConfig.queryTimeout)
+      .completionTimeout(timeout)
+      .idleTimeout(timeout - 5.seconds)
       .statefulMapConcat { () =>
         var first = true
         (data: (Seq[String], Seq[String])) =>

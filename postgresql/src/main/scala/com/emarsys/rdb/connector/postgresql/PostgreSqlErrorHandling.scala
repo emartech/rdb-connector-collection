@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.postgresql
 
-import java.util.concurrent.RejectedExecutionException
-
+import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 import java.sql.SQLException
 
 import akka.NotUsed
@@ -35,6 +34,7 @@ trait PostgreSqlErrorHandling {
     case ex: PSQLException if ex.getSQLState == PSQL_STATE_RELATION_NOT_FOUND => TableNotFound(ex.getMessage)
     case ex: SQLException if connectionErrors.contains(ex.getSQLState)        => ConnectionError(ex)
     case ex: SQLException                                                     => ErrorWithMessage(s"[${ex.getSQLState}] - ${ex.getMessage}")
+    case ex: TimeoutException                                                 => CompletionTimeout(ex.getMessage)
     case ex: RejectedExecutionException                                       => TooManyQueries(ex.getMessage)
     case ex: Exception                                                        => ErrorWithMessage(ex.getMessage)
   }

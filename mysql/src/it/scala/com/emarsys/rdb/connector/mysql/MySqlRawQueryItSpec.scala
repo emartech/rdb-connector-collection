@@ -30,7 +30,7 @@ class MySqlRawQueryItSpec
 
   implicit val materializer: Materializer = ActorMaterializer()
 
-  val awaitTimeout = 5.seconds
+  val awaitTimeout = 10.seconds
   val queryTimeout = 5.seconds
 
   override def afterAll(): Unit = {

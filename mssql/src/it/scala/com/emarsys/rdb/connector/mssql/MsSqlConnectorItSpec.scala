@@ -98,7 +98,7 @@ class MsSqlConnectorItSpec
 
     trait QueryRunnerScope {
       lazy val connectionConfig = testConnection
-      lazy val queryTimeout     = 1.second
+      lazy val queryTimeout     = 5.second
 
       def runQuery(q: String): ConnectorResponse[Unit] =
         for {
@@ -119,7 +119,7 @@ class MsSqlConnectorItSpec
 
     "Custom error handling" should {
       "recognize query timeouts" in new QueryRunnerScope {
-        val result = Await.result(runQuery("waitfor delay '00:00:02.000'; select 1"), 2.second)
+        val result = Await.result(runQuery("waitfor delay '00:00:06.000'; select 1"), 6.second)
 
         result shouldBe a[Left[_, _]]
         result.left.get shouldBe an[QueryTimeout]

@@ -105,7 +105,7 @@ class PostgreSqlConnectorItSpec
 
     trait QueryRunnerScope {
       lazy val connectionConfig = defaultConnection
-      lazy val queryTimeout     = 1.second
+      lazy val queryTimeout     = 5.second
 
       def runQuery(q: String): ConnectorResponse[Unit] =
         for {
@@ -144,7 +144,7 @@ class PostgreSqlConnectorItSpec
       }
 
       "recognize query timeouts" in new QueryRunnerScope {
-        val result = Await.result(runQuery("select pg_sleep(2)"), 2.second)
+        val result = Await.result(runQuery("select pg_sleep(6)"), 6.second)
 
         result shouldBe a[Left[_, _]]
         result.left.get shouldBe a[QueryTimeout]

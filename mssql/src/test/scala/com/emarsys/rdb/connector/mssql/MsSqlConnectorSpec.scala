@@ -8,51 +8,12 @@ import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{Matchers, WordSpecLike}
-import spray.json._
 import slick.jdbc.SQLServerProfile.api._
+import spray.json._
 
 class MsSqlConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
 
   "MsSqlConnectorSpec" when {
-
-    "#createUrl" should {
-
-      "creates url from config" in {
-        MsSqlConnector.createUrl("host", 123, "database", ";param1=asd") shouldBe "jdbc:sqlserver://host:123;databaseName=database;param1=asd"
-      }
-
-      "handle missing ; in params" in {
-        MsSqlConnector.createUrl("host", 123, "database", "param1=asd") shouldBe "jdbc:sqlserver://host:123;databaseName=database;param1=asd"
-      }
-
-      "handle empty params" in {
-        MsSqlConnector.createUrl("host", 123, "database", "") shouldBe "jdbc:sqlserver://host:123;databaseName=database"
-      }
-    }
-
-    "#checkSsl" should {
-
-      "return true if empty connection params" in {
-        MsSqlConnector.checkSsl("") shouldBe true
-      }
-
-      "return true if not contains ssl config" in {
-        MsSqlConnector.checkSsl("?param1=param&param2=param2") shouldBe true
-      }
-
-      "return false if contains encrypt=false" in {
-        MsSqlConnector.checkSsl("?param1=param&encrypt=false&param2=param2") shouldBe false
-      }
-
-      "return false if contains trustServerCertificate=true" in {
-        MsSqlConnector.checkSsl("?param1=param&trustServerCertificate=true&param2=param2") shouldBe false
-      }
-
-      "return false if contains trustStore=" in {
-        MsSqlConnector.checkSsl("?param1=param&trustStore=asd&param2=param2") shouldBe false
-      }
-
-    }
 
     "#innerMetrics" should {
 

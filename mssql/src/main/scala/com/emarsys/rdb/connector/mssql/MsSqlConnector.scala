@@ -2,13 +2,16 @@ package com.emarsys.rdb.connector.mssql
 
 import java.util.UUID
 
+import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.{ConnectionConfigError, ConnectorError}
+import com.emarsys.rdb.connector.common.models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
 import com.emarsys.rdb.connector.common.models._
+import com.emarsys.rdb.connector.mssql.CertificateUtil.createTrustStoreTempFile
 import com.emarsys.rdb.connector.mssql.MsSqlConnector.{MsSqlConnectionConfig, MsSqlConnectorConfig}
-import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import com.typesafe.config.ConfigValueFactory.fromAnyRef
+import com.typesafe.config.{Config, ConfigFactory}
 import slick.jdbc.SQLServerProfile.api._
-import slick.util.AsyncExecutor
 
 import scala.concurrent.duration.{FiniteDuration, _}
 import scala.concurrent.{ExecutionContext, Future}
@@ -49,20 +52,12 @@ class MsSqlConnector(
          |"threadAwaitingConnections": ${poolProxy.getThreadsAwaitingConnection},
          |"totalConnections": ${poolProxy.getTotalConnections}
          |}""".stripMargin
-    }.getOrElse(super.innerMetrics)
+    }.getOrElse(super.innerMetrics())
   }
 
 }
 
 object MsSqlConnector extends MsSqlConnectorTrait {
-
-  def apply(
-      config: MsSqlConnectionConfig,
-      connectorConfig: MsSqlConnectorConfig = defaultConfig,
-      configPath: String = "mssqldb"
-  )(executor: AsyncExecutor)(implicit executionContext: ExecutionContext): ConnectorResponse[MsSqlConnector] = {
-    createMsSqlConnector(config, configPath, connectorConfig)(executor)
-  }
 
   case class MsSqlConnectionConfig(
       host: String,
@@ -81,86 +76,85 @@ object MsSqlConnector extends MsSqlConnectorTrait {
 
   case class MsSqlConnectorConfig(
       queryTimeout: FiniteDuration,
-      streamChunkSize: Int
+      streamChunkSize: Int,
+      configPath: String,
+      trustServerCertificate: Boolean
   )
 
 }
 
-trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling {
-
-  protected def createMsSqlConnector(
-      config: MsSqlConnectionConfig,
-      configPath: String,
-      connectorConfig: MsSqlConnectorConfig
-  )(executor: AsyncExecutor)(implicit executionContext: ExecutionContext): ConnectorResponse[MsSqlConnector] = {
-    val keystoreFilePathO = CertificateUtil.createKeystoreTempFileFromCertificateString(config.certificate)
-    val poolName          = UUID.randomUUID.toString
-
-    if (keystoreFilePathO.isEmpty) {
-      Future.successful(Left(ConnectionConfigError("Wrong SSL cert format")))
-    } else if (!checkSsl(config.connectionParams)) {
-      Future.successful(Left(ConnectionConfigError("SSL Error")))
-    } else {
-      val keystoreFilePath = keystoreFilePathO.get
-
-      val db = {
-        val url = createUrl(config.host, config.port, config.dbName, config.connectionParams)
-        val customDbConf = ConfigFactory
-          .load()
-          .getConfig(configPath)
-          .withValue("poolName", ConfigValueFactory.fromAnyRef(poolName))
-          .withValue("registerMbeans", ConfigValueFactory.fromAnyRef(true))
-          .withValue("properties.url", ConfigValueFactory.fromAnyRef(url))
-          .withValue("properties.user", ConfigValueFactory.fromAnyRef(config.dbUser))
-          .withValue("properties.password", ConfigValueFactory.fromAnyRef(config.dbPassword))
-          .withValue("properties.driver", ConfigValueFactory.fromAnyRef("slick.jdbc.SQLServerProfile"))
-          .withValue("properties.properties.encrypt", ConfigValueFactory.fromAnyRef("true"))
-          .withValue("properties.properties.trustServerCertificate", ConfigValueFactory.fromAnyRef("false"))
-          .withValue("properties.properties.trustStore", ConfigValueFactory.fromAnyRef(keystoreFilePath))
-
-        Database.forConfig("", customDbConf)
-      }
-
-      checkConnection(db)
-        .map[Either[ConnectorError, MsSqlConnector]] { _ =>
-          Right(new MsSqlConnector(db, connectorConfig, poolName))
-        }
-        .recover(eitherErrorHandler())
-        .map {
-          case Left(e) =>
-            db.shutdown
-            Left(e)
-          case r => r
-        }
-    }
-  }
+trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling with MsSqlConnectorHelper {
+  import cats.instances.future._
+  import cats.syntax.functor._
 
   val defaultConfig = MsSqlConnectorConfig(
     queryTimeout = 20.minutes,
-    streamChunkSize = 5000
+    streamChunkSize = 5000,
+    configPath = "mssqldb",
+    trustServerCertificate = true
   )
 
-  protected def checkConnection(db: Database)(implicit executionContext: ExecutionContext): Future[Unit] = {
-    db.run(sql"SELECT 1".as[(String)]).map(_ => {})
-  }
+  override def meta(): MetaData = MetaData("\"", "'", "'")
 
-  private[mssql] def createUrl(host: String, port: Int, database: String, connectionParams: String) = {
-    s"jdbc:sqlserver://$host:$port;databaseName=$database${safeConnectionParams(connectionParams)}"
-  }
-
-  private[mssql] def checkSsl(connectionParams: String): Boolean = {
-    !connectionParams.matches(".*encrypt=false.*") &&
-    !connectionParams.matches(".*trustServerCertificate=true.*") &&
-    !connectionParams.matches(".*trustStore=.*")
-  }
-
-  private[mssql] def safeConnectionParams(connectionParams: String) = {
-    if (connectionParams.startsWith(";") || connectionParams.isEmpty) {
-      connectionParams
+  def create(
+      config: MsSqlConnectionConfig,
+      connectorConfig: MsSqlConnectorConfig = defaultConfig
+  )(implicit e: ExecutionContext): ConnectorResponse[MsSqlConnector] = {
+    if (isSslDisabledOrTamperedWith(config.connectionParams)) {
+      Future.successful(Left(ConnectionConfigError("SSL Error")))
     } else {
-      s";$connectionParams"
+      (for {
+        trustStorePath <- createTrustStorePath(config.certificate)
+        poolName = UUID.randomUUID.toString
+        dbConfig = createDbConfig(config, poolName, connectorConfig, trustStorePath)
+        database = Database.forConfig("", dbConfig)
+        mySqlConnector <- createMsSqlConnector(connectorConfig, poolName, database)
+      } yield mySqlConnector).value
     }
   }
 
-  override def meta(): MetaData = MetaData("\"", "'", "'")
+  private def createTrustStorePath(cert: String)(implicit e: ExecutionContext): EitherT[Future, ConnectorError, String] = {
+    EitherT
+      .fromOption[Future](
+        createTrustStoreTempFile(cert),
+        ConnectionConfigError("Wrong SSL cert format"): ConnectorError
+      )
+  }
+
+  private def createMsSqlConnector(connectorConfig: MsSqlConnectorConfig, poolName: String, db: Database)(
+      implicit ec: ExecutionContext
+  ): EitherT[Future, ConnectorError, MsSqlConnector] = {
+    EitherT(
+      checkConnection(db)
+        .as(Right(new MsSqlConnector(db, connectorConfig, poolName)))
+        .recover(eitherErrorHandler())
+    ).leftMap { connectorError =>
+      db.shutdown
+      connectorError
+    }
+  }
+
+  private def createDbConfig(
+      config: MsSqlConnectionConfig,
+      poolName: String,
+      connectorConfig: MsSqlConnectorConfig,
+      trustStorePath: String
+  ): Config = {
+    val jdbcUrl = createUrl(config.host, config.port, config.dbName, config.connectionParams)
+    ConfigFactory
+      .load()
+      .getConfig(connectorConfig.configPath)
+      .withValue("poolName", fromAnyRef(poolName))
+      .withValue("registerMbeans", fromAnyRef(true))
+      .withValue("properties.url", fromAnyRef(jdbcUrl))
+      .withValue("properties.user", fromAnyRef(config.dbUser))
+      .withValue("properties.password", fromAnyRef(config.dbPassword))
+      .withValue("properties.driver", fromAnyRef("slick.jdbc.SQLServerProfile"))
+      .withValue("properties.properties.encrypt", fromAnyRef(true))
+      .withValue(
+        "properties.properties.trustServerCertificate",
+        fromAnyRef(connectorConfig.trustServerCertificate)
+      )
+      .withValue("properties.properties.trustStore", fromAnyRef(trustStorePath))
+  }
 }

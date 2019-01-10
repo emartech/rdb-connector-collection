@@ -6,7 +6,7 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.mssql.utils.TestHelper
 import com.emarsys.rdb.connector.test.SearchItSpec
-import slick.util.AsyncExecutor
+
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -15,7 +15,7 @@ class MsSqlSearchItSpec extends TestKit(ActorSystem()) with SearchItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val connector: Connector =
-    Await.result(MsSqlConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
 
   override implicit val materializer: Materializer = ActorMaterializer()
 

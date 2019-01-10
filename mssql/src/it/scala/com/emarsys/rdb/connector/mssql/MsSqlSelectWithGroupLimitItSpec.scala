@@ -6,7 +6,7 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.mssql.utils.TestHelper
 import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
-import slick.util.AsyncExecutor
+
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -17,7 +17,7 @@ class MsSqlSelectWithGroupLimitItSpec extends TestKit(ActorSystem()) with Select
   override implicit val materializer: Materializer = ActorMaterializer()
 
   val connector: Connector =
-    Await.result(MsSqlConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
 
   override def afterAll(): Unit = {
     system.terminate()

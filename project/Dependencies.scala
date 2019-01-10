@@ -58,9 +58,10 @@ object Dependencies {
 
   val Mssql = Seq(
     libraryDependencies ++= Seq(
-    "com.typesafe.slick"      %% "slick"                % slickVersion,
-    "com.typesafe.slick"      %% "slick-hikaricp"       % slickVersion,
-    "com.microsoft.sqlserver" %  "mssql-jdbc"           % "6.4.0.jre8"
+      "com.typesafe.slick"      %% "slick"          % slickVersion,
+      "com.typesafe.slick"      %% "slick-hikaricp" % slickVersion,
+      "com.microsoft.sqlserver" % "mssql-jdbc"      % "6.4.0.jre8",
+      "org.typelevel"           %% "cats-core"      % "1.0.1"
     )
   )
 

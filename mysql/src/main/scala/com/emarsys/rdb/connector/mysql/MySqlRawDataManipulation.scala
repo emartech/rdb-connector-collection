@@ -65,7 +65,7 @@ trait MySqlRawDataManipulation {
   override def rawQuery(rawSql: String, timeout: FiniteDuration): ConnectorResponse[Int] = {
     val sql = sqlu"#$rawSql"
       .withStatementParameters(
-        statementInit = _.setQueryTimeout((timeout - 10.seconds).toSeconds.toInt)
+        statementInit = _.setQueryTimeout(timeout.toSeconds.toInt)
       )
     db.run(sql)
       .map(result => Right(result))

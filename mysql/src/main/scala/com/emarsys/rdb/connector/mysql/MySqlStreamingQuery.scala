@@ -8,6 +8,7 @@ import com.emarsys.rdb.connector.common.ConnectorResponse
 import slick.jdbc.{GetResult, PositionedResult}
 import slick.jdbc.MySQLProfile.api._
 
+import com.emarsys.rdb.connector.common._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -22,13 +23,13 @@ trait MySqlStreamingQuery {
       .transactionally
       .withStatementParameters(
         fetchSize = Int.MinValue,
-        statementInit = _.setQueryTimeout((timeout - 10.seconds).toSeconds.toInt)
+        statementInit = _.setQueryTimeout(queryTimeout(timeout).toSeconds.toInt)
       )
     val publisher = db.stream(sql)
     val dbSource = Source
       .fromPublisher(publisher)
-      .completionTimeout(timeout)
-      .idleTimeout(timeout - 5.seconds)
+      .completionTimeout(completionTimeout(timeout))
+      .idleTimeout(idleTimeout(timeout))
       .statefulMapConcat { () =>
         var first = true
         (data: (Seq[String], Seq[String])) =>

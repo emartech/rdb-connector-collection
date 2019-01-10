@@ -37,7 +37,7 @@ class PostgreSqlSimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSel
 
     val createFunction     = """CREATE OR REPLACE FUNCTION do_sleep() RETURNS integer AS $$
                            |        BEGIN
-                           |                PERFORM PG_SLEEP(2);
+                           |                PERFORM PG_SLEEP(6);
                            |                RETURN 1;
                            |        END;
                            |$$ LANGUAGE plpgsql;""".stripMargin
@@ -76,7 +76,7 @@ class PostgreSqlSimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSel
       val select = SimpleSelect(SpecificFields(Seq(FieldName("sleep"))), TableName(sleepViewName))
 
       a[QueryTimeout] should be thrownBy {
-        val resultE = Await.result(connector.simpleSelect(select, 1.second), awaitTimeout)
+        val resultE = Await.result(connector.simpleSelect(select, 5.second), awaitTimeout)
         Await.result(resultE.right.get.runWith(Sink.seq), awaitTimeout)
       }
     }

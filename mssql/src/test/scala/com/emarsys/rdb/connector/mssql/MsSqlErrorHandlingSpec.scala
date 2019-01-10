@@ -48,7 +48,7 @@ class MsSqlErrorHandlingSpec extends WordSpecLike with Matchers with MockitoSuga
     "convert TimeoutException to CompletionTimeout" in new MsSqlErrorHandling {
       val error = new TimeoutException("msg")
       eitherErrorHandler().apply(error) shouldBe
-        Left(ConnectionTimeout("msg"))
+        Left(CompletionTimeout("msg"))
     }
 
     "handle unexpected SqlException" in new MsSqlErrorHandling {

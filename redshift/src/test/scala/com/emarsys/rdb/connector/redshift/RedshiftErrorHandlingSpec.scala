@@ -59,7 +59,7 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
     "convert TimeoutException to CompletionTimeout" in new RedshiftErrorHandling {
       val error = new TimeoutException("msg")
       eitherErrorHandler.apply(error) shouldBe
-        Left(ConnectionTimeout("msg"))
+        Left(CompletionTimeout("msg"))
     }
 
   }

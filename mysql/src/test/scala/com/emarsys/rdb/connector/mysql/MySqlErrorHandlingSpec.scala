@@ -52,7 +52,7 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
     "convert TimeoutException to CompletionTimeout" in new MySqlErrorHandling {
       val error = new TimeoutException("msg")
       eitherErrorHandler().apply(error) shouldBe
-        Left(ConnectionTimeout("msg"))
+        Left(CompletionTimeout("msg"))
     }
 
     "convert syntax error exception to access denied error if the message implies that" in new MySqlErrorHandling {

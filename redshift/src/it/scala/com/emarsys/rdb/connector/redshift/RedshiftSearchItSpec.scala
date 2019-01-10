@@ -6,7 +6,7 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.redshift.utils.TestHelper
 import com.emarsys.rdb.connector.test.SearchItSpec
-import slick.util.AsyncExecutor
+
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -15,7 +15,7 @@ class RedshiftSearchItSpec extends TestKit(ActorSystem()) with SearchItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val connector: Connector =
-    Await.result(RedshiftConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
 
   override implicit val materializer: Materializer = ActorMaterializer()
 
@@ -66,9 +66,7 @@ class RedshiftSearchWithSchemaItSpec extends TestKit(ActorSystem()) with SearchI
 
   val connector: Connector = Await
     .result(
-      RedshiftConnector(TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema"))(
-        AsyncExecutor.default()
-      ),
+      RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")),
       5.seconds
     )
     .right

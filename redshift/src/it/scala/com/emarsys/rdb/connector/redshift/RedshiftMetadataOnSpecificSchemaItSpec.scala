@@ -38,7 +38,7 @@ class RedshiftMetadataOnSpecificSchemaItSpec extends MetadataItSpec {
   }
 
   val connector: Connector =
-    Await.result(RedshiftConnector(configWithSchema)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(RedshiftConnector.create(configWithSchema), 5.seconds).right.get
 
   override val awaitTimeout = 15.seconds
 

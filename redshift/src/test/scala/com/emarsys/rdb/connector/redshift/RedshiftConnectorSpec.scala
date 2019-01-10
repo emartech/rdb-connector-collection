@@ -9,9 +9,8 @@ import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{Matchers, WordSpecLike}
-import spray.json._
-
 import slick.jdbc.PostgresProfile.api._
+import spray.json._
 
 class RedshiftConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
 
@@ -46,16 +45,16 @@ class RedshiftConnectorSpec extends WordSpecLike with Matchers with MockitoSugar
 
     "#checkSsl" should {
 
-      "return true if empty connection params" in {
-        RedshiftConnector.checkSsl("") shouldBe true
+      "return false if empty connection params" in {
+        RedshiftConnector.isSslDisabled("") shouldBe false
       }
 
-      "return true if not contains ssl=false" in {
-        RedshiftConnector.checkSsl("?param1=param&param2=param2") shouldBe true
+      "return false if not contains ssl=false" in {
+        RedshiftConnector.isSslDisabled("?param1=param&param2=param2") shouldBe false
       }
 
-      "return false if contains ssl=false" in {
-        RedshiftConnector.checkSsl("?param1=param&ssl=false&param2=param2") shouldBe false
+      "return true if contains ssl=false" in {
+        RedshiftConnector.isSslDisabled("?param1=param&ssl=false&param2=param2") shouldBe true
       }
 
     }

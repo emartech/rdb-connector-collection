@@ -2,7 +2,7 @@ package com.emarsys.rdb.connector.redshift.utils
 
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.redshift.RedshiftConnector
-import slick.util.AsyncExecutor
+
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -18,7 +18,7 @@ trait SelectDbWithSchemaInitHelper {
   val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")
 
   val connector: Connector =
-    Await.result(RedshiftConnector(connectionConfig)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(RedshiftConnector.create(connectionConfig), 5.seconds).right.get
 
   def initDb(): Unit = {
     val createATableSql =

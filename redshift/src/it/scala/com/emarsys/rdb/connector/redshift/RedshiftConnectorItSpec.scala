@@ -9,7 +9,7 @@ import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.redshift.utils.TestHelper
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import slick.util.AsyncExecutor
+
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -25,7 +25,6 @@ class RedshiftConnectorItSpec
   "RedshiftConnector" when {
 
     implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
-    val executor                  = AsyncExecutor.default()
     val timeout                   = 8.seconds
 
     "create connector" should {
@@ -38,14 +37,14 @@ class RedshiftConnectorItSpec
         connectionParams += "ssl=false"
 
         val badConnection = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = connectionParams)
-        val connection    = Await.result(RedshiftConnector(badConnection)(executor), timeout)
+        val connection    = Await.result(RedshiftConnector.create(badConnection), timeout)
         connection shouldBe Left(ConnectionConfigError("SSL Error"))
       }
 
       "connect ok" in {
 
         val connectorEither =
-          Await.result(RedshiftConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), timeout)
+          Await.result(RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG), timeout)
 
         connectorEither shouldBe a[Right[_, _]]
       }
@@ -55,7 +54,7 @@ class RedshiftConnectorItSpec
 
       "return ok in happy case" in {
         val connection =
-          Await.result(RedshiftConnector(TestHelper.TEST_CONNECTION_CONFIG)(executor), timeout).toOption.get
+          Await.result(RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG), timeout).toOption.get
         val result = Await.result(connection.testConnection(), timeout)
         result shouldBe Right({})
         connection.close()
@@ -63,7 +62,7 @@ class RedshiftConnectorItSpec
 
       "return error if cant connect" in {
         val badConnection = TestHelper.TEST_CONNECTION_CONFIG.copy(host = "asd.asd.asd")
-        val connection    = Await.result(RedshiftConnector(badConnection)(executor), timeout)
+        val connection    = Await.result(RedshiftConnector.create(badConnection), timeout)
         connection shouldBe a[Left[_, _]]
         connection.left.get shouldBe a[ConnectionTimeout]
       }
@@ -72,11 +71,11 @@ class RedshiftConnectorItSpec
 
     trait QueryRunnerScope {
       lazy val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG
-      lazy val queryTimeout     = 2.second
+      lazy val queryTimeout     = 20.second
 
       def runQuery(q: String): ConnectorResponse[Unit] =
         for {
-          Right(connector) <- RedshiftConnector(connectionConfig)(executor)
+          Right(connector) <- RedshiftConnector.create(connectionConfig)
           Right(source)    <- connector.rawSelect(q, limit = None, queryTimeout)
           res              <- sinkOrLeft(source)
           _ = connector.close()

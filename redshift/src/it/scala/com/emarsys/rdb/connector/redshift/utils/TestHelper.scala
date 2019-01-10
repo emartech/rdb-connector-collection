@@ -23,8 +23,6 @@ object TestHelper {
     connectionParams = ConfigFactory.load().getString("dbconf.connectionParams")
   )
 
-  private lazy val executor = AsyncExecutor.default()
-
   private lazy val db: Database = {
     Database.forURL(
       url = createUrl(TEST_CONNECTION_CONFIG),
@@ -32,7 +30,7 @@ object TestHelper {
       user = TEST_CONNECTION_CONFIG.dbUser,
       password = TEST_CONNECTION_CONFIG.dbPassword,
       prop = new Properties(),
-      executor = executor
+      executor = AsyncExecutor.default()
     )
 
   }

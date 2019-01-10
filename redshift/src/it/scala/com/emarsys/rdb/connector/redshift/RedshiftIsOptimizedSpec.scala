@@ -6,7 +6,7 @@ import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
 import com.emarsys.rdb.connector.redshift.utils.TestHelper
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import slick.util.AsyncExecutor
+
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -27,7 +27,7 @@ class RedshiftIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndA
   }
 
   val connector: Connector =
-    Await.result(RedshiftConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), 15.seconds).right.get
+    Await.result(RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 15.seconds).right.get
 
   def initDb(): Unit = {
     val createTableSql =

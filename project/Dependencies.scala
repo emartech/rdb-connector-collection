@@ -88,9 +88,10 @@ object Dependencies {
       "Amazon" at "http://redshift-maven-repository.s3-website-us-east-1.amazonaws.com/release",
     ),
     libraryDependencies ++= Seq(
-      "com.typesafe.slick"  %% "slick"                % slickVersion,
-      "com.typesafe.slick"  %% "slick-hikaricp"       % slickVersion,
-      "com.amazon.redshift" %  "redshift-jdbc42"      % "1.2.8.1005"
+      "com.typesafe.slick"  %% "slick"          % slickVersion,
+      "com.typesafe.slick"  %% "slick-hikaricp" % slickVersion,
+      "com.amazon.redshift" % "redshift-jdbc42" % "1.2.8.1005",
+      "org.typelevel"       %% "cats-core"      % "1.0.1"
     )
   )
 }

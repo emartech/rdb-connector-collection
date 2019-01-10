@@ -2,14 +2,14 @@ package com.emarsys.rdb.connector.redshift
 
 import java.util.UUID
 
+import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.ConnectionConfigError
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
-import com.emarsys.rdb.connector.common.models._
+import com.emarsys.rdb.connector.common.models.{CommonConnectionReadableData, ConnectionConfig, MetaData, _}
 import com.emarsys.rdb.connector.redshift.RedshiftConnector.{RedshiftConnectionConfig, RedshiftConnectorConfig}
-import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import slick.jdbc.PostgresProfile.api._
-import slick.util.AsyncExecutor
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -49,7 +49,7 @@ class RedshiftConnector(
          |"threadAwaitingConnections": ${poolProxy.getThreadsAwaitingConnection},
          |"totalConnections": ${poolProxy.getTotalConnections}
          |}""".stripMargin
-    }.getOrElse(super.innerMetrics)
+    }.getOrElse(super.innerMetrics())
   }
 }
 
@@ -69,70 +69,89 @@ object RedshiftConnector extends RedshiftConnectorTrait {
   }
 
   case class RedshiftConnectorConfig(
-    streamChunkSize: Int
+      streamChunkSize: Int,
+      configPath: String
   )
 
 }
 
 trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandling {
-  private[redshift] val defaultConfig = RedshiftConnectorConfig(
-    streamChunkSize = 5000
+  import cats.instances.future._
+  import cats.syntax.functor._
+  import com.emarsys.rdb.connector.common.defaults.DefaultSqlWriters._
+  import com.emarsys.rdb.connector.common.defaults.SqlWriter._
+
+  val defaultConfig = RedshiftConnectorConfig(
+    streamChunkSize = 5000,
+    configPath = "redshiftdb"
   )
 
-  def apply(
+  override def meta(): MetaData = MetaData("\"", "'", "\\")
+
+  def create(
       config: RedshiftConnectionConfig,
       connectorConfig: RedshiftConnectorConfig = defaultConfig,
-      configPath: String = "redshiftdb"
-  )(executor: AsyncExecutor)(implicit executionContext: ExecutionContext): ConnectorResponse[RedshiftConnector] = {
-    if (checkSsl(config.connectionParams)) {
+  )(implicit ec: ExecutionContext): ConnectorResponse[RedshiftConnector] = {
+    if (isSslDisabled(config.connectionParams)) {
+      Future.successful(Left(ConnectionConfigError("SSL Error")))
+    } else {
       val poolName      = UUID.randomUUID.toString
       val currentSchema = createSchemaName(config)
+      val dbConfig      = createDbConfig(config, connectorConfig, poolName, currentSchema)
+      val db            = Database.forConfig("", dbConfig)
 
-      import com.emarsys.rdb.connector.common.defaults.DefaultSqlWriters._
-      import com.emarsys.rdb.connector.common.defaults.SqlWriter._
-      val setSchemaQuery = s"set search_path to ${TableName(currentSchema).toSql}"
-
-      val customDbConf = ConfigFactory
-        .load()
-        .getConfig(configPath)
-        .withValue("poolName", ConfigValueFactory.fromAnyRef(poolName))
-        .withValue("connectionInitSql", ConfigValueFactory.fromAnyRef(setSchemaQuery))
-        .withValue("registerMbeans", ConfigValueFactory.fromAnyRef(true))
-        .withValue("properties.url", ConfigValueFactory.fromAnyRef(createUrl(config)))
-        .withValue("properties.user", ConfigValueFactory.fromAnyRef(config.dbUser))
-        .withValue("properties.password", ConfigValueFactory.fromAnyRef(config.dbPassword))
-        .withValue("properties.driver", ConfigValueFactory.fromAnyRef("com.amazon.redshift.jdbc42.Driver"))
-
-      val db = Database.forConfig("", customDbConf)
-
-      db.run(sql"select 1".as[Int])
-        .map { _ =>
-          Right(new RedshiftConnector(db, connectorConfig, poolName, currentSchema))
-        }
-        .recover(eitherErrorHandler)
-        .map {
-          case Left(e) =>
-            db.shutdown
-            Left(e)
-          case r => r
-        }
-
-    } else {
-      Future.successful(Left(ConnectionConfigError("SSL Error")))
+      createMsSqlConnector(connectorConfig, poolName, db, currentSchema).value
     }
   }
 
-  override def meta() = MetaData("\"", "'", "\\")
-
-  private[redshift] def checkSsl(connectionParams: String): Boolean = {
-    !connectionParams.matches(".*ssl=false.*")
+  private def createDbConfig(
+      config: RedshiftConnectionConfig,
+      connectorConfig: RedshiftConnectorConfig,
+      poolName: String,
+      currentSchema: String
+  ): Config = {
+    val setSchemaQuery = s"set search_path to ${TableName(currentSchema).toSql}"
+    ConfigFactory
+      .load()
+      .getConfig(connectorConfig.configPath)
+      .withValue("poolName", ConfigValueFactory.fromAnyRef(poolName))
+      .withValue("connectionInitSql", ConfigValueFactory.fromAnyRef(setSchemaQuery))
+      .withValue("registerMbeans", ConfigValueFactory.fromAnyRef(true))
+      .withValue("properties.url", ConfigValueFactory.fromAnyRef(createUrl(config)))
+      .withValue("properties.user", ConfigValueFactory.fromAnyRef(config.dbUser))
+      .withValue("properties.password", ConfigValueFactory.fromAnyRef(config.dbPassword))
+      .withValue("properties.driver", ConfigValueFactory.fromAnyRef("com.amazon.redshift.jdbc42.Driver"))
   }
 
-  private[redshift] def createUrl(config: RedshiftConnectionConfig) = {
+  private def createMsSqlConnector(
+      connectorConfig: RedshiftConnectorConfig,
+      poolName: String,
+      db: Database,
+      currentSchema: String
+  )(implicit ec: ExecutionContext): EitherT[Future, Errors.ConnectorError, RedshiftConnector] = {
+    EitherT(
+      checkConnection(db)
+        .as(Right(new RedshiftConnector(db, connectorConfig, poolName, currentSchema)))
+        .recover(eitherErrorHandler)
+    ).leftMap { connectionError =>
+      db.close()
+      connectionError
+    }
+  }
+
+  private[redshift] def isSslDisabled(connectionParams: String): Boolean = {
+    connectionParams.matches(".*ssl=false.*")
+  }
+
+  protected def checkConnection(db: Database)(implicit executionContext: ExecutionContext): Future[Unit] = {
+    db.run(sql"SELECT 1".as[Int]).void
+  }
+
+  private[redshift] def createUrl(config: RedshiftConnectionConfig): String = {
     s"jdbc:redshift://${config.host}:${config.port}/${config.dbName}${safeConnectionParams(config.connectionParams)}"
   }
 
-  private def createSchemaName(config: RedshiftConnectionConfig) = {
+  private def createSchemaName(config: RedshiftConnectionConfig): String = {
     config.connectionParams
       .split("&")
       .toList
@@ -140,7 +159,8 @@ trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandli
       .flatMap(_.split("=").toList.tail.headOption)
       .getOrElse("public")
   }
-  private[redshift] def safeConnectionParams(connectionParams: String) = {
+
+  private def safeConnectionParams(connectionParams: String): String = {
     if (connectionParams.startsWith("?") || connectionParams.isEmpty) {
       connectionParams
     } else {

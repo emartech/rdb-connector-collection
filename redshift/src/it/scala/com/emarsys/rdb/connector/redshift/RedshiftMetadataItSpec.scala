@@ -3,7 +3,7 @@ package com.emarsys.rdb.connector.redshift
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.redshift.utils.TestHelper
 import com.emarsys.rdb.connector.test.MetadataItSpec
-import slick.util.AsyncExecutor
+
 
 import concurrent.duration._
 import scala.concurrent.Await
@@ -12,7 +12,7 @@ import concurrent.ExecutionContext.Implicits.global
 class RedshiftMetadataItSpec extends MetadataItSpec {
 
   val connector: Connector =
-    Await.result(RedshiftConnector(TestHelper.TEST_CONNECTION_CONFIG)(AsyncExecutor.default()), 5.seconds).right.get
+    Await.result(RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
 
   override val awaitTimeout = 15.seconds
 

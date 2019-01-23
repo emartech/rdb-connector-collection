@@ -17,7 +17,7 @@ services:
     cached: true
     depends_on:
       - rdb-allconnector
-      - mysql-db
+      - mysql-db-57
     environment:
       DATABASE_HOST: "db"
     links:
@@ -30,7 +30,7 @@ services:
     cached: true
     depends_on:
       - rdb-allconnector
-      - mysql-db
+      - mysql-db-8
     environment:
       DATABASE_HOST: "db"
     links:

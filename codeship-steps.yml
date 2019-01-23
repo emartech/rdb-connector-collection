@@ -13,10 +13,10 @@
       tag: master
       steps:
       - name: mysql-it-57
-        service: rdb-mysql-connector
+        service: rdb-mysql-connector-57
         command: ./run_mysql_it_tests.sh
       - name: mysql-it-8
-        service: rdb-mysql-connector
+        service: rdb-mysql-connector-8
         command: ./run_mysql_it_tests.sh
       - name: bigquery-it
         service: rdb-allconnector

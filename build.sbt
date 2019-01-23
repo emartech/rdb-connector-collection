@@ -41,6 +41,10 @@ lazy val postgres = connector("postgresql", Dependencies.Postgresql)
 lazy val redshift = connector("redshift", Dependencies.Redshift)
 
 lazy val ItTest = config("it") extend Test
+lazy val itTestSettings = Defaults.itSettings ++ Seq(
+  fork := true,
+  testForkedParallel := true
+)
 
 def connector(projectId: String, additionalSettings: sbt.Def.SettingsDefinition*): Project =
   Project(id = projectId, base = file(projectId))
@@ -50,7 +54,7 @@ def connector(projectId: String, additionalSettings: sbt.Def.SettingsDefinition*
     )
     .configs(ItTest)
     .settings(
-      inConfig(ItTest)(Seq(Defaults.itSettings: _*))
+      inConfig(ItTest)(itTestSettings)
     )
     .dependsOn(common, connectorTest % "test")
     .settings(Dependencies.Common: _*)

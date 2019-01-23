@@ -8,7 +8,7 @@ count=0
 until ( test_mysql )
 do
   ((count++))
-  if [ ${count} -gt 300 ]
+  if [ ${count} -gt 1200 ]
   then
     echo "Services didn't become ready in time"
     exit 1

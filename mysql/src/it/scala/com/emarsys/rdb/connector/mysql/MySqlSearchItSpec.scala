@@ -5,6 +5,7 @@ import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.mysql.utils.TestHelper
+import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
 import com.emarsys.rdb.connector.test.SearchItSpec
 
 import scala.concurrent.Await
@@ -14,7 +15,10 @@ class MySqlSearchItSpec extends TestKit(ActorSystem()) with SearchItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val connector: Connector =
-    Await.result(MySqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
+    Await.result(MySqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG, MySqlConnectorConfig(
+      configPath = "mysqldb",
+      verifyServerCertificate = false
+    )), 5.seconds).right.get
 
   override implicit val materializer: Materializer = ActorMaterializer()
 

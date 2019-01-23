@@ -10,7 +10,7 @@ services:
     environment:
       SBT_OPTS: "-Xmx2G -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -Xss2M"
 
-  rdb-mysql-connector:
+  rdb-mysql-connector-57:
     build:
       context: .
       dockerfile: Dockerfile
@@ -21,7 +21,20 @@ services:
     environment:
       DATABASE_HOST: "db"
     links:
-    - mysql-db:db
+    - mysql-db-57:db
+
+  rdb-mysql-connector-8:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    cached: true
+    depends_on:
+      - rdb-allconnector
+      - mysql-db
+    environment:
+      DATABASE_HOST: "db"
+    links:
+      - mysql-db-8:db
 
   rdb-mssql-connector:
     build:
@@ -50,8 +63,20 @@ services:
     cached: true
     encrypted_env_file: env.encrypted
 
-  mysql-db:
+  mysql-db-57:
     image: mysql/mysql-server:5.7
+    environment:
+      MYSQL_USER: "it-test-user"
+      MYSQL_PASSWORD: "it-test-pw"
+      MYSQL_DATABASE: "it-test-db"
+      MYSQL_ROOT_PASSWORD: "it-test-root-pw"
+    cached: true
+    volumes:
+      - ./mysql/mysql/ssl:/etc/mysql
+      - ./mysql/mysql/my.cnf:/etc/my.cnf
+
+  mysql-db-8:
+    image: mysql/mysql-server:8.0
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"

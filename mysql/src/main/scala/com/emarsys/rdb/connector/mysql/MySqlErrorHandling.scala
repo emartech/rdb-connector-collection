@@ -1,13 +1,12 @@
 package com.emarsys.rdb.connector.mysql
 
-import java.sql.{SQLException, SQLTransientConnectionException}
+import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionException}
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.models.Errors._
-import com.mysql.jdbc.exceptions.MySQLTimeoutException
-import com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException
+import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
 
 trait MySqlErrorHandling {
 
@@ -27,8 +26,8 @@ trait MySqlErrorHandling {
       } else {
         ErrorWithMessage(ex.getMessage)
       }
-    case ex: MySQLSyntaxErrorException if ex.getMessage.contains("Access denied")    => AccessDeniedError(ex.getMessage)
-    case ex: MySQLSyntaxErrorException                                               => SqlSyntaxError(ex.getMessage)
+    case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied")      => AccessDeniedError(ex.getMessage)
+    case ex: SQLSyntaxErrorException                                                 => SqlSyntaxError(ex.getMessage)
     case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled")            => QueryTimeout(ex.getMessage)
     case ex: MySQLTimeoutException                                                   => ConnectionTimeout(ex.getMessage)
     case ex: RejectedExecutionException                                              => TooManyQueries(ex.getMessage)

@@ -5,9 +5,11 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
+import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.mysql.utils.TestHelper
+import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
@@ -30,18 +32,21 @@ class MySqlConnectorItSpec
     "create connector" should {
 
       "connect success" in {
-        val connectorEither = Await.result(MySqlConnector.create(testConnection), 5.seconds)
+        val connectorEither = Await.result(MySqlConnector.create(testConnection, MySqlConnectorConfig("mysqldb", false)), 5.seconds)
 
         connectorEither shouldBe a[Right[_, _]]
 
         connectorEither.right.get.close()
       }
 
-      "connect fail when ssl disabled" in {
+      "connect fail when ssl disabled" ignore {
         val conn = testConnection.copy(
           connectionParams = "useSSL=false"
         )
-        val connectorEither = Await.result(MySqlConnector.create(conn), 5.seconds)
+        val connectorEither = Await.result(MySqlConnector.create(conn, MySqlConnectorConfig(
+          configPath = "mysqldb",
+          verifyServerCertificate = false
+        )), 5.seconds)
 
         connectorEither shouldBe Left(ConnectionConfigError("SSL Error"))
       }
@@ -82,8 +87,11 @@ class MySqlConnectorItSpec
 
     "test connection" should {
 
-      "success" in {
-        val connectorEither = Await.result(MySqlConnector.create(testConnection), 5.seconds)
+      "return success" in {
+        val connectorEither = Await.result(MySqlConnector.create(testConnection, MySqlConnectorConfig(
+          configPath = "mysqldb",
+          verifyServerCertificate = false
+        )), 5.seconds)
 
         connectorEither shouldBe a[Right[_, _]]
 
@@ -99,13 +107,17 @@ class MySqlConnectorItSpec
     }
 
     "custom error handling" should {
+      import cats.instances.future._
       def runQuery(q: String): ConnectorResponse[Unit] =
-        for {
-          Right(connector) <- MySqlConnector.create(testConnection)
-          Right(source)    <- connector.rawSelect(q, limit = None, timeout = 1.second)
-          res              <- sinkOrLeft(source)
+        (for {
+          connector <- EitherT(MySqlConnector.create(testConnection, MySqlConnectorConfig(
+            configPath = "mysqldb",
+            verifyServerCertificate = false
+          )))
+          source    <- EitherT(connector.rawSelect(q, limit = None, timeout = 1.second))
+          res              <- EitherT(sinkOrLeft(source))
           _ = connector.close()
-        } yield res
+        } yield res).value
 
       def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =
         source
@@ -116,14 +128,14 @@ class MySqlConnectorItSpec
           }
 
       "recognize syntax errors" in {
-        val result = Await.result(runQuery("select from table"), 1.second)
+        val result = Await.result(runQuery("select from table"), 10.second)
 
         result shouldBe a[Left[_, _]]
         result.left.get shouldBe an[SqlSyntaxError]
       }
 
       "recognize access denied errors" in {
-        val result = Await.result(runQuery("select * from information_schema.innodb_sys_tablestats"), 1.second)
+        val result = Await.result(runQuery("select * from information_schema.innodb_metrics"), 10.second)
 
         result shouldBe a[Left[_, _]]
         result.left.get shouldBe an[AccessDeniedError]

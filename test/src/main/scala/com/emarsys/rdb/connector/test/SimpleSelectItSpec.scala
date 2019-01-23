@@ -55,7 +55,7 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
   val cTableName = s"c$postfixTableName"
   val connector: Connector
 
-  val awaitTimeout = 5.seconds
+  val awaitTimeout = 10.seconds
   val queryTimeout = 15.seconds
 
   implicit val materializer: Materializer

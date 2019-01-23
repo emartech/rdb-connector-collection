@@ -68,7 +68,7 @@ class MySqlRawSelectItSpec
           "7",
           null,
           "7",
-          "100.00",
+          "100.0",
           "Using index"
         )
       )
@@ -106,7 +106,7 @@ class MySqlRawSelectItSpec
   "#projectedRawSelect" should {
 
     "return QueryTimeout when query takes more time than the timeout" in {
-      val result = connector.projectedRawSelect("SELECT SLEEP(6) as sleep", Seq("sleep"), None, 5.second)
+      val result = connector.projectedRawSelect("SELECT SLEEP(10) as sleep", Seq("sleep"), None, 5.second)
 
       a[QueryTimeout] should be thrownBy {
         getConnectorResult(result, awaitTimeout)

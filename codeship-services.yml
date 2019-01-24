@@ -83,6 +83,7 @@ services:
       MYSQL_DATABASE: "it-test-db"
       MYSQL_ROOT_PASSWORD: "it-test-root-pw"
     cached: true
+    entrypoint: ['/entrypoint.sh', '--default-authentication-plugin=mysql_native_password']
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf

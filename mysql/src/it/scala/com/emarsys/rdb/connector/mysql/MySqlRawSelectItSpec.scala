@@ -42,35 +42,19 @@ class MySqlRawSelectItSpec
     "return result" in {
       val result = getConnectorResult(connector.analyzeRawSelect(simpleSelect), awaitTimeout)
 
-      result shouldEqual Seq(
-        Seq(
-          "id",
-          "select_type",
-          "table",
-          "partitions",
-          "type",
-          "possible_keys",
-          "key",
-          "key_len",
-          "ref",
-          "rows",
-          "filtered",
-          "Extra"
-        ),
-        Seq(
-          "1",
-          "SIMPLE",
-          s"$aTableName",
-          null,
-          "index",
-          null,
-          s"${aTableName.dropRight(5)}_idx2",
-          "7",
-          null,
-          "7",
-          "100.0",
-          "Using index"
-        )
+      val mysql56Response = Seq(
+        Seq("id", "select_type", "table", "type", "possible_keys", "key", "key_len", "ref", "rows", "Extra"),
+        Seq("1", "SIMPLE", s"$aTableName", "index", null, s"${aTableName.dropRight(5)}_idx2", "7", null, "7", "Using index")
+      )
+
+      val mysql57And8Response = Seq(
+        Seq("id", "select_type", "table", "partitions", "type", "possible_keys", "key", "key_len", "ref", "rows", "filtered", "Extra"),
+        Seq("1", "SIMPLE", s"$aTableName", null, "index", null, s"${aTableName.dropRight(5)}_idx2", "7", null, "7", "100.0", "Using index")
+      )
+
+      result should (
+        equal(mysql56Response) or
+        equal(mysql57And8Response)
       )
     }
   }

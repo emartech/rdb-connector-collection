@@ -75,8 +75,8 @@ class MySqlRawQueryItSpec
       }
 
       "return QueryTimeout when query takes more time than the timeout" in {
-        val query  = s"DELETE FROM $aTableName WHERE A1 = SLEEP(15)"
-        val result = Await.result(connector.rawQuery(query, 10.second), awaitTimeout)
+        val query  = s"DELETE FROM $aTableName WHERE A1 = SLEEP(12)"
+        val result = Await.result(connector.rawQuery(query, 8.second), awaitTimeout)
 
         result.left.get shouldBe a[QueryTimeout]
       }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function test_mysql {
-  mysqladmin ping -h db --silent
+  mysqladmin ping -h mysql-db-57 --silent
 }
 
 count=0

@@ -9,6 +9,7 @@ import PostgreSqlWriters._
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.NullValue
 
 import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
 
 trait PostgreSqlRawDataManipulation {
 
@@ -53,6 +54,16 @@ trait PostgreSqlRawDataManipulation {
         .map(result => Right(result))
         .recover(eitherErrorHandler())
     }
+  }
+
+  override def rawQuery(rawSql: String, timeout: FiniteDuration): ConnectorResponse[Int] = {
+    val sql = sqlu"#$rawSql"
+      .withStatementParameters(
+        statementInit = _.setQueryTimeout(timeout.toSeconds.toInt)
+      )
+    db.run(sql)
+      .map(result => Right(result))
+      .recover(eitherErrorHandler())
   }
 
   override def rawReplaceData(tableName: String, definitions: Seq[Record]): ConnectorResponse[Int] = {

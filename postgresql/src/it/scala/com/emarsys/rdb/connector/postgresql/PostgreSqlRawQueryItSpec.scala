@@ -1,4 +1,4 @@
-package com.emarsys.rdb.connector.mysql
+package com.emarsys.rdb.connector.postgresql
 
 import java.util.UUID
 
@@ -7,15 +7,15 @@ import akka.stream.scaladsl.Sink
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.{QueryTimeout, SqlSyntaxError}
-import com.emarsys.rdb.connector.common.models.{Errors, SimpleSelect}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.mysql.utils.SelectDbInitHelper
+import com.emarsys.rdb.connector.common.models.{Errors, SimpleSelect}
+import com.emarsys.rdb.connector.postgresql.utils.SelectDbInitHelper
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class MySqlRawQueryItSpec
+class PostgreSqlRawQueryItSpec
     extends TestKit(ActorSystem())
     with SelectDbInitHelper
     with WordSpecLike
@@ -70,7 +70,7 @@ class MySqlRawQueryItSpec
       }
 
       "return QueryTimeout when query takes more time than the timeout" in {
-        val query  = s"DELETE FROM $aTableName WHERE A1 = SLEEP(12)"
+        val query  = s"DELETE FROM $aTableName WHERE A1 = pg_sleep(12)::text"
         val result = Await.result(connector.rawQuery(query, 1.second), awaitTimeout)
 
         result.left.get shouldBe a[QueryTimeout]

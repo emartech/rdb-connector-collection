@@ -28,6 +28,12 @@ trait PostgreSqlErrorHandling {
   )
 
   private def errorHandler(): PartialFunction[Throwable, ConnectorError] = {
+    case ex: slick.SlickException =>
+      if (ex.getMessage == "Update statements should not return a ResultSet") {
+        SqlSyntaxError("Wrong update statement: non update query given")
+      } else {
+        ErrorWithMessage(ex.getMessage)
+      }
     case ex: PSQLException if ex.getSQLState == PSQL_STATE_QUERY_CANCELLED    => QueryTimeout(ex.getMessage)
     case ex: PSQLException if ex.getSQLState == PSQL_STATE_SYNTAX_ERROR       => SqlSyntaxError(ex.getMessage)
     case ex: PSQLException if ex.getSQLState == PSQL_STATE_PERMISSION_DENIED  => AccessDeniedError(ex.getMessage)

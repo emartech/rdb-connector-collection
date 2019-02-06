@@ -80,9 +80,7 @@ class MySqlRawSelectItSpec
     "return QueryTimeout when query takes more time than the timeout" in {
       val result = connector.rawSelect("SELECT SLEEP(6)", None, 5.second)
 
-      a[QueryTimeout] should be thrownBy {
-        getConnectorResult(result, awaitTimeout)
-      }
+      the[Exception] thrownBy getConnectorResult(result, awaitTimeout) shouldBe QueryTimeout("Statement cancelled due to timeout or client request")
     }
 
   }

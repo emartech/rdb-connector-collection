@@ -201,6 +201,25 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
         ))
       }
 
+      "list table values with EQUAL on strings that might need escaping" in {
+        val whereCondition = Or(List(
+          EqualToValue(FieldName("B4"), Value("b\"1")),
+          And(List(
+            EqualToValue(FieldName("B2"), Value("b\\2")),
+            EqualToValue(FieldName("B3"), Value("b'2"))
+          ))
+        ))
+        val simpleSelect = SimpleSelect(AllField, TableName(bTableName), where = Some(whereCondition))
+
+        val result = getSimpleSelectResult(simpleSelect)
+
+        checkResultWithoutRowOrder(result, Seq(
+          Seq("B1", "B2", "B3", "B4"),
+          Seq("b,1", "b.1", "b:1", "b\"1"),
+          Seq("b;2", "b\\2", "b'2", "b=2")
+        ))
+      }
+
       "list table values with EQUAL on numbers" in {
         val simpleSelect = SimpleSelect(AllField, TableName(aTableName), where = Some(EqualToValue(FieldName("A2"), Value("3"))))
 

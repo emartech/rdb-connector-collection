@@ -22,3 +22,4 @@ Contains general test implementations, that may be used in connectors to test co
 
 Implements the general database connector trait, and contains bigquery/mssql/mysql/postgresql/redshift
  specific implementation.
+

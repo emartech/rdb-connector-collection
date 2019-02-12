@@ -18,6 +18,7 @@ services:
     depends_on:
       - rdb-allconnector
       - mysql-db-56
+    encrypted_env_file: itenv.encrypted
     environment:
       DATABASE_HOST: "db"
     links:
@@ -31,6 +32,7 @@ services:
     depends_on:
       - rdb-allconnector
       - mysql-db-57
+    encrypted_env_file: itenv.encrypted
     environment:
       DATABASE_HOST: "db"
     links:
@@ -44,6 +46,7 @@ services:
     depends_on:
       - rdb-allconnector
       - mysql-db-8
+    encrypted_env_file: itenv.encrypted
     environment:
       DATABASE_HOST: "db"
     links:
@@ -54,6 +57,7 @@ services:
       context: .
       dockerfile: Dockerfile
     cached: true
+    encrypted_env_file: itenv.encrypted
     environment:
       DATABASE_HOST: "db"
     links:
@@ -64,6 +68,7 @@ services:
       context: .
       dockerfile: Dockerfile
     cached: true
+    encrypted_env_file: itenv.encrypted
     environment:
       DATABASE_HOST: "db"
     links:
@@ -135,6 +140,3 @@ services:
       POSTGRES_USER: "it-test-user"
       POSTGRES_DB: "it-test-db"
     cached: true
-
-  dummy:
-    image: alpine

@@ -8,6 +8,12 @@
     name: it tests
     tag: master
     steps:
+    - name: redshift-it
+      service: rdb-allconnector
+      command: sbt redshift/it:test
+    - name: bigquery-it
+      service: rdb-allconnector
+      command: sbt bigquery/it:test
     - type: serial
       name: it tests (rest)
       tag: master
@@ -21,18 +27,12 @@
       - name: mysql-it-57
         service: rdb-mysql-connector-57
         command: ./run_mysql_57_it_tests.sh
-      - name: bigquery-it
-        service: rdb-allconnector
-        command: sbt bigquery/it:test
       - name: mssql-it
         service: rdb-mssql-connector
         command: sbt mssql/it:test
       - name: postgresql-it
         service: rdb-postgresql-connector
         command: sbt postgresql/it:test
-    - name: redshift-it
-      service: rdb-allconnector
-      command: sbt redshift/it:test
   - name: publish
     tag: ^(master|v\d+\.\d+\.\d+)$
     service: rdb-publisher

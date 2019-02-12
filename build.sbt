@@ -15,15 +15,19 @@ lazy val connectorCollection = project
   .settings(Test / fork := true)
   .settings(Global / concurrentRestrictions += Tags.limit(Tags.Test, 1))
   .settings(meta: _*)
+  .settings(
+    publishArtifact := false,
+    publishTo := Some(Resolver.file("Unused repository", file("target/unused")))
+  )
 
 lazy val common = Project(id = "common", base = file("common"))
   .settings(
     name := s"rdb-connector-common",
     AutomaticModuleName.settings(s"com.emarsys.rdb.connector.common")
   )
-  //.settings(exports(Seq("com.emarsys.rdb.connector.common.*")))
   .settings(Dependencies.Common: _*)
   .settings(meta: _*)
+  .settings(publishSettings: _*)
 lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(
     name := s"rdb-connector-test",
@@ -32,7 +36,7 @@ lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .dependsOn(common)
   .settings(Dependencies.ConnectorTest: _*)
   .settings(meta: _*)
-  //.settings(exports(Seq("com.emarsys.rdb.connector.test.*")))
+  .settings(publishSettings: _*)
 
 lazy val bigQuery = connector("bigquery", Dependencies.BigQuery)
 lazy val mssql = connector("mssql", Dependencies.Mssql)
@@ -60,11 +64,11 @@ def connector(projectId: String, additionalSettings: sbt.Def.SettingsDefinition*
     .settings(Dependencies.Common: _*)
     .settings(additionalSettings: _*)
     .settings(meta: _*)
+    .settings(publishSettings: _*)
 
 lazy val meta =
   Seq(
     organization := "com.emarsys",
-    sonatypeProfileName := "com.emarsys",
     licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
     homepage := Some(url("https://github.com/emartech/rdb-connector-collection")),
     developers := List(
@@ -75,11 +79,19 @@ lazy val meta =
       Developer("miklos-martin", "Miklos Martin", "miklos.martin@gmail.com", url("https://github.com/miklos-martin")),
       Developer("tg44", "Gergo Torcsvari", "gergo.torcsvari@emarsys.com", url("https://github.com/tg44")),
     ),
-    scmInfo := Some(ScmInfo(url("https://github.com/emartech/rdb-connector-collection"), "scm:git:git@github.com:emartech/rdb-connector-collection.git")),
-
-    // These are the sbt-release-early settings to configure
-    pgpPublicRing := file("./ci/pubring.asc"),
-    pgpSecretRing := file("./ci/secring.asc"),
-    releaseEarlyWith := SonatypePublisher
+    scmInfo := Some(ScmInfo(url("https://github.com/emartech/rdb-connector-collection"), "scm:git:git@github.com:emartech/rdb-connector-collection.git"))
   )
 
+lazy val publishSettings = Seq(
+  publishTo := Some("releases" at "https://nexus.service.emarsys.net/repository/emartech/"),
+  credentials += Credentials(
+    "Sonatype Nexus Repository Manager",
+    "nexus.service.emarsys.net",
+    sys.env("NEXUS_USERNAME"),
+    sys.env("NEXUS_PASSWORD")
+  ),
+  pgpPublicRing := file("./ci/pubring.asc"),
+  pgpSecretRing := file("./ci/secring.asc"),
+  pgpPassphrase := Some(sys.env("PGP_PASS").toArray),
+  skip in publish := true
+)

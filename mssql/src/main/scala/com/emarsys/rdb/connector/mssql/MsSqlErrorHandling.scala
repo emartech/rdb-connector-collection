@@ -1,10 +1,10 @@
 package com.emarsys.rdb.connector.mssql
 
 import java.sql.SQLException
-import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
+import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.microsoft.sqlserver.jdbc.SQLServerException
 
@@ -25,7 +25,6 @@ trait MsSqlErrorHandling {
   )
 
   protected def errorHandler(): PartialFunction[Throwable, ConnectorError] = {
-    case ex: RejectedExecutionException                                                     => TooManyQueries(ex.getMessage)
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_QUERY_CANCELLED            => QueryTimeout(ex.getMessage)
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SYNTAX_ERROR               => SqlSyntaxError(ex.getMessage)
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_PERMISSION_DENIED          => AccessDeniedError(ex.getMessage)
@@ -33,15 +32,12 @@ trait MsSqlErrorHandling {
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SHOWPLAN_PERMISSION_DENIED => AccessDeniedError(ex.getMessage)
     case ex: SQLException if ex.getMessage.contains(MSSQL_EXPLAIN_PERMISSION_DENIED)        => AccessDeniedError(ex.getMessage)
     case ex: SQLException if connectionErrors.contains(ex.getSQLState)                      => ConnectionError(ex)
-    case ex: SQLException                                                                   => ErrorWithMessage(s"[${ex.getSQLState}] - ${ex.getMessage}")
-    case ex: TimeoutException                                                        => CompletionTimeout(ex.getMessage)
-    case ex: Exception                                                                      => ErrorWithMessage(ex.getMessage)
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
-    errorHandler andThen Left.apply
+    (errorHandler orElse ErrorConverter.default) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    errorHandler andThen Source.failed
+    (errorHandler orElse ErrorConverter.default) andThen Source.failed
 
 }

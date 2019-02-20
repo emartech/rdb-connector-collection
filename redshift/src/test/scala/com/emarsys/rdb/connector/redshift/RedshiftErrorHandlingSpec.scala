@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.redshift
 
 import java.sql.SQLException
-import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors._
 import org.scalatest.{Matchers, WordSpecLike}
@@ -40,27 +39,5 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
         eitherErrorHandler.apply(e) shouldEqual Left(ConnectionError(e))
       }
     }
-
-    "convert RejectedExecutionException to TooManyQueries" in new RedshiftErrorHandling {
-      val e = new RejectedExecutionException("msg")
-      eitherErrorHandler.apply(e) shouldEqual Left(TooManyQueries("msg"))
-    }
-
-    "convert unhandled SQLException to ErrorWithMessage" in new RedshiftErrorHandling {
-      val e = new SQLException("msg", "state")
-      eitherErrorHandler.apply(e) shouldEqual Left(ErrorWithMessage("[state] msg"))
-    }
-
-    "convert unknown exception to ErrorWithMessage" in new RedshiftErrorHandling {
-      val e = new Exception("msg")
-      eitherErrorHandler.apply(e) shouldEqual Left(ErrorWithMessage("msg"))
-    }
-
-    "convert TimeoutException to CompletionTimeout" in new RedshiftErrorHandling {
-      val error = new TimeoutException("msg")
-      eitherErrorHandler.apply(error) shouldBe
-        Left(CompletionTimeout("msg"))
-    }
-
   }
 }

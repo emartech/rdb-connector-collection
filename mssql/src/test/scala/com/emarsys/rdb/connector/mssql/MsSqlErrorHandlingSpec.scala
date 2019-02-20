@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.mssql
 
 import java.sql.SQLException
-import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.microsoft.sqlserver.jdbc.SQLServerException
@@ -38,30 +37,6 @@ class MsSqlErrorHandlingSpec extends WordSpecLike with Matchers with MockitoSuga
           eitherErrorHandler().apply(error) shouldEqual Left(ConnectionError(error))
         }
     )
-
-    "convert RejectedExecutionException to TooManyQueries" in new MsSqlErrorHandling {
-      val error = new RejectedExecutionException("msg")
-      eitherErrorHandler().apply(error) shouldBe
-        Left(TooManyQueries("msg"))
-    }
-
-    "convert TimeoutException to CompletionTimeout" in new MsSqlErrorHandling {
-      val error = new TimeoutException("msg")
-      eitherErrorHandler().apply(error) shouldBe
-        Left(CompletionTimeout("msg"))
-    }
-
-    "handle unexpected SqlException" in new MsSqlErrorHandling {
-      val error = new SQLException("not-handled-message", "not-handled-state")
-      eitherErrorHandler().apply(error) shouldBe
-        Left(ErrorWithMessage("[not-handled-state] - not-handled-message"))
-    }
-    ("HY000", "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table", TableNotFound("msg"))
-    "handle unexpected exception" in new MsSqlErrorHandling {
-      val error = new Exception("not-handled-message")
-      eitherErrorHandler().apply(error) shouldBe
-        Left(ErrorWithMessage("not-handled-message"))
-    }
 
     "handle EXPLAIN/SHOW can not be issued" in new MsSqlErrorHandling {
       val error = new SQLException("EXPLAIN/SHOW can not be issued; lacking privileges for underlying table", "HY000")

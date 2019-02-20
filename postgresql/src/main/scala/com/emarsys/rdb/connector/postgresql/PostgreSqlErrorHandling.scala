@@ -1,10 +1,10 @@
 package com.emarsys.rdb.connector.postgresql
 
-import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 import java.sql.SQLException
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
+import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.models.Errors._
 import org.postgresql.util.PSQLException
 
@@ -39,16 +39,12 @@ trait PostgreSqlErrorHandling {
     case ex: PSQLException if ex.getSQLState == PSQL_STATE_PERMISSION_DENIED  => AccessDeniedError(ex.getMessage)
     case ex: PSQLException if ex.getSQLState == PSQL_STATE_RELATION_NOT_FOUND => TableNotFound(ex.getMessage)
     case ex: SQLException if connectionErrors.contains(ex.getSQLState)        => ConnectionError(ex)
-    case ex: SQLException                                                     => ErrorWithMessage(s"[${ex.getSQLState}] - ${ex.getMessage}")
-    case ex: TimeoutException                                                 => CompletionTimeout(ex.getMessage)
-    case ex: RejectedExecutionException                                       => TooManyQueries(ex.getMessage)
-    case ex: Exception                                                        => ErrorWithMessage(ex.getMessage)
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
-    errorHandler andThen Left.apply
+    (errorHandler orElse ErrorConverter.default) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    errorHandler andThen Source.failed
+    (errorHandler orElse ErrorConverter.default) andThen Source.failed
 
 }

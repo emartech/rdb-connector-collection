@@ -1,10 +1,10 @@
 package com.emarsys.rdb.connector.mysql
 
 import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionException}
-import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
+import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
 
@@ -26,22 +26,17 @@ trait MySqlErrorHandling {
       } else {
         ErrorWithMessage(ex.getMessage)
       }
-    case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied")      => AccessDeniedError(ex.getMessage)
-    case ex: SQLSyntaxErrorException                                                 => SqlSyntaxError(ex.getMessage)
-    case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled")            => QueryTimeout(ex.getMessage)
-    case ex: MySQLTimeoutException                                                   => ConnectionTimeout(ex.getMessage)
-    case ex: RejectedExecutionException                                              => TooManyQueries(ex.getMessage)
-    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out")  => ConnectionTimeout(ex.getMessage)
-    case ex: SQLException if ex.getMessage.contains(MYSQL_EXPLAIN_PERMISSION_DENIED) => AccessDeniedError(ex.getMessage)
-    case ex: TimeoutException                                                        => CompletionTimeout(ex.getMessage)
-    case ex: SQLException                                                            => ErrorWithMessage(s"[${ex.getSQLState}] - ${ex.getMessage}")
-    case ex                                                                          => ErrorWithMessage(ex.getMessage)
+    case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied")         => AccessDeniedError(ex.getMessage)
+    case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled")               => QueryTimeout(ex.getMessage)
+    case ex: MySQLTimeoutException                                                      => ConnectionTimeout(ex.getMessage)
+    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out")     => ConnectionTimeout(ex.getMessage)
+    case ex: SQLException if ex.getMessage.contains(MYSQL_EXPLAIN_PERMISSION_DENIED)    => AccessDeniedError(ex.getMessage)
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
-    errorHandler andThen Left.apply
+    (errorHandler orElse ErrorConverter.default) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    errorHandler andThen Source.failed
+    (errorHandler orElse ErrorConverter.default) andThen Source.failed
 
 }

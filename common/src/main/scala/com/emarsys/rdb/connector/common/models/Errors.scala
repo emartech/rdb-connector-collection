@@ -32,4 +32,6 @@ object Errors {
 
   case class TooManyQueries(message: String) extends ConnectorError
 
+  case class StuckedPool(message: String) extends ConnectorError
+
 }

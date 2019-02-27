@@ -13,11 +13,11 @@ package object common {
   def completionTimeout(timeout: FiniteDuration): FiniteDuration = timeout
 
   def idleTimeout(timeout: FiniteDuration): FiniteDuration = {
-    scale(timeout, 0.99)
+    (scale(timeout, 0.99) min (timeout - 1.second)) max 1.second
   }
 
   def queryTimeout(timeout: FiniteDuration): FiniteDuration = {
-    scale(timeout, 0.98)
+    (scale(timeout, 0.98) min (timeout - 2.seconds)) max 1.second
   }
 
 

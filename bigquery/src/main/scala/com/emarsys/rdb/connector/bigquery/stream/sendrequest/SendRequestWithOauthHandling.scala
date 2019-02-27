@@ -58,7 +58,7 @@ object SendRequestWithOauthHandling {
     object SyntaxError {
       def unapply(r: (HttpResponse, String)): Option[String] = {
         val (response, body) = r
-        if (response.status == BadRequest && body.contains("Syntax error")) errorMessageFrom(body)
+        if (response.status == BadRequest && (body.contains("Syntax error") || body.contains("invalidQuery"))) errorMessageFrom(body)
         else None
       }
     }

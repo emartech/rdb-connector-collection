@@ -112,7 +112,7 @@ class PostgreSqlConnectorItSpec
           Right(connector) <- PostgreSqlConnector.create(connectionConfig)
           Right(source)    <- connector.rawSelect(q, limit = None, queryTimeout)
           res              <- sinkOrLeft(source)
-          _ <- connector.close()
+          _                <- connector.close()
         } yield res
 
       def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =
@@ -155,6 +155,22 @@ class PostgreSqlConnectorItSpec
 
         result shouldBe a[Left[_, _]]
         result.left.get shouldBe a[TableNotFound]
+      }
+
+      "recognize not found columns as syntax error" when {
+        "column does not exists" in new QueryRunnerScope {
+          val result = Await.result(runQuery("select no_such_column from test"), 1.second)
+
+          result shouldBe a[Left[_, _]]
+          result.left.get shouldBe a[SqlSyntaxError]
+        }
+
+        "column does not exist on joined table" in new QueryRunnerScope {
+          val result = Await.result(runQuery("select t2.id from test t1 join test2 t2 on t1.id = t2.test_id"), 1.second)
+
+          result shouldBe a[Left[_, _]]
+          result.left.get shouldBe a[SqlSyntaxError]
+        }
       }
     }
   }

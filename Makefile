@@ -14,6 +14,9 @@ stop: ## Stop every container
 down: ## Destroy every container
 	$(compose) down
 
+build: ## (re)build images
+	$(compose) build
+
 mysql: ## Open MySQL console
 	$(compose) exec mysql-db mysql -u root -pit-test-root-pw it-test-db
 

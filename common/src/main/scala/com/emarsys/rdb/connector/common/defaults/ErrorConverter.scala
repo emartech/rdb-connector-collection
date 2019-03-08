@@ -13,7 +13,7 @@ object ErrorConverter {
   }
 
   val sql: PartialFunction[Throwable, ConnectorError] = {
-    case e: RejectedExecutionException if e.getMessage.contains("active threads = 0") => StuckedPool(e.getMessage)
+    case e: RejectedExecutionException if e.getMessage.contains("active threads = 0") => StuckPool(e.getMessage)
     case e: SQLSyntaxErrorException                                                   => SqlSyntaxError(e.getMessage)
     case e: SQLException                                                              => ErrorWithMessage(s"[${e.getSQLState}] - ${e.getMessage}")
   }

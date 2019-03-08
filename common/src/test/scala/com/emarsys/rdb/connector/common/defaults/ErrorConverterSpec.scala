@@ -36,7 +36,7 @@ class ErrorConverterSpec extends WordSpecLike with Matchers {
 
     "recognize stucked pools" in {
       val msg = "Task ... rejected from slick.util.AsyncExecutor...[Running, .... active threads = 0, ...]"
-      ErrorConverter.sql(new RejectedExecutionException(msg)) shouldBe StuckedPool(msg)
+      ErrorConverter.sql(new RejectedExecutionException(msg)) shouldBe StuckPool(msg)
     }
   }
 }

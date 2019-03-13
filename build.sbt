@@ -92,7 +92,7 @@ lazy val publishSettings = Seq(
   ),
   pgpPublicRing := file("./ci/pubring.asc"),
   pgpSecretRing := file("./ci/secring.asc"),
-  pgpPassphrase := Some(sys.env("PGP_PASS").toArray),
+  pgpPassphrase := Some(sys.env.getOrElse("PGP_PASS", "").toArray),
   publish := {
     sys.error("Skipping unsigned publishing, use publishSigned instead!")
   }

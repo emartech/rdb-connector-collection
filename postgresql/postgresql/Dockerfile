@@ -8,4 +8,4 @@ RUN chown postgres.postgres /usr/share/postgresql/9.5/postgresql.conf.sample \
                             /var/ssl/root.crt && \
     chmod 600 /var/ssl/server.key
 
-Add initdb.d /docker-entrypoint-initdb.d
+ADD initdb.d /docker-entrypoint-initdb.d

@@ -30,6 +30,11 @@ class ErrorConverterSpec extends WordSpecLike with Matchers {
       ErrorConverter.sql(new SQLSyntaxErrorException("msg")) shouldBe SqlSyntaxError("msg")
     }
 
+    "recognize comms. link failres" in {
+      val message = "Communications link failure - the last packet..."
+      ErrorConverter.sql(new SQLException(message, "08S01")) shouldBe CommunicationsLinkFailure(message)
+    }
+
     "rephrase SQLExceptions" in {
       ErrorConverter.sql(new SQLException("msg", "state")) shouldBe ErrorWithMessage("[state] - msg")
     }

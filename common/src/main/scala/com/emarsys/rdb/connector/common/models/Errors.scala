@@ -9,6 +9,7 @@ object Errors {
   case class ConnectionError(error: Throwable)                 extends ConnectorError(error.getMessage)
   case class ConnectionConfigError(message: String)            extends ConnectorError(message)
   case class ErrorWithMessage(message: String)                 extends ConnectorError(message)
+  case class CommunicationsLinkFailure(message: String)        extends ConnectorError(message)
   case class TableNotFound(table: String)                      extends ConnectorError(s"Table not found: $table")
   case class SqlSyntaxError(message: String)                   extends ConnectorError(message)
   case class AccessDeniedError(message: String)                extends ConnectorError(message)

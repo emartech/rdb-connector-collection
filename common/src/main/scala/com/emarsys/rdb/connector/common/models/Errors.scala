@@ -6,7 +6,7 @@ object Errors {
 
   sealed abstract class ConnectorError(message: String = "") extends Exception(message)
 
-  case class ConnectionError(error: Throwable)                 extends ConnectorError(error.getMessage)
+  case class ConnectionError(error: Throwable)                 extends ConnectorError(error.toString)
   case class ConnectionConfigError(message: String)            extends ConnectorError(message)
   case class ErrorWithMessage(message: String)                 extends ConnectorError(message)
   case class CommunicationsLinkFailure(message: String)        extends ConnectorError(message)

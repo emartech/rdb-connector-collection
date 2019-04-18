@@ -63,7 +63,7 @@ class PostgreSqlConnectorItSpec
         val connectorEither = Await.result(PostgreSqlConnector.create(conn), 5.seconds)
 
         connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe a[ConnectionError]
+        connectorEither.left.get shouldBe a[ConnectionTimeout]
       }
 
       "connect fail when wrong host" in {
@@ -71,7 +71,7 @@ class PostgreSqlConnectorItSpec
         val connectorEither = Await.result(PostgreSqlConnector.create(conn), 5.seconds)
 
         connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe a[ConnectionError]
+        connectorEither.left.get shouldBe a[ConnectionTimeout]
       }
 
       "connect fail when wrong user" in {
@@ -79,7 +79,7 @@ class PostgreSqlConnectorItSpec
         val connectorEither = Await.result(PostgreSqlConnector.create(conn), 5.seconds)
 
         connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe a[ConnectionError]
+        connectorEither.left.get shouldBe a[ConnectionTimeout]
       }
 
       "connect fail when wrong password" in {
@@ -87,7 +87,7 @@ class PostgreSqlConnectorItSpec
         val connectorEither = Await.result(PostgreSqlConnector.create(conn), 5.seconds)
 
         connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe a[ConnectionError]
+        connectorEither.left.get shouldBe a[ConnectionTimeout]
       }
 
     }

@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.postgresql
 
-import java.sql.SQLException
+import java.sql.{SQLException, SQLTransientConnectionException}
 
 import com.emarsys.rdb.connector.common.models.Errors._
 import org.postgresql.util.{PSQLException, PSQLState}
@@ -19,6 +19,8 @@ class PostgreSqlErrorHandlingSpec extends WordSpec with Matchers with TableDrive
   private val invalidAuthorizationException      = new PSQLException("msg", PSQLState.INVALID_AUTHORIZATION_SPECIFICATION)
   private val connectionFailureException         = new PSQLException("msg", PSQLState.CONNECTION_FAILURE)
   private val invalidPasswordException           = new SQLException("msg", "28P01")
+  private val timeoutMessage                     = "Connection is not available, request timed out after 5000ms."
+  private val connectionTimeoutException         = new SQLTransientConnectionException(timeoutMessage)
 
   private val testCases = Table(
     ("database error", "sqlException", "clientError"),
@@ -35,7 +37,8 @@ class PostgreSqlErrorHandlingSpec extends WordSpec with Matchers with TableDrive
     ("unable to connect error", unableToConnectException, ConnectionError(unableToConnectException)),
     ("invalid authorization error", invalidAuthorizationException, ConnectionError(invalidAuthorizationException)),
     ("connection failure error", connectionFailureException, ConnectionError(connectionFailureException)),
-    ("invalid password error", invalidPasswordException, ConnectionError(invalidPasswordException))
+    ("invalid password error", invalidPasswordException, ConnectionError(invalidPasswordException)),
+    ("connection times out", connectionTimeoutException, ConnectionTimeout(timeoutMessage))
   )
 
   "PostgreSqlErrorHandling" should {

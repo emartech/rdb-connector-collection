@@ -45,5 +45,11 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
       val e   = new SQLSyntaxErrorException(msg)
       eitherErrorHandler.apply(e) shouldEqual Left(AccessDeniedError(msg))
     }
+
+    "convert statement closed exception to InvalidDbOperation if the message implies that" in new MySqlErrorHandling {
+      val msg = "No operations allowed after statement closed."
+      val e   = new SQLException(msg)
+      eitherErrorHandler.apply(e) shouldEqual Left(InvalidDbOperation(s"java.sql.SQLException: $msg"))
+    }
   }
 }

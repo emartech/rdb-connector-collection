@@ -36,6 +36,7 @@ class MySqlConnector(
     case _: SQLTransientException                                  => true
     case _: ConnectionTimeout                                      => true
     case ErrorWithMessage(message) if message.contains("Deadlock") => true
+    case _: InvalidDbOperation                                     => true
     case _                                                         => false
   }
 

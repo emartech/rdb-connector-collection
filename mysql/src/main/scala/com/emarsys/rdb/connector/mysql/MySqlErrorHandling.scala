@@ -11,6 +11,7 @@ import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
 trait MySqlErrorHandling {
 
   val MYSQL_EXPLAIN_PERMISSION_DENIED = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"
+  val MYSQL_STATEMENT_CLOSED          = "No operations allowed after statement closed."
 
   protected def handleNotExistingTable[T](
       table: String
@@ -26,11 +27,12 @@ trait MySqlErrorHandling {
       } else {
         ErrorWithMessage(ex.getMessage)
       }
-    case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied")         => AccessDeniedError(ex.getMessage)
-    case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled")               => QueryTimeout(ex.getMessage)
-    case ex: MySQLTimeoutException                                                      => ConnectionTimeout(ex.getMessage)
-    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out")     => ConnectionTimeout(ex.getMessage)
-    case ex: SQLException if ex.getMessage.contains(MYSQL_EXPLAIN_PERMISSION_DENIED)    => AccessDeniedError(ex.getMessage)
+    case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied")      => AccessDeniedError(ex.getMessage)
+    case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled")            => QueryTimeout(ex.getMessage)
+    case ex: MySQLTimeoutException                                                   => ConnectionTimeout(ex.getMessage)
+    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out")  => ConnectionTimeout(ex.getMessage)
+    case ex: SQLException if ex.getMessage.contains(MYSQL_EXPLAIN_PERMISSION_DENIED) => AccessDeniedError(ex.getMessage)
+    case ex: SQLException if ex.getMessage.contains(MYSQL_STATEMENT_CLOSED)          => InvalidDbOperation(ex.toString)
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =

@@ -51,5 +51,11 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
       val e   = new SQLException(msg)
       eitherErrorHandler.apply(e) shouldEqual Left(InvalidDbOperation(s"java.sql.SQLException: $msg"))
     }
+
+    "convert illegal mix of collations error to SqlSyntaxError" in new MySqlErrorHandling {
+      val msg = "Illegal mix of collations (utf8mb4_unicode_ci,IMPLICIT) and (utf8mb4_hungarian_ci,IMPLICIT) for operation"
+      val e   = new SQLException(msg)
+      eitherErrorHandler.apply(e) shouldEqual Left(SqlSyntaxError(s"java.sql.SQLException: $msg"))
+    }
   }
 }

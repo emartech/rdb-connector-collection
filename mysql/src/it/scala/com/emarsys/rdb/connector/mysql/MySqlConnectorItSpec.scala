@@ -140,6 +140,30 @@ class MySqlConnectorItSpec
         result shouldBe a[Left[_, _]]
         result.left.get shouldBe an[AccessDeniedError]
       }
+
+      "return SqlSyntaxError when conflicting collation tables joined" in {
+        val cTableName1 = "c1"
+        val cTableName2 = "c2"
+
+        val createConflictingCollationTable1 =
+            s"""CREATE TABLE `$cTableName1` (
+              |    c VARCHAR(255)
+              |        COLLATE utf8mb4_unicode_ci
+              |);""".stripMargin
+
+        val createConflictingCollationTable2 =
+            s"""CREATE TABLE `$cTableName2` (
+              |    c VARCHAR(255)
+              |        COLLATE utf8mb4_hungarian_ci
+              |);""".stripMargin
+        
+        Await.result(runQuery(createConflictingCollationTable1), 10.seconds)
+        Await.result(runQuery(createConflictingCollationTable2), 10.seconds)
+
+        val result = Await.result(runQuery(s"SELECT * FROM `$cTableName1` c1 JOIN `$cTableName2` c2 ON (c1.c = c2.c)"), 10.seconds)
+        
+        result shouldBe Left(SqlSyntaxError("java.sql.SQLException: Illegal mix of collations (utf8mb4_unicode_ci,IMPLICIT) and (utf8mb4_hungarian_ci,IMPLICIT) for operation '='"))
+      }
     }
   }
 

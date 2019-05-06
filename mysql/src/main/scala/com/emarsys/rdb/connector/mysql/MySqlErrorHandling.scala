@@ -28,12 +28,13 @@ trait MySqlErrorHandling {
       } else {
         ErrorWithMessage(ex.getMessage)
       }
-    case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied")        => AccessDeniedError(ex.getMessage)
-    case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled")              => QueryTimeout(ex.getMessage)
-    case ex: MySQLTimeoutException                                                     => ConnectionTimeout(ex.getMessage)
-    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out")    => ConnectionTimeout(ex.getMessage)
-    case ex: SQLException if ex.getMessage.contains(MYSQL_EXPLAIN_PERMISSION_DENIED)   => AccessDeniedError(ex.getMessage)
-    case ex: SQLException if ex.getMessage.contains(MYSQL_STATEMENT_CLOSED)            => InvalidDbOperation(ex.toString)
+    case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied")      => AccessDeniedError(ex.getMessage)
+    case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled")            => QueryTimeout(ex.getMessage)
+    case ex: MySQLTimeoutException                                                   => ConnectionTimeout(ex.getMessage)
+    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out")  => ConnectionTimeout(ex.getMessage)
+    case ex: SQLException if ex.getMessage.contains(MYSQL_EXPLAIN_PERMISSION_DENIED) => AccessDeniedError(ex.getMessage)
+    case ex: SQLException if ex.getMessage.contains(MYSQL_STATEMENT_CLOSED) =>
+      InvalidDbOperation(s"Transient DB error: ${ex.toString}")
     case ex: SQLException if ex.getMessage.startsWith(MYSQL_ILLEGAL_MIX_OF_COLLATIONS) => SqlSyntaxError(ex.toString)
   }
 

@@ -37,7 +37,7 @@ trait MySqlErrorHandling {
     case ex: SQLException if ex.getMessage.contains(MYSQL_STATEMENT_CLOSED) =>
       InvalidDbOperation(s"Transient DB error: ${ex.toString}")
     case ex: SQLException if ex.getMessage.startsWith(MYSQL_ILLEGAL_MIX_OF_COLLATIONS) => SqlSyntaxError(ex.toString)
-    case ex: SQLException if ex.getMessage.startsWith(MYSQL_CONNECTION_HOST_ERROR)     => ConnectionTimeout(ex.toString)
+    case ex: SQLException if ex.getMessage.contains(MYSQL_CONNECTION_HOST_ERROR)       => ConnectionTimeout(ex.toString)
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =

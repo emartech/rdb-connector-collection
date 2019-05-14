@@ -20,7 +20,7 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
         "[Amazon](500053) The TCP Socket has timed out while waiting for response",
         QueryTimeout("[Amazon](500053) The TCP Socket has timed out while waiting for response")
       ),
-      ("HY000", "other error with HY000", ErrorWithMessage("[HY000] - other error with HY000")),
+      ("HY000", "other error with HY000", ErrorWithMessage("[HY000] - [999] - other error with HY000")),
       ("57014", "query cancelled", QueryTimeout("query cancelled")),
       ("42601", "sql syntax error", SqlSyntaxError("sql syntax error")),
       ("42501", "permission denied", AccessDeniedError("permission denied")),
@@ -37,7 +37,7 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
     possibleSQLErrors.foreach {
       case (sqlState, message, error) =>
         s"""convert $message to ${error.getClass.getSimpleName}""" in new RedshiftErrorHandling {
-          val e = new SQLException(message, sqlState)
+          val e = new SQLException(message, sqlState, 999)
           eitherErrorHandler.apply(e) shouldEqual Left(error)
         }
     }

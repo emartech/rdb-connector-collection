@@ -72,7 +72,7 @@ trait MsSqlAzureConnectorTrait extends MsSqlConnectorHelper {
 
   private def createMsSqlConnector(connectorConfig: MsSqlAzureConnectorConfig, poolName: String, db: Database)(
       implicit ec: ExecutionContext
-  ): Future[Either[ConnectionError, MsSqlConnector]] = {
+  ): ConnectorResponse[MsSqlConnector] = {
     checkConnection(db)
       .as(Right(new MsSqlConnector(db, connectorConfig.toMsSqlConnectorConfig, poolName)))
       .recover {

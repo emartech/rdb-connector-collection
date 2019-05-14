@@ -8,13 +8,14 @@ import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.models.Errors._
 
 trait RedshiftErrorHandling {
-  val REDSHIFT_STATE_CONNECTION_TIMEOUT = "HY000"
+  val REDSHIFT_STATE_GENERAL_ERROR      = "HY000"
   val REDSHIFT_STATE_QUERY_CANCELLED    = "57014"
   val REDSHIFT_STATE_SYNTAX_ERROR       = "42601"
   val REDSHIFT_STATE_PERMISSION_DENIED  = "42501"
   val REDSHIFT_STATE_RELATION_NOT_FOUND = "42P01"
 
   val REDSHIFT_MESSAGE_CONNECTION_TIMEOUT = "Connection is not available, request timed out after"
+  val REDSHIFT_MESSAGE_TCP_SOCKET_TIMEOUT = "The TCP Socket has timed out while waiting for response"
 
   val REDSHIFT_STATE_UNABLE_TO_CONNECT       = "08001"
   val REDSHIFT_AUTHORIZATION_NAME_IS_INVALID = "28000"
@@ -29,13 +30,23 @@ trait RedshiftErrorHandling {
   )
 
   private def errorHandler: PartialFunction[Throwable, ConnectorError] = {
-    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_CONNECTION_TIMEOUT => ConnectionTimeout(ex.getMessage)
-    case ex: SQLException if ex.getMessage.contains(REDSHIFT_MESSAGE_CONNECTION_TIMEOUT) => ConnectionTimeout(ex.getMessage)
+    case ex: SQLException if isConnectionTimeout(ex)                             => ConnectionTimeout(ex.getMessage)
+    case ex: SQLException if isTcpSocketTimeout(ex)                              => QueryTimeout(ex.getMessage)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_QUERY_CANCELLED    => QueryTimeout(ex.getMessage)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_SYNTAX_ERROR       => SqlSyntaxError(ex.getMessage)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_PERMISSION_DENIED  => AccessDeniedError(ex.getMessage)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_RELATION_NOT_FOUND => TableNotFound(ex.getMessage)
     case ex: SQLException if connectionErrors.contains(ex.getSQLState)           => ConnectionError(ex)
+  }
+
+  private def isConnectionTimeout(ex: SQLException): Boolean = {
+    ex.getSQLState == REDSHIFT_STATE_GENERAL_ERROR &&
+    ex.getMessage.contains(REDSHIFT_MESSAGE_CONNECTION_TIMEOUT)
+  }
+
+  private def isTcpSocketTimeout(ex: SQLException): Boolean = {
+    ex.getSQLState == REDSHIFT_STATE_GENERAL_ERROR &&
+    ex.getMessage.contains(REDSHIFT_MESSAGE_TCP_SOCKET_TIMEOUT)
   }
 
   protected def eitherErrorHandler[T]: PartialFunction[Throwable, Either[ConnectorError, T]] =

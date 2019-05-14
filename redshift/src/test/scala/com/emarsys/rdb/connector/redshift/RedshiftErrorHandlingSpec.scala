@@ -10,8 +10,17 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
   "MySqlErrorHandling" should {
 
     val possibleSQLErrors = Seq(
-      (null, "Connection is not available, request timed out after", ConnectionTimeout("Connection is not available, request timed out after")),
-      ("HY000", "connection timeout", ConnectionTimeout("connection timeout")),
+      (
+        "HY000",
+        "Connection is not available, request timed out after",
+        ConnectionTimeout("Connection is not available, request timed out after")
+      ),
+      (
+        "HY000",
+        "[Amazon](500053) The TCP Socket has timed out while waiting for response",
+        QueryTimeout("[Amazon](500053) The TCP Socket has timed out while waiting for response")
+      ),
+      ("HY000", "other error with HY000", ErrorWithMessage("[HY000] - other error with HY000")),
       ("57014", "query cancelled", QueryTimeout("query cancelled")),
       ("42601", "sql syntax error", SqlSyntaxError("sql syntax error")),
       ("42501", "permission denied", AccessDeniedError("permission denied")),
@@ -33,11 +42,12 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
         }
     }
 
-    possibleConnectionErrors.foreach { case (sqlState, message) =>
-      s"""convert $message to ConnectionError""" in new RedshiftErrorHandling {
-        val e = new SQLException("msg", sqlState)
-        eitherErrorHandler.apply(e) shouldEqual Left(ConnectionError(e))
-      }
+    possibleConnectionErrors.foreach {
+      case (sqlState, message) =>
+        s"""convert $message to ConnectionError""" in new RedshiftErrorHandling {
+          val e = new SQLException("msg", sqlState)
+          eitherErrorHandler.apply(e) shouldEqual Left(ConnectionError(e))
+        }
     }
   }
 }

@@ -18,7 +18,7 @@ object ErrorConverter {
     case e: SQLSyntaxErrorException                                                   => SqlSyntaxError(e.getMessage)
     case e: SQLException if e.getMessage.contains("Communications link failure") =>
       CommunicationsLinkFailure(e.getMessage)
-    case e: SQLException => ErrorWithMessage(s"[${e.getSQLState}] - ${e.getMessage}")
+    case e: SQLException => ErrorWithMessage(s"[${e.getSQLState}] - [${e.getErrorCode}] - ${e.getMessage}")
   }
 
   val default = sql orElse common

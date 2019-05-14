@@ -36,7 +36,7 @@ class ErrorConverterSpec extends WordSpecLike with Matchers {
     }
 
     "rephrase SQLExceptions" in {
-      ErrorConverter.sql(new SQLException("msg", "state")) shouldBe ErrorWithMessage("[state] - msg")
+      ErrorConverter.sql(new SQLException("msg", "state", 999)) shouldBe ErrorWithMessage("[state] - [999] - msg")
     }
 
     "recognize stucked pools" in {

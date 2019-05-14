@@ -24,8 +24,8 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
 
     "convert sql error to error with message and state if not timeout" in new MySqlErrorHandling {
       val msg = "Other transient error"
-      val e   = new SQLTransientConnectionException(msg, "not-handled-sql-state")
-      eitherErrorHandler.apply(e) shouldEqual Left(Errors.ErrorWithMessage(s"[not-handled-sql-state] - $msg"))
+      val e   = new SQLTransientConnectionException(msg, "not-handled-sql-state", 999)
+      eitherErrorHandler.apply(e) shouldEqual Left(Errors.ErrorWithMessage(s"[not-handled-sql-state] - [999] - $msg"))
     }
 
     "convert timeout error to query timeout error if query is cancelled" in new MySqlErrorHandling {

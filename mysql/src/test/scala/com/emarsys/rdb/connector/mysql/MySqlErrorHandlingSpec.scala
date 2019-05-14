@@ -57,5 +57,11 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
       val e   = new SQLException(msg)
       eitherErrorHandler.apply(e) shouldEqual Left(SqlSyntaxError(s"java.sql.SQLException: $msg"))
     }
+
+    "convert host connection error to ConnectionTimeout" in new MySqlErrorHandling {
+      val msg = """Can't connect to MySQL server on 'randomaddress.net' (110 "Connection timed out")"""
+      val e   = new SQLException(msg)
+      eitherErrorHandler.apply(e) shouldEqual Left(ConnectionTimeout(s"java.sql.SQLException: $msg"))
+    }
   }
 }

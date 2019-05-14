@@ -13,6 +13,7 @@ trait MySqlErrorHandling {
   val MYSQL_EXPLAIN_PERMISSION_DENIED = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"
   val MYSQL_STATEMENT_CLOSED          = "No operations allowed after statement closed."
   val MYSQL_ILLEGAL_MIX_OF_COLLATIONS = "Illegal mix of collations"
+  val MYSQL_CONNECTION_HOST_ERROR     = "Can't connect to MySQL server on"
 
   protected def handleNotExistingTable[T](
       table: String
@@ -36,6 +37,7 @@ trait MySqlErrorHandling {
     case ex: SQLException if ex.getMessage.contains(MYSQL_STATEMENT_CLOSED) =>
       InvalidDbOperation(s"Transient DB error: ${ex.toString}")
     case ex: SQLException if ex.getMessage.startsWith(MYSQL_ILLEGAL_MIX_OF_COLLATIONS) => SqlSyntaxError(ex.toString)
+    case ex: SQLException if ex.getMessage.startsWith(MYSQL_CONNECTION_HOST_ERROR)     => ConnectionTimeout(ex.toString)
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =

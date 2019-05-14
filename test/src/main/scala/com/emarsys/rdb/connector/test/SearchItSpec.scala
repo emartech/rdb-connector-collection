@@ -5,7 +5,12 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, IntValue, NullValue, StringValue}
+import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{
+  BooleanValue,
+  IntValue,
+  NullValue,
+  StringValue
+}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
@@ -56,56 +61,79 @@ trait SearchItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
 
   def cleanUpDb(): Unit
 
-
   private val headerLineSize = 1
 
   s"SearchItSpec $uuid" when {
 
     "#search" should {
       "find by string" in {
-        val result = getConnectorResult(connector.search(tableName, Map("z1" -> StringValue("r1")), None, queryTimeout), awaitTimeout)
+        val result = getConnectorResult(
+          connector.search(tableName, Map("z1" -> StringValue("r1")), None, queryTimeout),
+          awaitTimeout
+        )
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("Z1", "Z2", "Z3", "Z4"),
-          Seq("r1", "1", "1", "s1")
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("Z1", "Z2", "Z3", "Z4"),
+            Seq("r1", "1", "1", "s1")
+          )
+        )
       }
 
       "find by int" in {
-        val result = getConnectorResult(connector.search(tableName, Map("z2" -> IntValue(2)), None, queryTimeout), awaitTimeout)
+        val result =
+          getConnectorResult(connector.search(tableName, Map("z2" -> IntValue(2)), None, queryTimeout), awaitTimeout)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("Z1", "Z2", "Z3", "Z4"),
-          Seq("r2", "2", "0", "s2")
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("Z1", "Z2", "Z3", "Z4"),
+            Seq("r2", "2", "0", "s2")
+          )
+        )
       }
 
       "find by boolean" in {
-        val result = getConnectorResult(connector.search(tableName, Map("z3" -> BooleanValue(false)), None, queryTimeout), awaitTimeout)
+        val result = getConnectorResult(
+          connector.search(tableName, Map("z3" -> BooleanValue(false)), None, queryTimeout),
+          awaitTimeout
+        )
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("Z1", "Z2", "Z3", "Z4"),
-          Seq("r2", "2", "0", "s2")
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("Z1", "Z2", "Z3", "Z4"),
+            Seq("r2", "2", "0", "s2")
+          )
+        )
       }
 
       "find by null" in {
-        val result = getConnectorResult(connector.search(tableName, Map("z3" -> NullValue), None, queryTimeout), awaitTimeout)
+        val result =
+          getConnectorResult(connector.search(tableName, Map("z3" -> NullValue), None, queryTimeout), awaitTimeout)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("Z1", "Z2", "Z3", "Z4"),
-          Seq("r3", "3", null, "s3")
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("Z1", "Z2", "Z3", "Z4"),
+            Seq("r3", "3", null, "s3")
+          )
+        )
       }
 
       "find by int multiple line" in {
-        val result = getConnectorResult(connector.search(tableName, Map("z2" -> IntValue(45)), None, queryTimeout), awaitTimeout)
+        val result =
+          getConnectorResult(connector.search(tableName, Map("z2" -> IntValue(45)), None, queryTimeout), awaitTimeout)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("Z1", "Z2", "Z3", "Z4"),
-          Seq("r4", "45", "1", "s4"),
-          Seq("r5", "45", "1", "s5")
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("Z1", "Z2", "Z3", "Z4"),
+            Seq("r4", "45", "1", "s4"),
+            Seq("r5", "45", "1", "s5")
+          )
+        )
       }
 
     }

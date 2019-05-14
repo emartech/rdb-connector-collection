@@ -7,7 +7,6 @@ import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.mssql.utils.TestHelper
 import com.emarsys.rdb.connector.test.SearchItSpec
 
-
 import scala.concurrent.duration._
 import scala.concurrent.Await
 

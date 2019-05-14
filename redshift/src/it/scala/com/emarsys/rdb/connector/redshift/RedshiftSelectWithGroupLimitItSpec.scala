@@ -13,8 +13,8 @@ import scala.concurrent.duration._
 class RedshiftSelectWithGroupLimitItSpec extends TestKit(ActorSystem()) with SelectWithGroupLimitItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
   override implicit val materializer: Materializer = ActorMaterializer()
-  override val awaitTimeout = 20.seconds
-  override val queryTimeout = 20.seconds
+  override val awaitTimeout                        = 20.seconds
+  override val queryTimeout                        = 20.seconds
 
   val connector: Connector =
     Await.result(RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG), awaitTimeout).right.get

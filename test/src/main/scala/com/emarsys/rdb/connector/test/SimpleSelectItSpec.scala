@@ -87,16 +87,19 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
 
         val result = getSimpleSelectResult(simpleSelect)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A1", "A2", "A3"),
-          Seq("v1", "1", "1"),
-          Seq("v2", "2", "0"),
-          Seq("v3", "3", "1"),
-          Seq("v4", "-4", "0"),
-          Seq("v5", null, "0"),
-          Seq("v6", "6", null),
-          Seq("v7", null, null)
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v1", "1", "1"),
+            Seq("v2", "2", "0"),
+            Seq("v3", "3", "1"),
+            Seq("v4", "-4", "0"),
+            Seq("v5", null, "0"),
+            Seq("v6", "6", null),
+            Seq("v7", null, null)
+          )
+        )
       }
 
       "list table with specific values" in {
@@ -104,13 +107,16 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
 
         val result = getSimpleSelectResult(simpleSelect)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("B1", "B2", "B3", "B4"),
-          Seq("b,1", "b.1", "b:1", "b\"1"),
-          Seq("b;2", "b\\2", "b'2", "b=2"),
-          Seq("b!3", "b@3", "b#3", null),
-          Seq("b$4", "b%4", "b 4", null)
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("B1", "B2", "B3", "B4"),
+            Seq("b,1", "b.1", "b:1", "b\"1"),
+            Seq("b;2", "b\\2", "b'2", "b=2"),
+            Seq("b!3", "b@3", "b#3", null),
+            Seq("b$4", "b%4", "b 4", null)
+          )
+        )
       }
 
       "list table values with specific fields" in {
@@ -118,16 +124,19 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
 
         val result = getSimpleSelectResult(simpleSelect)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A1", "A3"),
-          Seq("v1", "1"),
-          Seq("v2", "0"),
-          Seq("v3", "1"),
-          Seq("v4", "0"),
-          Seq("v5", "0"),
-          Seq("v6", null),
-          Seq("v7", null)
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A3"),
+            Seq("v1", "1"),
+            Seq("v2", "0"),
+            Seq("v3", "1"),
+            Seq("v4", "0"),
+            Seq("v5", "0"),
+            Seq("v6", null),
+            Seq("v7", null)
+          )
+        )
       }
     }
 
@@ -168,11 +177,14 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
 
         val result = getSimpleSelectResult(simpleSelect)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A1", "A2", "A3"),
-          Seq("v5", null, "0"),
-          Seq("v7", null, null)
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v5", null, "0"),
+            Seq("v7", null, null)
+          )
+        )
       }
 
       "list table values with NOT NULL" in {
@@ -180,111 +192,160 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
 
         val result = getSimpleSelectResult(simpleSelect)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A1", "A2", "A3"),
-          Seq("v1", "1", "1"),
-          Seq("v2", "2", "0"),
-          Seq("v3", "3", "1"),
-          Seq("v4", "-4", "0"),
-          Seq("v6", "6", null)
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v1", "1", "1"),
+            Seq("v2", "2", "0"),
+            Seq("v3", "3", "1"),
+            Seq("v4", "-4", "0"),
+            Seq("v6", "6", null)
+          )
+        )
       }
 
       "list table values with EQUAL on strings" in {
-        val simpleSelect = SimpleSelect(AllField, TableName(aTableName), where = Some(EqualToValue(FieldName("A1"), Value("v3"))))
+        val simpleSelect =
+          SimpleSelect(AllField, TableName(aTableName), where = Some(EqualToValue(FieldName("A1"), Value("v3"))))
 
         val result = getSimpleSelectResult(simpleSelect)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A1", "A2", "A3"),
-          Seq("v3", "3", "1")
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v3", "3", "1")
+          )
+        )
       }
 
       "list table values with EQUAL on strings that might need escaping" in {
-        val whereCondition = Or(List(
-          EqualToValue(FieldName("B4"), Value("b\"1")),
-          And(List(
-            EqualToValue(FieldName("B2"), Value("b\\2")),
-            EqualToValue(FieldName("B3"), Value("b'2"))
-          ))
-        ))
+        val whereCondition = Or(
+          List(
+            EqualToValue(FieldName("B4"), Value("b\"1")),
+            And(
+              List(
+                EqualToValue(FieldName("B2"), Value("b\\2")),
+                EqualToValue(FieldName("B3"), Value("b'2"))
+              )
+            )
+          )
+        )
         val simpleSelect = SimpleSelect(AllField, TableName(bTableName), where = Some(whereCondition))
 
         val result = getSimpleSelectResult(simpleSelect)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("B1", "B2", "B3", "B4"),
-          Seq("b,1", "b.1", "b:1", "b\"1"),
-          Seq("b;2", "b\\2", "b'2", "b=2")
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("B1", "B2", "B3", "B4"),
+            Seq("b,1", "b.1", "b:1", "b\"1"),
+            Seq("b;2", "b\\2", "b'2", "b=2")
+          )
+        )
       }
 
       "list table values with EQUAL on numbers" in {
-        val simpleSelect = SimpleSelect(AllField, TableName(aTableName), where = Some(EqualToValue(FieldName("A2"), Value("3"))))
+        val simpleSelect =
+          SimpleSelect(AllField, TableName(aTableName), where = Some(EqualToValue(FieldName("A2"), Value("3"))))
 
         val result = getSimpleSelectResult(simpleSelect)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A1", "A2", "A3"),
-          Seq("v3", "3", "1")
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v3", "3", "1")
+          )
+        )
       }
 
       "list table values with EQUAL on booleans" in {
-        val simpleSelect = SimpleSelect(AllField, TableName(aTableName), where = Some(EqualToValue(FieldName("A3"), Value("1"))))
+        val simpleSelect =
+          SimpleSelect(AllField, TableName(aTableName), where = Some(EqualToValue(FieldName("A3"), Value("1"))))
 
         val result = getSimpleSelectResult(simpleSelect)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A1", "A2", "A3"),
-          Seq("v1", "1", "1"),
-          Seq("v3", "3", "1")
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v1", "1", "1"),
+            Seq("v3", "3", "1")
+          )
+        )
       }
     }
 
     "#simpleSelect compose WHERE" should {
       "list table values with OR" in {
-        val simpleSelect = SimpleSelect(AllField, TableName(aTableName),
-          where = Some(Or(Seq(
-            EqualToValue(FieldName("A1"), Value("v1")),
-            EqualToValue(FieldName("A1"), Value("v2")),
-            IsNull(FieldName("A2"))
-          ))))
+        val simpleSelect = SimpleSelect(
+          AllField,
+          TableName(aTableName),
+          where = Some(
+            Or(
+              Seq(
+                EqualToValue(FieldName("A1"), Value("v1")),
+                EqualToValue(FieldName("A1"), Value("v2")),
+                IsNull(FieldName("A2"))
+              )
+            )
+          )
+        )
 
         val result = getSimpleSelectResult(simpleSelect)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A1", "A2", "A3"),
-          Seq("v1", "1", "1"),
-          Seq("v2", "2", "0"),
-          Seq("v5", null, "0"),
-          Seq("v7", null, null)
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v1", "1", "1"),
+            Seq("v2", "2", "0"),
+            Seq("v5", null, "0"),
+            Seq("v7", null, null)
+          )
+        )
       }
 
       "list table values with AND" in {
-        val simpleSelect = SimpleSelect(AllField, TableName(aTableName),
-          where = Some(And(Seq(
-            EqualToValue(FieldName("A1"), Value("v7")),
-            IsNull(FieldName("A2"))
-          ))))
+        val simpleSelect = SimpleSelect(
+          AllField,
+          TableName(aTableName),
+          where = Some(
+            And(
+              Seq(
+                EqualToValue(FieldName("A1"), Value("v7")),
+                IsNull(FieldName("A2"))
+              )
+            )
+          )
+        )
 
         val result = getSimpleSelectResult(simpleSelect)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A1", "A2", "A3"),
-          Seq("v7", null, null)
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v7", null, null)
+          )
+        )
       }
 
       "empty result when list table values with AND" in {
-        val simpleSelect = SimpleSelect(AllField, TableName(aTableName),
-          where = Some(And(Seq(
-            EqualToValue(FieldName("A1"), Value("v7")),
-            NotNull(FieldName("A2"))
-          ))))
+        val simpleSelect = SimpleSelect(
+          AllField,
+          TableName(aTableName),
+          where = Some(
+            And(
+              Seq(
+                EqualToValue(FieldName("A1"), Value("v7")),
+                NotNull(FieldName("A2"))
+              )
+            )
+          )
+        )
 
         val result = getSimpleSelectResult(simpleSelect)
 
@@ -292,26 +353,37 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
       }
 
       "list table values with OR + AND" in {
-        val simpleSelect = SimpleSelect(AllField, TableName(aTableName),
-          where = Some(Or(Seq(
-            EqualToValue(FieldName("A1"), Value("v1")),
-            And(Seq(
-              IsNull(FieldName("A2")),
-              IsNull(FieldName("A3"))
-            ))
-          ))))
+        val simpleSelect = SimpleSelect(
+          AllField,
+          TableName(aTableName),
+          where = Some(
+            Or(
+              Seq(
+                EqualToValue(FieldName("A1"), Value("v1")),
+                And(
+                  Seq(
+                    IsNull(FieldName("A2")),
+                    IsNull(FieldName("A3"))
+                  )
+                )
+              )
+            )
+          )
+        )
 
         val result = getSimpleSelectResult(simpleSelect)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A1", "A2", "A3"),
-          Seq("v1", "1", "1"),
-          Seq("v7", null, null)
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v1", "1", "1"),
+            Seq("v7", null, null)
+          )
+        )
       }
 
     }
 
   }
 }
-

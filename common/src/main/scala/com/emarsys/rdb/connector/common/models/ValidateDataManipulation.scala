@@ -11,20 +11,28 @@ trait ValidateDataManipulation {
 
   val maxRows: Int
 
-  def validateUpdateDefinition(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(implicit executionContext: ExecutionContext): Future[ValidationResult] = {
-    runValidations(Seq(
-      () => validateUpdateFormat(updateData),
-      () => validateTableIsNotAView(tableName, connector),
-      () => validateUpdateFields(tableName, updateData, connector)
-    ))
+  def validateUpdateDefinition(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
+      implicit executionContext: ExecutionContext
+  ): Future[ValidationResult] = {
+    runValidations(
+      Seq(
+        () => validateUpdateFormat(updateData),
+        () => validateTableIsNotAView(tableName, connector),
+        () => validateUpdateFields(tableName, updateData, connector)
+      )
+    )
   }
 
-  def validateInsertData(tableName: String, dataToInsert: Seq[Record], connector: Connector)(implicit executionContext: ExecutionContext): Future[ValidationResult] = {
-    runValidations(Seq(
-      () => validateFormat(dataToInsert),
-      () => validateTableIsNotAView(tableName, connector),
-      () => validateFieldExistence(tableName, dataToInsert.head.keySet, connector)
-    )) map {
+  def validateInsertData(tableName: String, dataToInsert: Seq[Record], connector: Connector)(
+      implicit executionContext: ExecutionContext
+  ): Future[ValidationResult] = {
+    runValidations(
+      Seq(
+        () => validateFormat(dataToInsert),
+        () => validateTableIsNotAView(tableName, connector),
+        () => validateFieldExistence(tableName, dataToInsert.head.keySet, connector)
+      )
+    ) map {
       case ValidationResult.EmptyData =>
         ValidationResult.Valid
       case failedValidationResult =>
@@ -32,21 +40,29 @@ trait ValidateDataManipulation {
     }
   }
 
-  def validateDeleteCriteria(tableName: String, criteria: Seq[Criteria], connector: Connector)(implicit executionContext: ExecutionContext): Future[ValidationResult] = {
-    runValidations(Seq(
-      () => validateFormat(criteria),
-      () => validateTableIsNotAView(tableName, connector),
-      () => validateFieldExistence(tableName, criteria.head.keySet, connector),
-      () => validateIndices(tableName, criteria.head.keySet, connector)
-    ))
+  def validateDeleteCriteria(tableName: String, criteria: Seq[Criteria], connector: Connector)(
+      implicit executionContext: ExecutionContext
+  ): Future[ValidationResult] = {
+    runValidations(
+      Seq(
+        () => validateFormat(criteria),
+        () => validateTableIsNotAView(tableName, connector),
+        () => validateFieldExistence(tableName, criteria.head.keySet, connector),
+        () => validateIndices(tableName, criteria.head.keySet, connector)
+      )
+    )
   }
 
-  def validateSearchCriteria(tableName: String, criteria: Criteria, connector: Connector)(implicit executionContext: ExecutionContext): Future[ValidationResult] = {
-    runValidations(Seq(
-      () => validateEmtpyCriteria(criteria),
-      () => validateFieldExistence(tableName, criteria.keySet, connector),
-      () => validateIndices(tableName, criteria.keySet, connector)
-    ))
+  def validateSearchCriteria(tableName: String, criteria: Criteria, connector: Connector)(
+      implicit executionContext: ExecutionContext
+  ): Future[ValidationResult] = {
+    runValidations(
+      Seq(
+        () => validateEmtpyCriteria(criteria),
+        () => validateFieldExistence(tableName, criteria.keySet, connector),
+        () => validateIndices(tableName, criteria.keySet, connector)
+      )
+    )
   }
 
   private def validateEmtpyCriteria(data: Criteria) = Future.successful[ValidationResult] {
@@ -57,7 +73,9 @@ trait ValidateDataManipulation {
     }
   }
 
-  private def runValidations(validations: Seq[DeferredValidation])(implicit executionContext: ExecutionContext): Future[ValidationResult] = {
+  private def runValidations(
+      validations: Seq[DeferredValidation]
+  )(implicit executionContext: ExecutionContext): Future[ValidationResult] = {
     if (validations.isEmpty) {
       Future.successful(ValidationResult.Valid)
     } else {
@@ -72,8 +90,10 @@ trait ValidateDataManipulation {
     }
   }
 
-  private def validateFieldExistence(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(implicit executionContext: ExecutionContext) : Future[ValidationResult] = {
-    if(updateData.isEmpty){
+  private def validateFieldExistence(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
+      implicit executionContext: ExecutionContext
+  ): Future[ValidationResult] = {
+    if (updateData.isEmpty) {
       Future.successful(ValidationResult.EmptyData)
     } else {
       val keyFields = updateData.head.search.keySet ++ updateData.head.update.keySet
@@ -81,7 +101,9 @@ trait ValidateDataManipulation {
     }
   }
 
-  private def validateFieldExistence(tableName: String, keyFields: Set[String], connector: Connector)(implicit executionContext: ExecutionContext): Future[ValidationResult] = {
+  private def validateFieldExistence(tableName: String, keyFields: Set[String], connector: Connector)(
+      implicit executionContext: ExecutionContext
+  ): Future[ValidationResult] = {
     connector.listFields(tableName).map {
       case Right(columns) =>
         val nonExistingFields = keyFields.map(_.toLowerCase).diff(columns.map(_.name.toLowerCase).toSet)
@@ -91,11 +113,13 @@ trait ValidateDataManipulation {
           ValidationResult.NonExistingFields(keyFields.filter(kf => nonExistingFields.contains(kf.toLowerCase)))
         }
       case Left(ErrorWithMessage(msg)) => ValidationResult.ValidationFailed(msg)
-      case _ => ValidationResult.NonExistingTable
+      case _                           => ValidationResult.NonExistingTable
     }
   }
 
-  private def validateTableIsNotAView(tableName: String, connector: Connector)(implicit executionContext: ExecutionContext): Future[ValidationResult] = {
+  private def validateTableIsNotAView(tableName: String, connector: Connector)(
+      implicit executionContext: ExecutionContext
+  ): Future[ValidationResult] = {
     connector.listTables().map {
       case Right(tableModels) =>
         val tableNameIsAView = tableModels.exists { tableModel =>
@@ -107,11 +131,13 @@ trait ValidateDataManipulation {
           ValidationResult.Valid
 
       case Left(ErrorWithMessage(msg)) => ValidationResult.ValidationFailed(msg)
-      case Left(ex) => ValidationResult.ValidationFailed(s"Something went wrong: $ex")
+      case Left(ex)                    => ValidationResult.ValidationFailed(s"Something went wrong: $ex")
     }
   }
 
-  private def validateUpdateFields(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(implicit executionContext: ExecutionContext) : Future[ValidationResult] = {
+  private def validateUpdateFields(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
+      implicit executionContext: ExecutionContext
+  ): Future[ValidationResult] = {
     validateFieldExistence(tableName, updateData, connector) flatMap {
       case ValidationResult.Valid =>
         validateIndices(tableName, updateData.head.search.keySet, connector)
@@ -120,12 +146,14 @@ trait ValidateDataManipulation {
     }
   }
 
-  private def validateIndices(tableName: String, keyFields: Set[String], connector: Connector)(implicit executionContext: ExecutionContext): Future[ValidationResult] = {
+  private def validateIndices(tableName: String, keyFields: Set[String], connector: Connector)(
+      implicit executionContext: ExecutionContext
+  ): Future[ValidationResult] = {
     connector.isOptimized(tableName, keyFields.toList).map {
-      case Right(true) => ValidationResult.Valid
-      case Right(false) => ValidationResult.NoIndexOnFields
+      case Right(true)                 => ValidationResult.Valid
+      case Right(false)                => ValidationResult.NoIndexOnFields
       case Left(ErrorWithMessage(msg)) => ValidationResult.ValidationFailed(msg)
-      case Left(ex) => ValidationResult.ValidationFailed(s"Something went wrong: $ex")
+      case Left(ex)                    => ValidationResult.ValidationFailed(s"Something went wrong: $ex")
     }
   }
 
@@ -186,11 +214,11 @@ object ValidateDataManipulation extends ValidateDataManipulation {
   sealed trait ValidationResult
 
   object ValidationResult {
-    case object Valid extends ValidationResult
-    case object DifferentFields extends ValidationResult
-    case object EmptyData extends ValidationResult
-    case object TooManyRows extends ValidationResult
-    case object NonExistingTable extends ValidationResult
+    case object Valid                                 extends ValidationResult
+    case object DifferentFields                       extends ValidationResult
+    case object EmptyData                             extends ValidationResult
+    case object TooManyRows                           extends ValidationResult
+    case object NonExistingTable                      extends ValidationResult
     case class NonExistingFields(fields: Set[String]) extends ValidationResult
 
     case object NoIndexOnFields extends ValidationResult

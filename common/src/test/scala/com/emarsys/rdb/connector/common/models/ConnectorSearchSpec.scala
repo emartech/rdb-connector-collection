@@ -19,10 +19,10 @@ class ConnectorSearchSpec extends WordSpecLike with Matchers with MockitoSugar w
   implicit val executionCtx: ExecutionContext = ExecutionContext.global
 
   val tableName = "tableName"
-  val viewName = "viewName"
+  val viewName  = "viewName"
 
   val defaultTimeout = 3.seconds
-  val sqlTimeout = 3.seconds
+  val sqlTimeout     = 3.seconds
 
   class TestConnector extends Connector {
     override implicit val executionContext: ExecutionContext = executionCtx
@@ -35,7 +35,10 @@ class ConnectorSearchSpec extends WordSpecLike with Matchers with MockitoSugar w
 
     override def isOptimized(table: String, fields: Seq[String]) = Future.successful(Right(true))
 
-    override def simpleSelect(select: SimpleSelect, timeout: FiniteDuration): ConnectorResponse[Source[Seq[String], NotUsed]] = Future.successful(Right(Source(List(Seq("head")))))
+    override def simpleSelect(
+        select: SimpleSelect,
+        timeout: FiniteDuration
+    ): ConnectorResponse[Source[Seq[String], NotUsed]] = Future.successful(Right(Source(List(Seq("head")))))
   }
 
   val myConnector = spy(new TestConnector())

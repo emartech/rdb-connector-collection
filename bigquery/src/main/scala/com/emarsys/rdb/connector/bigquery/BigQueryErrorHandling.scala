@@ -12,7 +12,7 @@ import scala.concurrent.TimeoutException
 trait BigQueryErrorHandling {
 
   protected def errorHandler: PartialFunction[Throwable, ConnectorError] = {
-    case to: TimeoutException           => QueryTimeout(to.getMessage)
+    case to: TimeoutException => QueryTimeout(to.getMessage)
   }
 
   protected def eitherErrorHandler[T]: PartialFunction[Throwable, Either[ConnectorError, T]] =

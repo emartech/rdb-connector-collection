@@ -91,7 +91,8 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val allFieldWriter: SqlWriter[SimpleSelect.AllField.type] = SqlWriter.createAllFieldWriter("#")
+          override implicit lazy val allFieldWriter: SqlWriter[SimpleSelect.AllField.type] =
+            SqlWriter.createAllFieldWriter("#")
         }
         import customWriters._
 
@@ -115,7 +116,8 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer - many fields" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val specificFieldsWriter: SqlWriter[SpecificFields] = SqlWriter.createSpecificFieldsWriter("#")
+          override implicit lazy val specificFieldsWriter: SqlWriter[SpecificFields] =
+            SqlWriter.createSpecificFieldsWriter("#")
         }
         import customWriters._
 
@@ -151,7 +153,8 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val notNullWriter: SqlWriter[NotNull] = SqlWriter.createNotNullWriter("<<IS NOT %s NULL>>")
+          override implicit lazy val notNullWriter: SqlWriter[NotNull] =
+            SqlWriter.createNotNullWriter("<<IS NOT %s NULL>>")
         }
         import customWriters._
 
@@ -169,7 +172,8 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val equalToValueWriter: SqlWriter[EqualToValue] = SqlWriter.createEqualToValueWriter(" IS ")
+          override implicit lazy val equalToValueWriter: SqlWriter[EqualToValue] =
+            SqlWriter.createEqualToValueWriter(" IS ")
         }
         import customWriters._
 
@@ -191,11 +195,15 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
         Or(Seq(IsNull(FieldName("FIELD1")), EqualToValue(FieldName("FIELD2"), Value("VALUE2")))).toSql shouldEqual """("FIELD1" IS NULL OR "FIELD2"='VALUE2')"""
       }
 
-
       "use default writer - inner or" in {
         import DefaultSqlWriters._
 
-        Or(Seq(IsNull(FieldName("FIELD1")), Or(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3")))))).toSql shouldEqual """("FIELD1" IS NULL OR ("FIELD2" IS NULL OR "FIELD3"='VALUE3'))"""
+        Or(
+          Seq(
+            IsNull(FieldName("FIELD1")),
+            Or(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3"))))
+          )
+        ).toSql shouldEqual """("FIELD1" IS NULL OR ("FIELD2" IS NULL OR "FIELD3"='VALUE3'))"""
       }
 
       "use custom writer - inner or" in {
@@ -204,7 +212,12 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
         }
         import customWriters._
 
-        Or(Seq(IsNull(FieldName("FIELD1")), Or(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3")))))).toSql shouldEqual """("FIELD1" IS NULL || ("FIELD2" IS NULL || "FIELD3"='VALUE3'))"""
+        Or(
+          Seq(
+            IsNull(FieldName("FIELD1")),
+            Or(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3"))))
+          )
+        ).toSql shouldEqual """("FIELD1" IS NULL || ("FIELD2" IS NULL || "FIELD3"='VALUE3'))"""
       }
     }
 
@@ -222,11 +235,15 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
         And(Seq(IsNull(FieldName("FIELD1")), EqualToValue(FieldName("FIELD2"), Value("VALUE2")))).toSql shouldEqual """("FIELD1" IS NULL AND "FIELD2"='VALUE2')"""
       }
 
-
       "use default writer - inner or" in {
         import DefaultSqlWriters._
 
-        And(Seq(IsNull(FieldName("FIELD1")), And(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3")))))).toSql shouldEqual """("FIELD1" IS NULL AND ("FIELD2" IS NULL AND "FIELD3"='VALUE3'))"""
+        And(
+          Seq(
+            IsNull(FieldName("FIELD1")),
+            And(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3"))))
+          )
+        ).toSql shouldEqual """("FIELD1" IS NULL AND ("FIELD2" IS NULL AND "FIELD3"='VALUE3'))"""
       }
 
       "use custom writer - inner or" in {
@@ -235,7 +252,12 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
         }
         import customWriters._
 
-        And(Seq(IsNull(FieldName("FIELD1")), And(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3")))))).toSql shouldEqual """("FIELD1" IS NULL && ("FIELD2" IS NULL && "FIELD3"='VALUE3'))"""
+        And(
+          Seq(
+            IsNull(FieldName("FIELD1")),
+            And(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3"))))
+          )
+        ).toSql shouldEqual """("FIELD1" IS NULL && ("FIELD2" IS NULL && "FIELD3"='VALUE3'))"""
       }
     }
 
@@ -245,18 +267,23 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
         import DefaultSqlWriters._
 
         val where =
-          And(Seq(
-            IsNull(FieldName("FIELD1")),
-            Or(Seq(
-              IsNull(FieldName("FIELD2")),
-              EqualToValue(FieldName("FIELD3"), Value("VALUE3")),
-              NotNull(FieldName("FIELD4"))
-            )),
-            Or(Seq(
-              IsNull(FieldName("FIELD5"))
-            ))
-          ))
-
+          And(
+            Seq(
+              IsNull(FieldName("FIELD1")),
+              Or(
+                Seq(
+                  IsNull(FieldName("FIELD2")),
+                  EqualToValue(FieldName("FIELD3"), Value("VALUE3")),
+                  NotNull(FieldName("FIELD4"))
+                )
+              ),
+              Or(
+                Seq(
+                  IsNull(FieldName("FIELD5"))
+                )
+              )
+            )
+          )
 
         where.toSql shouldEqual """("FIELD1" IS NULL AND ("FIELD2" IS NULL OR "FIELD3"='VALUE3' OR "FIELD4" IS NOT NULL) AND "FIELD5" IS NULL)"""
       }
@@ -265,28 +292,35 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
         val customWriters = new DefaultSqlWriters {
           override implicit lazy val fieldNameWriter: SqlWriter[FieldName] = SqlWriter.createFieldNameWriter("#", "\\")
-          override implicit lazy val valueWriter: SqlWriter[Value] = SqlWriter.createValueWriter("`", "\\")
-          override implicit lazy val notNullWriter: SqlWriter[NotNull] = SqlWriter.createNotNullWriter("<<IS NOT %s NULL>>")
-          override implicit lazy val equalToValueWriter: SqlWriter[EqualToValue] = SqlWriter.createEqualToValueWriter(" == ")
+          override implicit lazy val valueWriter: SqlWriter[Value]         = SqlWriter.createValueWriter("`", "\\")
+          override implicit lazy val notNullWriter: SqlWriter[NotNull] =
+            SqlWriter.createNotNullWriter("<<IS NOT %s NULL>>")
+          override implicit lazy val equalToValueWriter: SqlWriter[EqualToValue] =
+            SqlWriter.createEqualToValueWriter(" == ")
           override implicit lazy val isNullWriter: SqlWriter[IsNull] = SqlWriter.createIsNullWriter("NULL(%s)")
-          override implicit lazy val orWriter: SqlWriter[Or] = (x: Or) => conditionWriter(" || ", x.conditions)
-          override implicit lazy val andWriter: SqlWriter[And] = (x: And) => conditionWriter(" && ", x.conditions)
+          override implicit lazy val orWriter: SqlWriter[Or]         = (x: Or) => conditionWriter(" || ", x.conditions)
+          override implicit lazy val andWriter: SqlWriter[And]       = (x: And) => conditionWriter(" && ", x.conditions)
         }
         import customWriters._
 
         val where =
-          And(Seq(
-            IsNull(FieldName("FIELD1")),
-            Or(Seq(
-              IsNull(FieldName("FIELD2")),
-              EqualToValue(FieldName("FIELD3"), Value("VALUE3")),
-              NotNull(FieldName("FIELD4"))
-            )),
-            Or(Seq(
-              IsNull(FieldName("FIELD5"))
-            ))
-          ))
-
+          And(
+            Seq(
+              IsNull(FieldName("FIELD1")),
+              Or(
+                Seq(
+                  IsNull(FieldName("FIELD2")),
+                  EqualToValue(FieldName("FIELD3"), Value("VALUE3")),
+                  NotNull(FieldName("FIELD4"))
+                )
+              ),
+              Or(
+                Seq(
+                  IsNull(FieldName("FIELD5"))
+                )
+              )
+            )
+          )
 
         where.toSql shouldEqual """(NULL(#FIELD1#) && (NULL(#FIELD2#) || #FIELD3# == `VALUE3` || <<IS NOT #FIELD4# NULL>>) && NULL(#FIELD5#))"""
       }
@@ -346,7 +380,14 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
         val select = SimpleSelect(
           fields = AllField,
           table = TableName("TABLE1"),
-          where = Some(And(Seq(IsNull(FieldName("FIELD1")), And(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3")))))))
+          where = Some(
+            And(
+              Seq(
+                IsNull(FieldName("FIELD1")),
+                And(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3"))))
+              )
+            )
+          )
         )
 
         select.toSql shouldEqual """SELECT * FROM "TABLE1" WHERE ("FIELD1" IS NULL AND ("FIELD2" IS NULL AND "FIELD3"='VALUE3'))"""
@@ -370,7 +411,14 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
         val select = SimpleSelect(
           fields = AllField,
           table = TableName("TABLE1"),
-          where = Some(And(Seq(IsNull(FieldName("FIELD1")), And(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3"))))))),
+          where = Some(
+            And(
+              Seq(
+                IsNull(FieldName("FIELD1")),
+                And(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3"))))
+              )
+            )
+          ),
           limit = Some(100)
         )
 
@@ -383,7 +431,14 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
         val select = SimpleSelect(
           fields = SpecificFields(Seq(FieldName("FIELD1"), FieldName("FIELD2"), FieldName("FIELD3"))),
           table = TableName("TABLE1"),
-          where = Some(And(Seq(IsNull(FieldName("FIELD1")), And(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3"))))))),
+          where = Some(
+            And(
+              Seq(
+                IsNull(FieldName("FIELD1")),
+                And(Seq(IsNull(FieldName("FIELD2")), EqualToValue(FieldName("FIELD3"), Value("VALUE3"))))
+              )
+            )
+          ),
           limit = Some(100),
           distinct = Some(true)
         )

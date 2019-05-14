@@ -15,10 +15,19 @@ trait SelectDbInitHelper {
   val bTableName: String
 
   val connector: Connector =
-    Await.result(MySqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG, MySqlConnectorConfig(
-      configPath = "mysqldb",
-      verifyServerCertificate = false
-    )), 5.seconds).right.get
+    Await
+      .result(
+        MySqlConnector.create(
+          TestHelper.TEST_CONNECTION_CONFIG,
+          MySqlConnectorConfig(
+            configPath = "mysqldb",
+            verifyServerCertificate = false
+          )
+        ),
+        5.seconds
+      )
+      .right
+      .get
 
   def initDb(): Unit = {
     val createATableSql =

@@ -21,10 +21,19 @@ class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
   val index2Name = s"is_optimized_index2_$uuid"
 
   val connector: Connector =
-    Await.result(MySqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG, MySqlConnectorConfig(
-      configPath = "mysqldb",
-      verifyServerCertificate = false
-    )), 5.seconds).right.get
+    Await
+      .result(
+        MySqlConnector.create(
+          TestHelper.TEST_CONNECTION_CONFIG,
+          MySqlConnectorConfig(
+            configPath = "mysqldb",
+            verifyServerCertificate = false
+          )
+        ),
+        5.seconds
+      )
+      .right
+      .get
 
   override def beforeAll(): Unit = {
     initDb()

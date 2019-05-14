@@ -90,7 +90,7 @@ trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandli
 
   def create(
       config: RedshiftConnectionConfig,
-      connectorConfig: RedshiftConnectorConfig = defaultConfig,
+      connectorConfig: RedshiftConnectorConfig = defaultConfig
   )(implicit ec: ExecutionContext): ConnectorResponse[RedshiftConnector] = {
     if (isSslDisabled(config.connectionParams)) {
       Future.successful(Left(ConnectionConfigError("SSL Error")))

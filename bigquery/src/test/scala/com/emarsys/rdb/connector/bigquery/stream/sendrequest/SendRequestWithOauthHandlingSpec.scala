@@ -38,7 +38,7 @@ class SendRequestWithOauthHandlingSpec
     def response: HttpResponse
 
     val session = mock[GoogleSession]
-    val http = mock[HttpExt]
+    val http    = mock[HttpExt]
 
     lazy val resultF = {
       when(session.getToken()) thenReturn Future.successful("TOKEN")
@@ -117,7 +117,8 @@ class SendRequestWithOauthHandlingSpec
     }
 
     "recognize rate limit errors" in new SendRequestScope {
-      val rateLimitMessage = "Exceeded rate limits: Your project exceeded quota for concurrent queries. For more information, see https://cloud.google.com/bigquery/troubleshooting-errors"
+      val rateLimitMessage =
+        "Exceeded rate limits: Your project exceeded quota for concurrent queries. For more information, see https://cloud.google.com/bigquery/troubleshooting-errors"
       val rateLimitResponseBody =
         s"""
            |{

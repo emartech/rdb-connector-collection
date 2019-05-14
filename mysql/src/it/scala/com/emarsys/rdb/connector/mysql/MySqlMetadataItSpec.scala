@@ -12,10 +12,19 @@ import scala.concurrent.duration._
 
 class MySqlMetadataItSpec extends MetadataItSpec {
 
-  val connector: Connector = Await.result(MySqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG, MySqlConnectorConfig(
-    configPath = "mysqldb",
-    verifyServerCertificate = false
-  )), 5.seconds).right.get
+  val connector: Connector = Await
+    .result(
+      MySqlConnector.create(
+        TestHelper.TEST_CONNECTION_CONFIG,
+        MySqlConnectorConfig(
+          configPath = "mysqldb",
+          verifyServerCertificate = false
+        )
+      ),
+      5.seconds
+    )
+    .right
+    .get
 
   def initDb(): Unit = {
     val createTableSql = s"""CREATE TABLE `$tableName` (

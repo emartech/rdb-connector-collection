@@ -35,13 +35,15 @@ object SimpleSelect {
   case class And(conditions: Seq[WhereCondition]) extends WhereCondition
 
   object And {
-    def apply(condition: WhereCondition, otherConditions: WhereCondition*): And = And((condition +: otherConditions).toList)
+    def apply(condition: WhereCondition, otherConditions: WhereCondition*): And =
+      And((condition +: otherConditions).toList)
   }
 
   case class Or(conditions: Seq[WhereCondition]) extends WhereCondition
 
   object Or {
-    def apply(condition: WhereCondition, otherConditions: WhereCondition*): Or = Or((condition +: otherConditions).toList)
+    def apply(condition: WhereCondition, otherConditions: WhereCondition*): Or =
+      Or((condition +: otherConditions).toList)
   }
 
   case class EqualToValue(field: FieldName, value: Value) extends WhereCondition

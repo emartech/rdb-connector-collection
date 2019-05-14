@@ -52,7 +52,7 @@ class MySqlRawQueryItSpec
 
       "validation error" in {
         val invalidSql = "invalid sql"
-        val result = Await.result(connector.rawQuery(invalidSql, queryTimeout), awaitTimeout)
+        val result     = Await.result(connector.rawQuery(invalidSql, queryTimeout), awaitTimeout)
 
         result.left.get shouldBe a[SqlSyntaxError]
       }

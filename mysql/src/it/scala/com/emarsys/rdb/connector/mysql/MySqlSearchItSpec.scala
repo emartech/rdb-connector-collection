@@ -15,10 +15,19 @@ class MySqlSearchItSpec extends TestKit(ActorSystem()) with SearchItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val connector: Connector =
-    Await.result(MySqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG, MySqlConnectorConfig(
-      configPath = "mysqldb",
-      verifyServerCertificate = false
-    )), 5.seconds).right.get
+    Await
+      .result(
+        MySqlConnector.create(
+          TestHelper.TEST_CONNECTION_CONFIG,
+          MySqlConnectorConfig(
+            configPath = "mysqldb",
+            verifyServerCertificate = false
+          )
+        ),
+        5.seconds
+      )
+      .right
+      .get
 
   override implicit val materializer: Materializer = ActorMaterializer()
 

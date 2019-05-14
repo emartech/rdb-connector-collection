@@ -7,7 +7,6 @@ import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
 import com.emarsys.rdb.connector.redshift.utils.TestHelper
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-
 import scala.concurrent.Await
 import scala.concurrent.duration._
 

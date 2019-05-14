@@ -61,39 +61,61 @@ trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeA
   s"SelectWithGroupLimitItSpec $uuid" when {
 
     "gets a non OR query and limit it" in {
-      val simpleSelect = SimpleSelect(AllField, TableName(tableName),
-        where = Some(And(Seq(
-          EqualToValue(FieldName("ID"), Value("1")),
-          EqualToValue(FieldName("NAME"), Value("test1"))
-        ))))
+      val simpleSelect = SimpleSelect(
+        AllField,
+        TableName(tableName),
+        where = Some(
+          And(
+            Seq(
+              EqualToValue(FieldName("ID"), Value("1")),
+              EqualToValue(FieldName("NAME"), Value("test1"))
+            )
+          )
+        )
+      )
 
       val result = getConnectorResult(connector.selectWithGroupLimit(simpleSelect, 2, queryTimeout), awaitTimeout)
       result.size shouldBe 3
       result.head.map(_.toUpperCase) shouldBe Seq("ID", "NAME", "DATA")
-      result.tail.foreach(_(0) shouldBe  "1")
-      result.tail.foreach(_(1) shouldBe  "test1")
+      result.tail.foreach(_(0) shouldBe "1")
+      result.tail.foreach(_(1) shouldBe "test1")
     }
 
     "gets a good OR query and limit it" in {
-      val simpleSelect = SimpleSelect(AllField, TableName(tableName),
-        where = Some(Or(Seq(
-          And(Seq(
-            EqualToValue(FieldName("ID"), Value("1")),
-            EqualToValue(FieldName("NAME"), Value("test1"))
-          )),
-          And(Seq(
-            EqualToValue(FieldName("ID"), Value("2")),
-            EqualToValue(FieldName("NAME"), Value("test2"))
-          )),
-          And(Seq(
-            EqualToValue(FieldName("ID"), Value("2")),
-            EqualToValue(FieldName("NAME"), Value("test3"))
-          )),
-          And(Seq(
-            EqualToValue(FieldName("ID"), Value("7")),
-            EqualToValue(FieldName("NAME"), Value("test123"))
-          ))
-        ))))
+      val simpleSelect = SimpleSelect(
+        AllField,
+        TableName(tableName),
+        where = Some(
+          Or(
+            Seq(
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("1")),
+                  EqualToValue(FieldName("NAME"), Value("test1"))
+                )
+              ),
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("2")),
+                  EqualToValue(FieldName("NAME"), Value("test2"))
+                )
+              ),
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("2")),
+                  EqualToValue(FieldName("NAME"), Value("test3"))
+                )
+              ),
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("7")),
+                  EqualToValue(FieldName("NAME"), Value("test123"))
+                )
+              )
+            )
+          )
+        )
+      )
 
       val result = getConnectorResult(connector.selectWithGroupLimit(simpleSelect, 2, queryTimeout), awaitTimeout)
       result.size shouldBe 6
@@ -104,31 +126,53 @@ trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeA
     }
 
     "gets a bad OR query and fails" in {
-      val simpleSelect = SimpleSelect(AllField, TableName(tableName),
-        where = Some(Or(Seq(
-          And(Seq(
-            EqualToValue(FieldName("ID"), Value("1")),
-            EqualToValue(FieldName("NAME"), Value("test1"))
-          )),
-          And(Seq(
-            EqualToValue(FieldName("ID"), Value("2"))
-          ))
-        ))))
+      val simpleSelect = SimpleSelect(
+        AllField,
+        TableName(tableName),
+        where = Some(
+          Or(
+            Seq(
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("1")),
+                  EqualToValue(FieldName("NAME"), Value("test1"))
+                )
+              ),
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("2"))
+                )
+              )
+            )
+          )
+        )
+      )
       val result = Await.result(connector.selectWithGroupLimit(simpleSelect, 2, queryTimeout), awaitTimeout)
-      result shouldBe a [Left[_,_]]
+      result shouldBe a[Left[_, _]]
       result.left.get shouldBe SimpleSelectIsNotGroupableFormat(simpleSelect.toString)
     }
 
     "gets a good OR query but no results" in {
-      val simpleSelect = SimpleSelect(AllField, TableName(tableName),
-        where = Some(Or(Seq(
-          And(Seq(
-            EqualToValue(FieldName("ID"), Value("7"))
-          )),
-          And(Seq(
-            EqualToValue(FieldName("ID"), Value("8"))
-          ))
-        ))))
+      val simpleSelect = SimpleSelect(
+        AllField,
+        TableName(tableName),
+        where = Some(
+          Or(
+            Seq(
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("7"))
+                )
+              ),
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("8"))
+                )
+              )
+            )
+          )
+        )
+      )
 
       val result = getConnectorResult(connector.selectWithGroupLimit(simpleSelect, 2, queryTimeout), awaitTimeout)
       result.size shouldBe 0

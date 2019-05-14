@@ -29,7 +29,7 @@ trait MySqlMetadata {
 
   override def listTablesWithFields(): ConnectorResponse[Seq[FullTableModel]] = {
     (for {
-      tables <- EitherT(listTables())
+      tables        <- EitherT(listTables())
       fieldsByTable <- EitherT(listAllFieldsByTable())
     } yield makeTablesWithFields(tables, fieldsByTable)).value
   }

@@ -17,10 +17,19 @@ class MySqlSelectWithGroupLimitItSpec extends TestKit(ActorSystem()) with Select
   override implicit val materializer: Materializer = ActorMaterializer()
 
   val connector: Connector =
-    Await.result(MySqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG, MySqlConnectorConfig(
-      configPath = "mysqldb",
-      verifyServerCertificate = false
-    )), 5.seconds).right.get
+    Await
+      .result(
+        MySqlConnector.create(
+          TestHelper.TEST_CONNECTION_CONFIG,
+          MySqlConnectorConfig(
+            configPath = "mysqldb",
+            verifyServerCertificate = false
+          )
+        ),
+        5.seconds
+      )
+      .right
+      .get
 
   override def afterAll(): Unit = {
     system.terminate()

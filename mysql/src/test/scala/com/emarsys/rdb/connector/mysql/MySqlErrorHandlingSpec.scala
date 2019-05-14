@@ -49,12 +49,15 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
     "convert statement closed exception to InvalidDbOperation if the message implies that" in new MySqlErrorHandling {
       val msg = "No operations allowed after statement closed."
       val e   = new SQLException(msg)
-      eitherErrorHandler.apply(e) shouldEqual Left(InvalidDbOperation(s"Transient DB error: java.sql.SQLException: $msg"))
+      eitherErrorHandler.apply(e) shouldEqual Left(
+        InvalidDbOperation(s"Transient DB error: java.sql.SQLException: $msg")
+      )
     }
 
     "convert illegal mix of collations error to SqlSyntaxError" in new MySqlErrorHandling {
-      val msg = "Illegal mix of collations (utf8mb4_unicode_ci,IMPLICIT) and (utf8mb4_hungarian_ci,IMPLICIT) for operation"
-      val e   = new SQLException(msg)
+      val msg =
+        "Illegal mix of collations (utf8mb4_unicode_ci,IMPLICIT) and (utf8mb4_hungarian_ci,IMPLICIT) for operation"
+      val e = new SQLException(msg)
       eitherErrorHandler.apply(e) shouldEqual Left(SqlSyntaxError(s"java.sql.SQLException: $msg"))
     }
 

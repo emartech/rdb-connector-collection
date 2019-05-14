@@ -14,9 +14,9 @@ The table must have "PersonID", "LastName", "FirstName", "Address", "City" colum
 The view must have "PersonID", "LastName", "FirstName" columns.
  */
 trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
-  val uuid = uuidGenerate
+  val uuid      = uuidGenerate
   val tableName = s"metadata_list_tables_table_$uuid"
-  val viewName = s"metadata_list_tables_view_$uuid"
+  val viewName  = s"metadata_list_tables_view_$uuid"
   val connector: Connector
   val awaitTimeout = 5.seconds
 
@@ -38,21 +38,22 @@ trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
       "list tables and views" in {
         val resultE = Await.result(connector.listTables(), awaitTimeout)
 
-        resultE shouldBe a[Right[_,_]]
+        resultE shouldBe a[Right[_, _]]
         val result = resultE.right.get
 
-        result should contain (TableModel(tableName, false))
-        result should contain (TableModel(viewName, true))
+        result should contain(TableModel(tableName, false))
+        result should contain(TableModel(viewName, true))
       }
     }
 
     "#listFields" should {
       "list table fields" in {
-        val tableFields = Seq("PersonID", "LastName", "FirstName", "Address", "City").map(_.toLowerCase()).sorted.map(FieldModel(_, ""))
+        val tableFields =
+          Seq("PersonID", "LastName", "FirstName", "Address", "City").map(_.toLowerCase()).sorted.map(FieldModel(_, ""))
 
         val resultE = Await.result(connector.listFields(tableName), awaitTimeout)
 
-        resultE shouldBe a[Right[_,_]]
+        resultE shouldBe a[Right[_, _]]
         val result = resultE.right.get
 
         val fieldModels = result.map(f => f.copy(name = f.name.toLowerCase, columnType = "")).sortBy(_.name)
@@ -68,19 +69,20 @@ trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
 
     "#listTablesWithFields" should {
       "list all" in {
-        val tableFields = Seq("PersonID", "LastName", "FirstName", "Address", "City").map(_.toLowerCase()).sorted.map(FieldModel(_, ""))
+        val tableFields =
+          Seq("PersonID", "LastName", "FirstName", "Address", "City").map(_.toLowerCase()).sorted.map(FieldModel(_, ""))
         val viewFields = Seq("PersonID", "LastName", "FirstName").map(_.toLowerCase()).sorted.map(FieldModel(_, ""))
 
         val resultE = Await.result(connector.listTablesWithFields(), awaitTimeout)
 
-        resultE shouldBe a[Right[_,_]]
-        val result = resultE.right.get.map(x => x.copy(fields = x.fields.map(f => f.copy(name = f.name.toLowerCase, columnType = "")).sortBy(_.name)))
+        resultE shouldBe a[Right[_, _]]
+        val result = resultE.right.get.map(
+          x => x.copy(fields = x.fields.map(f => f.copy(name = f.name.toLowerCase, columnType = "")).sortBy(_.name))
+        )
 
-
-        result should contain (FullTableModel(tableName, false, tableFields))
-        result should contain (FullTableModel(viewName, true, viewFields))
+        result should contain(FullTableModel(tableName, false, tableFields))
+        result should contain(FullTableModel(viewName, true, viewFields))
       }
     }
   }
 }
-

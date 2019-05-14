@@ -13,10 +13,11 @@ object GroupWithLimitStage {
 
     Flow[Seq[String]]
       .prefixAndTail(1)
-      .flatMapConcat { case (head, tail) =>
-        head.headOption.fold(Source.empty[Seq[(String, String)]]){ header =>
-          tail.map(row => header zip row)
-        }
+      .flatMapConcat {
+        case (head, tail) =>
+          head.headOption.fold(Source.empty[Seq[(String, String)]]) { header =>
+            tail.map(row => header zip row)
+          }
       }
       .groupBy(1024, groupKey)
       .take(groupLimit)
@@ -24,16 +25,15 @@ object GroupWithLimitStage {
       .statefulMapConcat(flattenBackToCsvStyle)
   }
 
-  private def flattenBackToCsvStyle: () => Seq[(String, String)] => List[Seq[String]] = {
-    () =>
-      var wasHeader = false
-      (l: Seq[(String, String)]) => {
-        if (wasHeader) {
-          List(l.map(_._2))
-        } else {
-          wasHeader = true
-          List(l.map(_._1), l.map(_._2))
-        }
+  private def flattenBackToCsvStyle: () => Seq[(String, String)] => List[Seq[String]] = { () =>
+    var wasHeader = false
+    (l: Seq[(String, String)]) => {
+      if (wasHeader) {
+        List(l.map(_._2))
+      } else {
+        wasHeader = true
+        List(l.map(_._1), l.map(_._2))
       }
+    }
   }
 }

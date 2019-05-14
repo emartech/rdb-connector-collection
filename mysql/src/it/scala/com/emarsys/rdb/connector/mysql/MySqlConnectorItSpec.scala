@@ -23,7 +23,7 @@ class MySqlConnectorItSpec
     with BeforeAndAfterAll {
 
   implicit val mat: ActorMaterializer = ActorMaterializer()
-  override def afterAll: Unit = shutdown()
+  override def afterAll: Unit         = shutdown()
 
   "MySqlConnectorItSpec" when {
 
@@ -32,7 +32,8 @@ class MySqlConnectorItSpec
     "create connector" should {
 
       "connect success" in {
-        val connectorEither = Await.result(MySqlConnector.create(testConnection, MySqlConnectorConfig("mysqldb", false)), 5.seconds)
+        val connectorEither =
+          Await.result(MySqlConnector.create(testConnection, MySqlConnectorConfig("mysqldb", false)), 5.seconds)
 
         connectorEither shouldBe a[Right[_, _]]
 
@@ -43,14 +44,19 @@ class MySqlConnectorItSpec
         val conn = testConnection.copy(
           connectionParams = "useSSL=false"
         )
-        val connectorEither = Await.result(MySqlConnector.create(conn, MySqlConnectorConfig(
-          configPath = "mysqldb",
-          verifyServerCertificate = false
-        )), 5.seconds)
+        val connectorEither = Await.result(
+          MySqlConnector.create(
+            conn,
+            MySqlConnectorConfig(
+              configPath = "mysqldb",
+              verifyServerCertificate = false
+            )
+          ),
+          5.seconds
+        )
 
         connectorEither shouldBe Left(ConnectionConfigError("SSL Error"))
       }
-
 
       "connect fail when wrong certificate" in {
         val conn            = testConnection.copy(certificate = "")
@@ -88,10 +94,16 @@ class MySqlConnectorItSpec
     "test connection" should {
 
       "return success" in {
-        val connectorEither = Await.result(MySqlConnector.create(testConnection, MySqlConnectorConfig(
-          configPath = "mysqldb",
-          verifyServerCertificate = false
-        )), 5.seconds)
+        val connectorEither = Await.result(
+          MySqlConnector.create(
+            testConnection,
+            MySqlConnectorConfig(
+              configPath = "mysqldb",
+              verifyServerCertificate = false
+            )
+          ),
+          5.seconds
+        )
 
         connectorEither shouldBe a[Right[_, _]]
 
@@ -110,12 +122,17 @@ class MySqlConnectorItSpec
       import cats.instances.future._
       def runQuery(q: String): ConnectorResponse[Unit] =
         (for {
-          connector <- EitherT(MySqlConnector.create(testConnection, MySqlConnectorConfig(
-            configPath = "mysqldb",
-            verifyServerCertificate = false
-          )))
-          source    <- EitherT(connector.rawSelect(q, limit = None, timeout = 1.second))
-          res              <- EitherT(sinkOrLeft(source))
+          connector <- EitherT(
+            MySqlConnector.create(
+              testConnection,
+              MySqlConnectorConfig(
+                configPath = "mysqldb",
+                verifyServerCertificate = false
+              )
+            )
+          )
+          source <- EitherT(connector.rawSelect(q, limit = None, timeout = 1.second))
+          res    <- EitherT(sinkOrLeft(source))
           _ = connector.close()
         } yield res).value
 
@@ -146,23 +163,28 @@ class MySqlConnectorItSpec
         val cTableName2 = "c2"
 
         val createConflictingCollationTable1 =
-            s"""CREATE TABLE `$cTableName1` (
+          s"""CREATE TABLE `$cTableName1` (
               |    c VARCHAR(255)
               |        COLLATE utf8mb4_unicode_ci
               |);""".stripMargin
 
         val createConflictingCollationTable2 =
-            s"""CREATE TABLE `$cTableName2` (
+          s"""CREATE TABLE `$cTableName2` (
               |    c VARCHAR(255)
               |        COLLATE utf8mb4_hungarian_ci
               |);""".stripMargin
-        
+
         Await.result(runQuery(createConflictingCollationTable1), 10.seconds)
         Await.result(runQuery(createConflictingCollationTable2), 10.seconds)
 
-        val result = Await.result(runQuery(s"SELECT * FROM `$cTableName1` c1 JOIN `$cTableName2` c2 ON (c1.c = c2.c)"), 10.seconds)
-        
-        result shouldBe Left(SqlSyntaxError("java.sql.SQLException: Illegal mix of collations (utf8mb4_unicode_ci,IMPLICIT) and (utf8mb4_hungarian_ci,IMPLICIT) for operation '='"))
+        val result =
+          Await.result(runQuery(s"SELECT * FROM `$cTableName1` c1 JOIN `$cTableName2` c2 ON (c1.c = c2.c)"), 10.seconds)
+
+        result shouldBe Left(
+          SqlSyntaxError(
+            "java.sql.SQLException: Illegal mix of collations (utf8mb4_unicode_ci,IMPLICIT) and (utf8mb4_hungarian_ci,IMPLICIT) for operation '='"
+          )
+        )
       }
     }
   }

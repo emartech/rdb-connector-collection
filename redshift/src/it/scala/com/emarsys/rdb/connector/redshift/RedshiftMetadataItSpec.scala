@@ -4,7 +4,6 @@ import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.redshift.utils.TestHelper
 import com.emarsys.rdb.connector.test.MetadataItSpec
 
-
 import concurrent.duration._
 import scala.concurrent.Await
 import concurrent.ExecutionContext.Implicits.global

@@ -46,14 +46,18 @@ object SqlWriter {
   def createNotNullWriter(notNullFormat: String)(implicit w: SqlWriter[FieldName]): SqlWriter[NotNull] =
     (x: NotNull) => notNullFormat.format(x.field.toSql)
 
-  def createEqualToValueWriter(symbol: String)(implicit w1: SqlWriter[FieldName], w2: SqlWriter[Value]): SqlWriter[EqualToValue] =
+  def createEqualToValueWriter(
+      symbol: String
+  )(implicit w1: SqlWriter[FieldName], w2: SqlWriter[Value]): SqlWriter[EqualToValue] =
     (x: EqualToValue) => s"${x.field.toSql}$symbol${x.value.toSql}"
 
   def createEscapeQuoter(symbol: String, escape: String, name: String): String = {
-    s"$symbol${escaping(symbol,escape,name)}$symbol"
+    s"$symbol${escaping(symbol, escape, name)}$symbol"
   }
 
-  def conditionWriter(symbol: String, conditions: Seq[WhereCondition])(implicit w: SqlWriter[WhereCondition]): String = {
+  def conditionWriter(symbol: String, conditions: Seq[WhereCondition])(
+      implicit w: SqlWriter[WhereCondition]
+  ): String = {
     if (conditions.size == 1) {
       conditions.head.toSql
     } else {
@@ -65,8 +69,9 @@ object SqlWriter {
     if (text == null) {
       null
     } else {
-      val escapedText = if(escape == "") text else text.replace(escape, escape * 2)
-      val symbolEscapedText = if(escape == "" || symbol == "") escapedText else escapedText.replace(symbol, s"$escape$symbol")
+      val escapedText = if (escape == "") text else text.replace(escape, escape * 2)
+      val symbolEscapedText =
+        if (escape == "" || symbol == "") escapedText else escapedText.replace(symbol, s"$escape$symbol")
       symbolEscapedText
     }
   }
@@ -77,35 +82,35 @@ trait DefaultSqlWriters {
 
   import SqlWriter._
 
-  implicit lazy val tableNameWriter: SqlWriter[TableName] = createTableNameWriter("\"", "\\")
-  implicit lazy val fieldNameWriter: SqlWriter[FieldName] = createFieldNameWriter("\"", "\\")
-  implicit lazy val valueWriter: SqlWriter[Value] = createValueWriter("'", "\\")
-  implicit lazy val allFieldWriter: SqlWriter[AllField.type] = createAllFieldWriter("*")
+  implicit lazy val tableNameWriter: SqlWriter[TableName]           = createTableNameWriter("\"", "\\")
+  implicit lazy val fieldNameWriter: SqlWriter[FieldName]           = createFieldNameWriter("\"", "\\")
+  implicit lazy val valueWriter: SqlWriter[Value]                   = createValueWriter("'", "\\")
+  implicit lazy val allFieldWriter: SqlWriter[AllField.type]        = createAllFieldWriter("*")
   implicit lazy val specificFieldsWriter: SqlWriter[SpecificFields] = createSpecificFieldsWriter(",")
-  implicit lazy val isNullWriter: SqlWriter[IsNull] = createIsNullWriter("%s IS NULL")
-  implicit lazy val notNullWriter: SqlWriter[NotNull] = createNotNullWriter("%s IS NOT NULL")
-  implicit lazy val equalToValueWriter: SqlWriter[EqualToValue] = createEqualToValueWriter("=")
-  implicit lazy val orWriter: SqlWriter[Or] = (x: Or) => conditionWriter(" OR ", x.conditions)
-  implicit lazy val andWriter: SqlWriter[And] = (x: And) => conditionWriter(" AND ", x.conditions)
+  implicit lazy val isNullWriter: SqlWriter[IsNull]                 = createIsNullWriter("%s IS NULL")
+  implicit lazy val notNullWriter: SqlWriter[NotNull]               = createNotNullWriter("%s IS NOT NULL")
+  implicit lazy val equalToValueWriter: SqlWriter[EqualToValue]     = createEqualToValueWriter("=")
+  implicit lazy val orWriter: SqlWriter[Or]                         = (x: Or) => conditionWriter(" OR ", x.conditions)
+  implicit lazy val andWriter: SqlWriter[And]                       = (x: And) => conditionWriter(" AND ", x.conditions)
 
   implicit lazy val whereConditionWriter: SqlWriter[WhereCondition] = {
     case x: EqualToValue => x.toSql
-    case x: IsNull => x.toSql
-    case x: NotNull => x.toSql
-    case x: Or => x.toSql
-    case x: And => x.toSql
+    case x: IsNull       => x.toSql
+    case x: NotNull      => x.toSql
+    case x: Or           => x.toSql
+    case x: And          => x.toSql
   }
 
   implicit lazy val fieldsWriter: SqlWriter[Fields] = {
-    case x: AllField.type => x.toSql
+    case x: AllField.type  => x.toSql
     case x: SpecificFields => x.toSql
   }
 
   implicit lazy val simpleSelectWriter: SqlWriter[SimpleSelect] = (ss: SimpleSelect) => {
-    val distinct = if(ss.distinct.getOrElse(false)) "DISTINCT " else ""
-    val head = s"SELECT $distinct${ss.fields.toSql} FROM ${ss.table.toSql}"
-    val where = ss.where.map(_.toSql).map(" WHERE " + _).getOrElse("")
-    val limit = ss.limit.map(" LIMIT " + _).getOrElse("")
+    val distinct = if (ss.distinct.getOrElse(false)) "DISTINCT " else ""
+    val head     = s"SELECT $distinct${ss.fields.toSql} FROM ${ss.table.toSql}"
+    val where    = ss.where.map(_.toSql).map(" WHERE " + _).getOrElse("")
+    val limit    = ss.limit.map(" LIMIT " + _).getOrElse("")
 
     s"$head$where$limit"
   }

@@ -20,7 +20,7 @@ class ConnectorSpec extends WordSpecLike with Matchers {
   implicit val executionCtx: ExecutionContext = ExecutionContext.global
 
   val tableName = "tableName"
-  val viewName = "viewName"
+  val viewName  = "viewName"
 
   val defaultTimeout = 3.seconds
 
@@ -35,15 +35,22 @@ class ConnectorSpec extends WordSpecLike with Matchers {
 
     override def isOptimized(table: String, fields: Seq[String]) = Future.successful(Right(true))
 
-    override protected def rawUpdate(tableName: String, definitions: Seq[DataManipulation.UpdateDefinition]): ConnectorResponse[Int] = Future.successful(Right(4))
+    override protected def rawUpdate(
+        tableName: String,
+        definitions: Seq[DataManipulation.UpdateDefinition]
+    ): ConnectorResponse[Int] = Future.successful(Right(4))
 
-    override protected def rawInsertData(tableName: String, data: Seq[Record]): ConnectorResponse[Int] = Future.successful(Right(4))
+    override protected def rawInsertData(tableName: String, data: Seq[Record]): ConnectorResponse[Int] =
+      Future.successful(Right(4))
 
-    override protected def rawReplaceData(tableName: String, data: Seq[Record]): ConnectorResponse[Int] = Future.successful(Right(4))
+    override protected def rawReplaceData(tableName: String, data: Seq[Record]): ConnectorResponse[Int] =
+      Future.successful(Right(4))
 
-    override protected def rawUpsert(tableName: String, data: Seq[Record]): ConnectorResponse[Int] = Future.successful(Right(4))
+    override protected def rawUpsert(tableName: String, data: Seq[Record]): ConnectorResponse[Int] =
+      Future.successful(Right(4))
 
-    override protected def rawDelete(tableName: String, criteria: Seq[Criteria]): ConnectorResponse[Int] = Future.successful(Right(4))
+    override protected def rawDelete(tableName: String, criteria: Seq[Criteria]): ConnectorResponse[Int] =
+      Future.successful(Right(4))
 
   }
 
@@ -56,7 +63,9 @@ class ConnectorSpec extends WordSpecLike with Matchers {
 
     "return validation error" in {
       val definitions = Seq(UpdateDefinition(Map("a" -> StringValue("1")), Map("b" -> StringValue("2"))))
-      Await.result(myConnector.update(viewName, definitions), defaultTimeout) shouldBe Left(FailedValidation(InvalidOperationOnView))
+      Await.result(myConnector.update(viewName, definitions), defaultTimeout) shouldBe Left(
+        FailedValidation(InvalidOperationOnView)
+      )
     }
 
   }
@@ -70,7 +79,9 @@ class ConnectorSpec extends WordSpecLike with Matchers {
 
     "return validation error" in {
       val records = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      Await.result(myConnector.insertIgnore(viewName, records), defaultTimeout) shouldBe Left(FailedValidation(InvalidOperationOnView))
+      Await.result(myConnector.insertIgnore(viewName, records), defaultTimeout) shouldBe Left(
+        FailedValidation(InvalidOperationOnView)
+      )
     }
 
   }
@@ -84,7 +95,9 @@ class ConnectorSpec extends WordSpecLike with Matchers {
 
     "return validation error" in {
       val records = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      Await.result(myConnector.replaceData(viewName, records), defaultTimeout) shouldBe Left(FailedValidation(InvalidOperationOnView))
+      Await.result(myConnector.replaceData(viewName, records), defaultTimeout) shouldBe Left(
+        FailedValidation(InvalidOperationOnView)
+      )
     }
   }
 
@@ -97,7 +110,9 @@ class ConnectorSpec extends WordSpecLike with Matchers {
 
     "return validation error" in {
       val records = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      Await.result(myConnector.upsert(viewName, records), defaultTimeout) shouldBe Left(FailedValidation(InvalidOperationOnView))
+      Await.result(myConnector.upsert(viewName, records), defaultTimeout) shouldBe Left(
+        FailedValidation(InvalidOperationOnView)
+      )
     }
 
   }
@@ -111,7 +126,9 @@ class ConnectorSpec extends WordSpecLike with Matchers {
 
     "return validation error" in {
       val criteria = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      Await.result(myConnector.delete(viewName, criteria), defaultTimeout) shouldBe Left(FailedValidation(InvalidOperationOnView))
+      Await.result(myConnector.delete(viewName, criteria), defaultTimeout) shouldBe Left(
+        FailedValidation(InvalidOperationOnView)
+      )
     }
   }
 
@@ -128,13 +145,19 @@ class ConnectorSpec extends WordSpecLike with Matchers {
     "use simpleSelect if validator choose Simple" in {
       var calledWith: Seq[SimpleSelect] = Seq.empty
       val validator = new ValidateGroupLimitableQuery {
-        override def groupLimitableQueryValidation(simpleSelect: SimpleSelect): ValidateGroupLimitableQuery.GroupLimitValidationResult = ValidateGroupLimitableQuery.GroupLimitValidationResult.Simple
+        override def groupLimitableQueryValidation(
+            simpleSelect: SimpleSelect
+        ): ValidateGroupLimitableQuery.GroupLimitValidationResult =
+          ValidateGroupLimitableQuery.GroupLimitValidationResult.Simple
       }
       val connector = new Connector {
         override implicit val executionContext: ExecutionContext = executionCtx
-        override val groupLimitValidator = validator
+        override val groupLimitValidator                         = validator
 
-        override def simpleSelect(select: SimpleSelect, timeout: FiniteDuration): ConnectorResponse[Source[Seq[String], NotUsed]] = {
+        override def simpleSelect(
+            select: SimpleSelect,
+            timeout: FiniteDuration
+        ): ConnectorResponse[Source[Seq[String], NotUsed]] = {
           calledWith +:= select
           common.notImplementedOperation("simpleSelect")
         }
@@ -150,13 +173,21 @@ class ConnectorSpec extends WordSpecLike with Matchers {
     "use runSelectWithGroupLimit if validator choose Groupable" in {
       var calledWith: Seq[SimpleSelect] = Seq.empty
       val validator = new ValidateGroupLimitableQuery {
-        override def groupLimitableQueryValidation(simpleSelect: SimpleSelect): ValidateGroupLimitableQuery.GroupLimitValidationResult = ValidateGroupLimitableQuery.GroupLimitValidationResult.Groupable(Seq.empty)
+        override def groupLimitableQueryValidation(
+            simpleSelect: SimpleSelect
+        ): ValidateGroupLimitableQuery.GroupLimitValidationResult =
+          ValidateGroupLimitableQuery.GroupLimitValidationResult.Groupable(Seq.empty)
       }
       val connector = new Connector {
         override implicit val executionContext: ExecutionContext = executionCtx
-        override val groupLimitValidator = validator
+        override val groupLimitValidator                         = validator
 
-        override def runSelectWithGroupLimit(select: SimpleSelect, groupLimit: Int, references: Seq[String], timeout: FiniteDuration): ConnectorResponse[Source[Seq[String], NotUsed]] = {
+        override def runSelectWithGroupLimit(
+            select: SimpleSelect,
+            groupLimit: Int,
+            references: Seq[String],
+            timeout: FiniteDuration
+        ): ConnectorResponse[Source[Seq[String], NotUsed]] = {
           calledWith +:= select
           common.notImplementedOperation("simpleSelect")
         }
@@ -171,16 +202,21 @@ class ConnectorSpec extends WordSpecLike with Matchers {
 
     "drop error if validator choose NotGroupable" in {
       val validator = new ValidateGroupLimitableQuery {
-        override def groupLimitableQueryValidation(simpleSelect: SimpleSelect): ValidateGroupLimitableQuery.GroupLimitValidationResult = ValidateGroupLimitableQuery.GroupLimitValidationResult.NotGroupable
+        override def groupLimitableQueryValidation(
+            simpleSelect: SimpleSelect
+        ): ValidateGroupLimitableQuery.GroupLimitValidationResult =
+          ValidateGroupLimitableQuery.GroupLimitValidationResult.NotGroupable
       }
       val connector = new Connector {
         override implicit val executionContext: ExecutionContext = executionCtx
-        override val groupLimitValidator = validator
+        override val groupLimitValidator                         = validator
 
         override def close(): Future[Unit] = ???
       }
 
-      Await.result(connector.selectWithGroupLimit(select, 5, 10.minutes), 1.second) shouldBe Left(SimpleSelectIsNotGroupableFormat("SimpleSelect(AllField,TableName(table),None,None,None)"))
+      Await.result(connector.selectWithGroupLimit(select, 5, 10.minutes), 1.second) shouldBe Left(
+        SimpleSelectIsNotGroupableFormat("SimpleSelect(AllField,TableName(table),None,None,None)")
+      )
     }
   }
 

@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 
 /*
 For positive results use the A and B table definitions and preloaded data defined in the SimpleSelect.
-*/
+ */
 
 trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
 
@@ -40,7 +40,6 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
   val awaitTimeout = 10.seconds
   val queryTimeout = 5.seconds
 
-
   s"RawSelectItSpec $uuid" when {
 
     "#rawSelect" should {
@@ -48,16 +47,19 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
 
         val result = getConnectorResult(connector.rawSelect(simpleSelect, None, queryTimeout), awaitTimeout)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A1", "A2", "A3"),
-          Seq("v1", "1", "1"),
-          Seq("v2", "2", "0"),
-          Seq("v3", "3", "1"),
-          Seq("v4", "-4", "0"),
-          Seq("v5", null, "0"),
-          Seq("v6", "6", null),
-          Seq("v7", null, null)
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v1", "1", "1"),
+            Seq("v2", "2", "0"),
+            Seq("v3", "3", "1"),
+            Seq("v4", "-4", "0"),
+            Seq("v5", null, "0"),
+            Seq("v6", "6", null),
+            Seq("v7", null, null)
+          )
+        )
       }
 
       "list table values with limit" in {
@@ -71,7 +73,12 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
 
       "fail the future if query is bad" in {
 
-        assertThrows[Exception](Await.result(connector.rawSelect(badSimpleSelect, None, queryTimeout).flatMap(_.right.get.runWith(Sink.seq)), awaitTimeout))
+        assertThrows[Exception](
+          Await.result(
+            connector.rawSelect(badSimpleSelect, None, queryTimeout).flatMap(_.right.get.runWith(Sink.seq)),
+            awaitTimeout
+          )
+        )
       }
     }
 
@@ -85,7 +92,9 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
       }
 
       "return error if not ok" in {
-        Await.result(connector.validateProjectedRawSelect(simpleSelect, Seq("NONEXISTENT_COLUMN")), awaitTimeout) shouldBe a[Left[_, _]]
+        Await.result(connector.validateProjectedRawSelect(simpleSelect, Seq("NONEXISTENT_COLUMN")), awaitTimeout) shouldBe a[
+          Left[_, _]
+        ]
       }
     }
 
@@ -109,51 +118,70 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
 
       "project one col as expected" in {
 
-        val result = getConnectorResult(connector.projectedRawSelect(simpleSelect, Seq("A1"), None, queryTimeout), awaitTimeout)
+        val result =
+          getConnectorResult(connector.projectedRawSelect(simpleSelect, Seq("A1"), None, queryTimeout), awaitTimeout)
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A1"),
-          Seq("v1"),
-          Seq("v2"),
-          Seq("v3"),
-          Seq("v4"),
-          Seq("v5"),
-          Seq("v6"),
-          Seq("v7")
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A1"),
+            Seq("v1"),
+            Seq("v2"),
+            Seq("v3"),
+            Seq("v4"),
+            Seq("v5"),
+            Seq("v6"),
+            Seq("v7")
+          )
+        )
 
       }
 
       "project more col as expected and allow null values" in {
-        val result = getConnectorResult(connector.projectedRawSelect(simpleSelect, Seq("A2", "A3"), None, queryTimeout, allowNullFieldValue = true), awaitTimeout)
+        val result = getConnectorResult(
+          connector.projectedRawSelect(simpleSelect, Seq("A2", "A3"), None, queryTimeout, allowNullFieldValue = true),
+          awaitTimeout
+        )
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A2", "A3"),
-          Seq("1", "1"),
-          Seq("2", "0"),
-          Seq("3", "1"),
-          Seq("-4", "0"),
-          Seq(null, "0"),
-          Seq("6", null),
-          Seq(null, null)
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A2", "A3"),
+            Seq("1", "1"),
+            Seq("2", "0"),
+            Seq("3", "1"),
+            Seq("-4", "0"),
+            Seq(null, "0"),
+            Seq("6", null),
+            Seq(null, null)
+          )
+        )
       }
 
       "project more col as expected and disallow null values" in {
-        val result = getConnectorResult(connector.projectedRawSelect(simpleSelect, Seq("A2", "A3"), None, queryTimeout), awaitTimeout)
+        val result = getConnectorResult(
+          connector.projectedRawSelect(simpleSelect, Seq("A2", "A3"), None, queryTimeout),
+          awaitTimeout
+        )
 
-        checkResultWithoutRowOrder(result, Seq(
-          Seq("A2", "A3"),
-          Seq("1", "1"),
-          Seq("2", "0"),
-          Seq("3", "1"),
-          Seq("-4", "0")
-        ))
+        checkResultWithoutRowOrder(
+          result,
+          Seq(
+            Seq("A2", "A3"),
+            Seq("1", "1"),
+            Seq("2", "0"),
+            Seq("3", "1"),
+            Seq("-4", "0")
+          )
+        )
       }
 
       "project with limit as expected" in {
         val limit = 3
-        val result = getConnectorResult(connector.projectedRawSelect(simpleSelect, Seq("A1"), Some(limit), queryTimeout), awaitTimeout)
+        val result = getConnectorResult(
+          connector.projectedRawSelect(simpleSelect, Seq("A1"), Some(limit), queryTimeout),
+          awaitTimeout
+        )
 
         result.size shouldEqual 1 + limit
       }

@@ -1,3 +1,4 @@
+import org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings
 
 lazy val connectors: Seq[ProjectReference] = Seq(
   bigQuery,
@@ -19,6 +20,7 @@ lazy val connectorCollection = project
     publishArtifact := false,
     publishTo := Some(Resolver.file("Unused repository", file("target/unused")))
   )
+  .settings(scalafmtOnCompile := true)
 
 lazy val common = Project(id = "common", base = file("common"))
   .settings(
@@ -28,6 +30,8 @@ lazy val common = Project(id = "common", base = file("common"))
   .settings(Dependencies.Common: _*)
   .settings(meta: _*)
   .settings(publishSettings: _*)
+  .settings(scalafmtOnCompile := true)
+
 lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(
     name := s"rdb-connector-test",
@@ -37,6 +41,7 @@ lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(Dependencies.ConnectorTest: _*)
   .settings(meta: _*)
   .settings(publishSettings: _*)
+  .settings(scalafmtOnCompile := true)
 
 lazy val bigQuery = connector("bigquery", Dependencies.BigQuery)
 lazy val mssql = connector("mssql", Dependencies.Mssql)
@@ -48,7 +53,7 @@ lazy val ItTest = config("it") extend Test
 lazy val itTestSettings = Defaults.itSettings ++ Seq(
   fork := true,
   testForkedParallel := true
-)
+) ++ scalafmtConfigSettings
 
 def connector(projectId: String, additionalSettings: sbt.Def.SettingsDefinition*): Project =
   Project(id = projectId, base = file(projectId))
@@ -65,6 +70,7 @@ def connector(projectId: String, additionalSettings: sbt.Def.SettingsDefinition*
     .settings(additionalSettings: _*)
     .settings(meta: _*)
     .settings(publishSettings: _*)
+    .settings(scalafmtOnCompile := true)
 
 lazy val meta =
   Seq(

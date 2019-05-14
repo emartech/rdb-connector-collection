@@ -109,7 +109,9 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
     }
   }
 
-  private def createTrustStorePath(cert: String)(implicit e: ExecutionContext): EitherT[Future, ConnectorError, String] = {
+  private def createTrustStorePath(
+      cert: String
+  )(implicit e: ExecutionContext): EitherT[Future, ConnectorError, String] = {
     EitherT
       .fromOption[Future](
         createTrustStoreTempFile(cert),

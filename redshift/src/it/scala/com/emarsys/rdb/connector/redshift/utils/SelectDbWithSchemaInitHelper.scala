@@ -3,7 +3,6 @@ package com.emarsys.rdb.connector.redshift.utils
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.redshift.RedshiftConnector
 
-
 import scala.concurrent.Await
 import scala.concurrent.duration._
 

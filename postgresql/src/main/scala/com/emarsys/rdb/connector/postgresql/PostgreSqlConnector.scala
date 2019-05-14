@@ -93,7 +93,7 @@ trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHa
 
   def create(
       config: PostgreSqlConnectionConfig,
-      connectorConfig: PostgreSqlConnectorConfig = defaultConfig,
+      connectorConfig: PostgreSqlConnectorConfig = defaultConfig
   )(implicit ec: ExecutionContext): ConnectorResponse[PostgreSqlConnector] = {
     val poolName = UUID.randomUUID.toString
 

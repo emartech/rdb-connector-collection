@@ -3,7 +3,6 @@ package com.emarsys.rdb.connector.mssql.utils
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.mssql.MsSqlConnector
 
-
 import scala.concurrent.Await
 import scala.concurrent.duration._
 

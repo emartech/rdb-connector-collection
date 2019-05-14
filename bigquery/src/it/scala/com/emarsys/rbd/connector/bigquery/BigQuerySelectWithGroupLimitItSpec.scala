@@ -17,8 +17,8 @@ class BigQuerySelectWithGroupLimitItSpec
   override implicit val sys: ActorSystem                = system
   override implicit val materializer: ActorMaterializer = ActorMaterializer()
   override implicit val timeout: Timeout                = 20.seconds
-  override val awaitTimeout = 20.seconds
-  override val queryTimeout = 20.seconds
+  override val awaitTimeout                             = 20.seconds
+  override val queryTimeout                             = 20.seconds
 
   override def afterAll(): Unit = {
     super.afterAll()

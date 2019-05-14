@@ -19,7 +19,7 @@ trait ReplaceItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach w
   def cleanUpDb(): Unit
   implicit val materializer: Materializer
 
-  val uuid = uuidGenerate
+  val uuid      = uuidGenerate
   val tableName = s"replace_tables_table_$uuid"
 
   val awaitTimeout = 5.seconds
@@ -37,67 +37,96 @@ trait ReplaceItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach w
     connector.close()
   }
 
-  val simpleSelect = SimpleSelect(AllField, TableName(tableName),
+  val simpleSelect = SimpleSelect(
+    AllField,
+    TableName(tableName),
     where = Some(
       EqualToValue(FieldName("A1"), Value("vxxx"))
-    ))
-  val simpleSelectT = SimpleSelect(AllField, TableName(tableName),
+    )
+  )
+  val simpleSelectT = SimpleSelect(
+    AllField,
+    TableName(tableName),
     where = Some(
       EqualToValue(FieldName("A1"), Value("v1new"))
-    ))
-  val simpleSelectF = SimpleSelect(AllField, TableName(tableName),
+    )
+  )
+  val simpleSelectF = SimpleSelect(
+    AllField,
+    TableName(tableName),
     where = Some(
       EqualToValue(FieldName("A1"), Value("v2new"))
-    ))
-  val simpleSelectT2 = SimpleSelect(AllField, TableName(tableName),
+    )
+  )
+  val simpleSelectT2 = SimpleSelect(
+    AllField,
+    TableName(tableName),
     where = Some(
       EqualToValue(FieldName("A1"), Value("v3new"))
-    ))
+    )
+  )
 
-  val replaceMultipleData: Seq[Record] =  Seq(
+  val replaceMultipleData: Seq[Record] = Seq(
     Map("A1" -> StringValue("v1new"), "A3" -> BooleanValue(true)),
     Map("A1" -> StringValue("v2new"), "A3" -> BooleanValue(false)),
-    Map("A1" -> StringValue("v3new"), "A3" -> BooleanValue(false)))
+    Map("A1" -> StringValue("v3new"), "A3" -> BooleanValue(false))
+  )
 
-  val replaceSingleData: Seq[Record] =  Seq(
-    Map("A1" -> StringValue("vxxx"), "A3" -> BooleanValue(true)))
+  val replaceSingleData: Seq[Record] = Seq(Map("A1" -> StringValue("vxxx"), "A3" -> BooleanValue(true)))
 
-  val replaceNonExistingFieldFieldData: Seq[Record] =  Seq(
-    Map("a" -> StringValue("1")),
-    Map("a" -> StringValue("2")))
+  val replaceNonExistingFieldFieldData: Seq[Record] = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
 
   s"ReplaceSpec $uuid" when {
 
     "#replace" should {
 
       "validation error" in {
-        Await.result(connector.replaceData(tableName, replaceNonExistingFieldFieldData), awaitTimeout) shouldBe Left(FailedValidation(NonExistingFields(Set("a"))))
+        Await.result(connector.replaceData(tableName, replaceNonExistingFieldFieldData), awaitTimeout) shouldBe Left(
+          FailedValidation(NonExistingFields(Set("a")))
+        )
       }
 
       "replace successfully with zero record" in {
         Await.result(connector.replaceData(tableName, Seq.empty), awaitTimeout) shouldBe Right(0)
-        Await.result(connector.simpleSelect(simpleSelectAllWithExpectedResultSize(0), queryTimeout), awaitTimeout).map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(0)}
+        Await
+          .result(connector.simpleSelect(simpleSelectAllWithExpectedResultSize(0), queryTimeout), awaitTimeout)
+          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(0)
+      }
 
       "replace successfully with one record" in {
         Await.result(connector.replaceData(tableName, replaceSingleData), awaitTimeout) shouldBe Right(1)
-        Await.result(connector.simpleSelect(simpleSelectAllWithExpectedResultSize(2), queryTimeout), awaitTimeout).map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
-        Await.result(connector.simpleSelect(simpleSelect, queryTimeout), awaitTimeout).map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
+        Await
+          .result(connector.simpleSelect(simpleSelectAllWithExpectedResultSize(2), queryTimeout), awaitTimeout)
+          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
+        Await
+          .result(connector.simpleSelect(simpleSelect, queryTimeout), awaitTimeout)
+          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
       }
 
       "replace successfully with more records" in {
         Await.result(connector.replaceData(tableName, replaceMultipleData), awaitTimeout) shouldBe Right(3)
-        Await.result(connector.simpleSelect(simpleSelectAllWithExpectedResultSize(4), queryTimeout), awaitTimeout).map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(4)
-        Await.result(connector.simpleSelect(simpleSelectT, queryTimeout), awaitTimeout).map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
-        Await.result(connector.simpleSelect(simpleSelectF, queryTimeout), awaitTimeout).map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
-        Await.result(connector.simpleSelect(simpleSelectT2, queryTimeout), awaitTimeout).map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
+        Await
+          .result(connector.simpleSelect(simpleSelectAllWithExpectedResultSize(4), queryTimeout), awaitTimeout)
+          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(4)
+        Await
+          .result(connector.simpleSelect(simpleSelectT, queryTimeout), awaitTimeout)
+          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
+        Await
+          .result(connector.simpleSelect(simpleSelectF, queryTimeout), awaitTimeout)
+          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
+        Await
+          .result(connector.simpleSelect(simpleSelectT2, queryTimeout), awaitTimeout)
+          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
 
       }
     }
   }
 
-  private def simpleSelectAllWithExpectedResultSize(number: Int) = SimpleSelect(AllField, TableName(tableName),
-    where = Some(
-      Or(Seq(EqualToValue(FieldName("A1"), Value(number.toString)), NotNull(FieldName("A1"))))))
-
+  private def simpleSelectAllWithExpectedResultSize(number: Int) =
+    SimpleSelect(
+      AllField,
+      TableName(tableName),
+      where = Some(Or(Seq(EqualToValue(FieldName("A1"), Value(number.toString)), NotNull(FieldName("A1")))))
+    )
 
 }

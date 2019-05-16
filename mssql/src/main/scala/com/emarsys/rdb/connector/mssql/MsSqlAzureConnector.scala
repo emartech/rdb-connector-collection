@@ -15,7 +15,6 @@ import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import com.typesafe.config.{Config, ConfigFactory}
 import slick.jdbc.SQLServerProfile.api._
 
-import scala.concurrent.duration.{FiniteDuration, _}
 import scala.concurrent.{ExecutionContext, Future}
 
 object MsSqlAzureConnector extends MsSqlAzureConnectorTrait {

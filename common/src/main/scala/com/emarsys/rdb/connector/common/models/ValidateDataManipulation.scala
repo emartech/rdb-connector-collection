@@ -1,5 +1,6 @@
 package com.emarsys.rdb.connector.common.models
 
+import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
 import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.ValidationResult
@@ -7,14 +8,13 @@ import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.Validati
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ValidateDataManipulation {
-  type ValidationResultFE         = Future[Either[Exception, ValidationResult]]
-  private type DeferredValidation = () => ValidationResultFE
+  private type DeferredValidation = () => ConnectorResponse[ValidationResult]
 
   val maxRows: Int
 
   def validateUpdateDefinition(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ValidationResultFE = {
+  ): ConnectorResponse[ValidationResult] = {
     runValidations(
       Seq(
         () => validateUpdateFormat(updateData),
@@ -26,7 +26,7 @@ trait ValidateDataManipulation {
 
   def validateInsertData(tableName: String, dataToInsert: Seq[Record], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ValidationResultFE = {
+  ): ConnectorResponse[ValidationResult] = {
     runValidations(
       Seq(
         () => validateFormat(dataToInsert),
@@ -43,7 +43,7 @@ trait ValidateDataManipulation {
 
   def validateDeleteCriteria(tableName: String, criteria: Seq[Criteria], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ValidationResultFE = {
+  ): ConnectorResponse[ValidationResult] = {
     runValidations(
       Seq(
         () => validateFormat(criteria),
@@ -56,7 +56,7 @@ trait ValidateDataManipulation {
 
   def validateSearchCriteria(tableName: String, criteria: Criteria, connector: Connector)(
       implicit ec: ExecutionContext
-  ): ValidationResultFE = {
+  ): ConnectorResponse[ValidationResult] = {
     runValidations(
       Seq(
         () => validateEmtpyCriteria(criteria),
@@ -78,7 +78,7 @@ trait ValidateDataManipulation {
 
   private def runValidations(
       validations: Seq[DeferredValidation]
-  )(implicit ec: ExecutionContext): ValidationResultFE = {
+  )(implicit ec: ExecutionContext): ConnectorResponse[ValidationResult] = {
     if (validations.isEmpty) {
       Future.successful(Right(ValidationResult.Valid))
     } else {
@@ -95,7 +95,7 @@ trait ValidateDataManipulation {
 
   private def validateFieldExistence(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ValidationResultFE = {
+  ): ConnectorResponse[ValidationResult] = {
     if (updateData.isEmpty) {
       Future.successful(Right(ValidationResult.EmptyData))
     } else {
@@ -106,7 +106,7 @@ trait ValidateDataManipulation {
 
   private def validateFieldExistence(tableName: String, keyFields: Set[String], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ValidationResultFE = {
+  ): ConnectorResponse[ValidationResult] = {
     connector
       .listFields(tableName)
       .map {
@@ -125,7 +125,7 @@ trait ValidateDataManipulation {
 
   private def validateTableIsNotAView(tableName: String, connector: Connector)(
       implicit ec: ExecutionContext
-  ): ValidationResultFE = {
+  ): ConnectorResponse[ValidationResult] = {
     connector
       .listTables()
       .map {
@@ -146,7 +146,7 @@ trait ValidateDataManipulation {
 
   private def validateUpdateFields(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ValidationResultFE = {
+  ): ConnectorResponse[ValidationResult] = {
     validateFieldExistence(tableName, updateData, connector) flatMap {
       case Right(ValidationResult.Valid) =>
         validateIndices(tableName, updateData.head.search.keySet, connector)
@@ -157,7 +157,7 @@ trait ValidateDataManipulation {
 
   private def validateIndices(tableName: String, keyFields: Set[String], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ValidationResultFE = {
+  ): ConnectorResponse[ValidationResult] = {
     connector
       .isOptimized(tableName, keyFields.toList)
       .map {

@@ -11,7 +11,7 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Recor
 import com.emarsys.rdb.connector.common.models.Errors.{FailedValidation, SimpleSelectIsNotGroupableFormat}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors._
-import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.{ValidationResult, ValidationResultFE}
+import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.ValidationResult
 import com.emarsys.rdb.connector.common.{ConnectorResponse, notImplementedOperation}
 
 import scala.concurrent.duration.FiniteDuration
@@ -181,7 +181,7 @@ trait Connector {
   }
 
   private def validateAndExecute[T](
-      validationFn: (String, Seq[T], Connector) => ValidationResultFE,
+      validationFn: (String, Seq[T], Connector) => ConnectorResponse[ValidationResult],
       tableName: String,
       executionFn: (String, Seq[T]) => ConnectorResponse[Int],
       data: Seq[T]

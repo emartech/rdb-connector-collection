@@ -41,7 +41,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
         defaultTimeout
       )
 
-      validationResult shouldBe ValidationResult.Valid
+      validationResult shouldBe Right(ValidationResult.Valid)
     }
 
     "return empty if nothing specified to update" in new ValidatorScope {
@@ -52,7 +52,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
         defaultTimeout
       )
 
-      validationResult shouldBe ValidationResult.EmptyData
+      validationResult shouldBe Right(ValidationResult.EmptyData)
     }
 
     "return error if number of rows exceeds 1000" in new ValidatorScope {
@@ -64,7 +64,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
         defaultTimeout
       )
 
-      validationResult shouldBe ValidationResult.TooManyRows
+      validationResult shouldBe Right(ValidationResult.TooManyRows)
     }
 
     "return error for empty search" in new ValidatorScope {
@@ -75,7 +75,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
         defaultTimeout
       )
 
-      validationResult shouldBe ValidationResult.EmptyCriteria
+      validationResult shouldBe Right(ValidationResult.EmptyCriteria)
     }
 
     "return error for empty data" in new ValidatorScope {
@@ -86,7 +86,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
         defaultTimeout
       )
 
-      validationResult shouldBe ValidationResult.EmptyData
+      validationResult shouldBe Right(ValidationResult.EmptyData)
     }
 
     "return error if not all criteria contains the same fields" in new ValidatorScope {
@@ -100,7 +100,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
         defaultTimeout
       )
 
-      validationResult shouldBe ValidationResult.DifferentFields
+      validationResult shouldBe Right(ValidationResult.DifferentFields)
     }
 
     "return error if not all update record contains the same fields" in new ValidatorScope {
@@ -120,7 +120,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
         defaultTimeout
       )
 
-      validationResult shouldBe ValidationResult.DifferentFields
+      validationResult shouldBe Right(ValidationResult.DifferentFields)
     }
 
     "return error if not all criteria fields present in the database table" in new ValidatorScope {
@@ -144,7 +144,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
         ValidateDataManipulation.validateUpdateDefinition(tableName, updateData, connector),
         defaultTimeout
       )
-      validationResult shouldBe ValidationResult.NonExistingFields(Set("notExists", "notExistsEither"))
+      validationResult shouldBe Right(ValidationResult.NonExistingFields(Set("notExists", "notExistsEither")))
     }
 
     "return error if not all update data fields present in the database table" in new ValidatorScope {
@@ -164,7 +164,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
         ValidateDataManipulation.validateUpdateDefinition(tableName, updateData, connector),
         defaultTimeout
       )
-      validationResult shouldBe ValidationResult.NonExistingFields(Set("notExists"))
+      validationResult shouldBe Right(ValidationResult.NonExistingFields(Set("notExists")))
     }
 
     "validate with insensitive column names" in new ValidatorScope {
@@ -181,7 +181,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
         defaultTimeout
       )
 
-      validationResult shouldBe ValidationResult.Valid
+      validationResult shouldBe Right(ValidationResult.Valid)
     }
 
     "return error if criteria fields has no indices" in new ValidatorScope {
@@ -197,7 +197,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
         ValidateDataManipulation.validateUpdateDefinition(tableName, updateData, connector),
         defaultTimeout
       )
-      validationResult shouldBe ValidationResult.NoIndexOnFields
+      validationResult shouldBe Right(ValidationResult.NoIndexOnFields)
     }
 
     "return error if we want an operation on a view" in new ValidatorScope {
@@ -206,7 +206,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val updateData = Seq(UpdateDefinition(Map("not_index" -> StringValue("a")), Map("a" -> StringValue("1"))))
       val validationResult =
         Await.result(ValidateDataManipulation.validateUpdateDefinition(viewName, updateData, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.InvalidOperationOnView
+      validationResult shouldBe Right(ValidationResult.InvalidOperationOnView)
     }
   }
 
@@ -223,7 +223,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val validationResult =
         Await.result(ValidateDataManipulation.validateInsertData(tableName, data, connector), defaultTimeout)
 
-      validationResult shouldBe ValidationResult.Valid
+      validationResult shouldBe Right(ValidationResult.Valid)
     }
 
     "return error if number of rows exceeds 1000" in new ValidatorScope {
@@ -237,7 +237,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val validationResult =
         Await.result(ValidateDataManipulation.validateInsertData(tableName, data, connector), defaultTimeout)
 
-      validationResult shouldBe ValidationResult.TooManyRows
+      validationResult shouldBe Right(ValidationResult.TooManyRows)
     }
 
     "return valid if all records contains the same fields" in new ValidatorScope {
@@ -249,7 +249,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val data = Seq(Map("a" -> StringValue("b"), "a" -> StringValue("c")))
       val validationResult =
         Await.result(ValidateDataManipulation.validateInsertData(tableName, data, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.Valid
+      validationResult shouldBe Right(ValidationResult.Valid)
     }
 
     "return valid if all records contains the same fields but in different order" in new ValidatorScope {
@@ -265,7 +265,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
 
       val validationResult =
         Await.result(ValidateDataManipulation.validateInsertData(tableName, data, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.Valid
+      validationResult shouldBe Right(ValidationResult.Valid)
     }
 
     "return valid for empty array" in new ValidatorScope {
@@ -277,7 +277,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val validationResult =
         Await.result(ValidateDataManipulation.validateInsertData(tableName, Seq(), connector), defaultTimeout)
 
-      validationResult shouldBe ValidationResult.Valid
+      validationResult shouldBe Right(ValidationResult.Valid)
     }
 
     "return error if not all records contains the same fields" in new ValidatorScope {
@@ -290,7 +290,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val validationResult =
         Await.result(ValidateDataManipulation.validateInsertData(tableName, data, connector), defaultTimeout)
 
-      validationResult shouldBe ValidationResult.DifferentFields
+      validationResult shouldBe Right(ValidationResult.DifferentFields)
     }
 
     "return error if not all fields present in the database table" in new ValidatorScope {
@@ -304,7 +304,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       )
       val validationResult =
         Await.result(ValidateDataManipulation.validateInsertData(tableName, data, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.NonExistingFields(Set("notExists", "notExistsEither"))
+      validationResult shouldBe Right(ValidationResult.NonExistingFields(Set("notExists", "notExistsEither")))
     }
 
     "return error if table not exists" in new ValidatorScope {
@@ -315,7 +315,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val data = Seq(Map("a" -> StringValue("b")), Map("a" -> StringValue("c")))
       val validationResult =
         Await.result(ValidateDataManipulation.validateInsertData(tableName, data, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.NonExistingTable
+      validationResult shouldBe Right(ValidationResult.NonExistingTable)
     }
 
     "return error if we want an operation on a view" in new ValidatorScope {
@@ -326,7 +326,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val data = Seq(Map("a" -> StringValue("b")), Map("a" -> StringValue("c")))
       val validationResult =
         Await.result(ValidateDataManipulation.validateInsertData(viewName, data, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.InvalidOperationOnView
+      validationResult shouldBe Right(ValidationResult.InvalidOperationOnView)
     }
 
   }
@@ -345,7 +345,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val validationResult =
         Await.result(ValidateDataManipulation.validateDeleteCriteria(tableName, criterion, connector), defaultTimeout)
 
-      validationResult shouldBe ValidationResult.Valid
+      validationResult shouldBe Right(ValidationResult.Valid)
     }
 
     "return error if number of rows exceeds 1000" in new ValidatorScope {
@@ -354,14 +354,14 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val validationResult =
         Await.result(ValidateDataManipulation.validateDeleteCriteria(tableName, criterion, connector), defaultTimeout)
 
-      validationResult shouldBe ValidationResult.TooManyRows
+      validationResult shouldBe Right(ValidationResult.TooManyRows)
     }
 
     "return error for empty array" in new ValidatorScope {
       val validationResult =
         Await.result(ValidateDataManipulation.validateDeleteCriteria(tableName, Seq(), connector), defaultTimeout)
 
-      validationResult shouldBe ValidationResult.EmptyData
+      validationResult shouldBe Right(ValidationResult.EmptyData)
     }
 
     "return error if not all records contains the same fields" in new ValidatorScope {
@@ -369,7 +369,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val validationResult =
         Await.result(ValidateDataManipulation.validateDeleteCriteria(tableName, data, connector), defaultTimeout)
 
-      validationResult shouldBe ValidationResult.DifferentFields
+      validationResult shouldBe Right(ValidationResult.DifferentFields)
     }
 
     "return error if not all fields present in the database table" in new ValidatorScope {
@@ -383,7 +383,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       )
       val validationResult =
         Await.result(ValidateDataManipulation.validateDeleteCriteria(tableName, data, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.NonExistingFields(Set("notExists", "notExistsEither"))
+      validationResult shouldBe Right(ValidationResult.NonExistingFields(Set("notExists", "notExistsEither")))
     }
 
     "return error if table not exists" in new ValidatorScope {
@@ -394,7 +394,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val data = Seq(Map("a" -> StringValue("b")), Map("a" -> StringValue("c")))
       val validationResult =
         Await.result(ValidateDataManipulation.validateDeleteCriteria(tableName, data, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.NonExistingTable
+      validationResult shouldBe Right(ValidationResult.NonExistingTable)
     }
 
     "return error if we want an operation on a view" in new ValidatorScope {
@@ -404,7 +404,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val data = Seq(Map("a" -> StringValue("b")), Map("a" -> StringValue("c")))
       val validationResult =
         Await.result(ValidateDataManipulation.validateDeleteCriteria(viewName, data, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.InvalidOperationOnView
+      validationResult shouldBe Right(ValidationResult.InvalidOperationOnView)
     }
 
     "return error if criteria fields has not indices" in new ValidatorScope {
@@ -416,7 +416,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val data = Seq(Map("not_index" -> StringValue("b")), Map("not_index" -> StringValue("c")))
       val validationResult =
         Await.result(ValidateDataManipulation.validateDeleteCriteria(tableName, data, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.NoIndexOnFields
+      validationResult shouldBe Right(ValidationResult.NoIndexOnFields)
     }
 
   }
@@ -435,7 +435,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val validationResult =
         Await.result(ValidateDataManipulation.validateSearchCriteria(tableName, criterion, connector), defaultTimeout)
 
-      validationResult shouldBe ValidationResult.Valid
+      validationResult shouldBe Right(ValidationResult.Valid)
     }
 
     "return valid if everything is ok with view" in new ValidatorScope {
@@ -450,14 +450,14 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val validationResult =
         Await.result(ValidateDataManipulation.validateSearchCriteria(viewName, criterion, connector), defaultTimeout)
 
-      validationResult shouldBe ValidationResult.Valid
+      validationResult shouldBe Right(ValidationResult.Valid)
     }
 
     "return error for empty search" in new ValidatorScope {
       val validationResult =
         Await.result(ValidateDataManipulation.validateSearchCriteria(tableName, Map(), connector), defaultTimeout)
 
-      validationResult shouldBe ValidationResult.EmptyData
+      validationResult shouldBe Right(ValidationResult.EmptyData)
     }
 
     "return error if not all fields present in the database table" in new ValidatorScope {
@@ -470,7 +470,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
         Map("notExists" -> StringValue("b"), "exists" -> StringValue("2"), "notExistsEither" -> StringValue("whatever"))
       val validationResult =
         Await.result(ValidateDataManipulation.validateSearchCriteria(tableName, data, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.NonExistingFields(Set("notExists", "notExistsEither"))
+      validationResult shouldBe Right(ValidationResult.NonExistingFields(Set("notExists", "notExistsEither")))
     }
 
     "return error if table not exists" in new ValidatorScope {
@@ -481,7 +481,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val data = Map("a" -> StringValue("b"))
       val validationResult =
         Await.result(ValidateDataManipulation.validateSearchCriteria(tableName, data, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.NonExistingTable
+      validationResult shouldBe Right(ValidationResult.NonExistingTable)
     }
 
     "return error if criteria fields has not indices" in new ValidatorScope {
@@ -493,7 +493,7 @@ class ValidateDataManipulatorSpec extends WordSpecLike with Matchers with Mockit
       val data = Map("not_index" -> StringValue("b"))
       val validationResult =
         Await.result(ValidateDataManipulation.validateSearchCriteria(tableName, data, connector), defaultTimeout)
-      validationResult shouldBe ValidationResult.NoIndexOnFields
+      validationResult shouldBe Right(ValidationResult.NoIndexOnFields)
     }
 
   }

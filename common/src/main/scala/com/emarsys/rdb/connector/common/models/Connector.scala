@@ -11,7 +11,7 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Recor
 import com.emarsys.rdb.connector.common.models.Errors.{FailedValidation, SimpleSelectIsNotGroupableFormat}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors._
-import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.ValidationResult
+import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.{ValidationResult, ValidationResultFE}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, notImplementedOperation}
 
 import scala.concurrent.duration.FiniteDuration
@@ -174,20 +174,22 @@ trait Connector {
       timeout: FiniteDuration
   ): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     ValidateDataManipulation.validateSearchCriteria(tableName, criteria, this).flatMap {
-      case ValidationResult.Valid => rawSearch(tableName, criteria, limit, timeout)
-      case failedValidationResult => Future.successful(Left(FailedValidation(failedValidationResult)))
+      case Right(ValidationResult.Valid) => rawSearch(tableName, criteria, limit, timeout)
+      case Right(failedValidationResult) => Future.successful(Left(FailedValidation(failedValidationResult)))
+      case Left(ex)                      => Future.successful(Left(Errors.ErrorWithMessage(ex.getMessage)))
     }
   }
 
   private def validateAndExecute[T](
-      validationFn: (String, Seq[T], Connector) => Future[ValidationResult],
+      validationFn: (String, Seq[T], Connector) => ValidationResultFE,
       tableName: String,
       executionFn: (String, Seq[T]) => ConnectorResponse[Int],
       data: Seq[T]
   ) = {
     validationFn(tableName, data, this).flatMap {
-      case ValidationResult.Valid => executionFn(tableName, data)
-      case failedValidationResult => Future.successful(Left(FailedValidation(failedValidationResult)))
+      case Right(ValidationResult.Valid) => executionFn(tableName, data)
+      case Right(failedValidationResult) => Future.successful(Left(FailedValidation(failedValidationResult)))
+      case Left(ex)                      => Future.successful(Left(Errors.ErrorWithMessage(ex.getMessage)))
     }
   }
 

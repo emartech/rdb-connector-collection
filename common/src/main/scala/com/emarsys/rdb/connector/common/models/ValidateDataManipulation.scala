@@ -62,7 +62,7 @@ trait ValidateDataManipulation {
   ): ConnectorResponse[ValidationResult] = {
     runValidations(
       Seq(
-        () => validateEmtpyCriteria(criteria),
+        () => validateEmptyCriteria(criteria),
         () => validateTableExists(tableName, connector),
         () => validateFieldExistence(tableName, criteria.keySet, connector),
         () => validateIndices(tableName, criteria.keySet, connector)
@@ -70,7 +70,7 @@ trait ValidateDataManipulation {
     ).value
   }
 
-  private def validateEmtpyCriteria(data: Criteria)(
+  private def validateEmptyCriteria(data: Criteria)(
       implicit ec: ExecutionContext
   ): ConnectorResponseET[ValidationResult] =
     EitherT.rightT[Future, ConnectorError] {

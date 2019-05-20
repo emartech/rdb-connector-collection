@@ -70,13 +70,6 @@ trait ValidateDataManipulation {
     ).value
   }
 
-  private def validateEmptyCriteria(data: Criteria)(
-      implicit ec: ExecutionContext
-  ): ConnectorResponseET[ValidationResult] =
-    EitherT.rightT[Future, ConnectorError] {
-      if (data.isEmpty) EmptyData else Valid
-    }
-
   private def runValidations(
       validations: Seq[DeferredValidation]
   )(implicit ec: ExecutionContext): ConnectorResponseET[ValidationResult] = {
@@ -92,16 +85,12 @@ trait ValidateDataManipulation {
     }
   }
 
-  private def validateFieldExistence(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
-      implicit ec: ExecutionContext
-  ): ConnectorResponseET[ValidationResult] = {
-    if (updateData.isEmpty) {
-      EitherT.rightT[Future, ConnectorError](EmptyData)
-    } else {
-      val fields = updateData.head.search.keySet ++ updateData.head.update.keySet
-      validateFieldExistence(tableName, fields, connector)
+  private def validateEmptyCriteria(data: Criteria)(
+    implicit ec: ExecutionContext
+  ): ConnectorResponseET[ValidationResult] =
+    EitherT.rightT[Future, ConnectorError] {
+      if (data.isEmpty) EmptyData else Valid
     }
-  }
 
   private def validateFieldExistence(tableName: String, fields: Set[String], connector: Connector)(
       implicit ec: ExecutionContext
@@ -145,6 +134,17 @@ trait ValidateDataManipulation {
     validateFieldExistence(tableName, updateData, connector) flatMap {
       case Valid            => validateIndices(tableName, updateData.head.search.keySet, connector)
       case validationResult => EitherT.rightT[Future, ConnectorError](validationResult)
+    }
+  }
+
+  private def validateFieldExistence(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
+    implicit ec: ExecutionContext
+  ): ConnectorResponseET[ValidationResult] = {
+    if (updateData.isEmpty) {
+      EitherT.rightT[Future, ConnectorError](EmptyData)
+    } else {
+      val fields = updateData.head.search.keySet ++ updateData.head.update.keySet
+      validateFieldExistence(tableName, fields, connector)
     }
   }
 

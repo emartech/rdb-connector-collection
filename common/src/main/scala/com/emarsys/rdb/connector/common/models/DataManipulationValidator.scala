@@ -63,16 +63,14 @@ class DataManipulationValidator(validator: RawDataValidator) {
   private def runValidations(
       validations: DeferredValidation*
   )(implicit ec: ExecutionContext): ConnectorResponseET[ValidationResult] = {
-    if (validations.isEmpty) {
-      EitherT.rightT[Future, ConnectorError](ValidationResult.Valid)
-    } else {
-      // TODO: head
-      val validation = validations.head.apply()
-
-      validation flatMap {
-        case ValidationResult.Valid => runValidations(validations.tail: _*)
-        case validationResult       => EitherT.rightT[Future, ConnectorError](validationResult)
-      }
+    validations.headOption match {
+      case None => EitherT.rightT[Future, ConnectorError](ValidationResult.Valid)
+      case Some(headOfValidations) =>
+        val validation = headOfValidations.apply()
+        validation flatMap {
+          case ValidationResult.Valid => runValidations(validations.tail: _*)
+          case validationResult       => EitherT.rightT[Future, ConnectorError](validationResult)
+        }
     }
   }
 

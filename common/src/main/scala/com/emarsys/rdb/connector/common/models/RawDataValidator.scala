@@ -57,25 +57,22 @@ trait RawDataValidator {
   def validateUpdateFields(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
       implicit ec: ExecutionContext
   ): ConnectorResponseET[ValidationResult] = {
-    validateFieldExistence(tableName, updateData, connector) flatMap {
-      case Valid =>
-        // TODO: head
-        validateIndices(tableName, updateData.head.search.keySet, connector)
-      case validationResult => EitherT.rightT[Future, ConnectorError](validationResult)
+    updateData match {
+      case Nil => EitherT.rightT[Future, ConnectorError](EmptyData)
+      case first :: _ =>
+        validateFieldExistence(tableName, first, connector) flatMap {
+          case Valid =>
+            validateIndices(tableName, first.search.keySet, connector)
+          case validationResult => EitherT.rightT[Future, ConnectorError](validationResult)
+        }
     }
   }
 
-  private def validateFieldExistence(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
+  private def validateFieldExistence(tableName: String, firstUpdateData: UpdateDefinition, connector: Connector)(
       implicit ec: ExecutionContext
   ): ConnectorResponseET[ValidationResult] = {
-    // TODO: move this empty check to validateUpdateFields?
-    if (updateData.isEmpty) {
-      EitherT.rightT[Future, ConnectorError](EmptyData)
-    } else {
-      // TODO: head refactor
-      val fields = updateData.head.search.keySet ++ updateData.head.update.keySet
-      validateFieldExistence(tableName, fields, connector)
-    }
+    val fields = firstUpdateData.search.keySet ++ firstUpdateData.update.keySet
+    validateFieldExistence(tableName, fields, connector)
   }
 
   def validateIndices(tableName: String, keyFields: Set[String], connector: Connector)(
@@ -88,22 +85,25 @@ trait RawDataValidator {
   def validateFormat(
       data: Seq[Record],
       maxRows: Int
-  )(implicit ec: ExecutionContext): ConnectorResponseET[ValidationResult] =
-    EitherT.rightT[Future, ConnectorError] {
-      if (data.size > maxRows) {
-        TooManyRows
-      } else if (data.isEmpty) {
-        EmptyData
-      } else if (!areAllKeysTheSame(data)) {
-        DifferentFields
-      } else {
-        Valid
-      }
+  )(implicit ec: ExecutionContext): ConnectorResponseET[ValidationResult] = {
+    val result = data match {
+      case Nil => EmptyData
+      case first :: _ =>
+        if (data.size > maxRows) {
+          TooManyRows
+        } else if (data.isEmpty) {
+          EmptyData
+        } else if (!areAllKeysTheSameAs(first, data)) {
+          DifferentFields
+        } else {
+          Valid
+        }
     }
+    EitherT.rightT[Future, ConnectorError](result)
+  }
 
-  private def areAllKeysTheSame(dataToInsert: Seq[Record]): Boolean = {
-    // TODO: head
-    val firstRecordsKeySet = dataToInsert.head.keySet
+  private def areAllKeysTheSameAs(compareWith: Record, dataToInsert: Seq[Record]): Boolean = {
+    val firstRecordsKeySet = compareWith.keySet
     dataToInsert.forall(_.keySet == firstRecordsKeySet)
   }
 

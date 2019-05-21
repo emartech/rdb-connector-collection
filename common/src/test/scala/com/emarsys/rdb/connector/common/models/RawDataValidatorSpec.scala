@@ -3,7 +3,7 @@ package com.emarsys.rdb.connector.common.models
 import com.emarsys.rdb.connector.common.ConnectorResponseET
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.StringValue
 import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
-import com.emarsys.rdb.connector.common.models.Errors.ConnectorError
+import com.emarsys.rdb.connector.common.models.Errors.{CommunicationsLinkFailure, ConnectorError}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, TableModel}
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
@@ -47,8 +47,6 @@ class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar 
     Await.result(f.value, 3.seconds)
   }
 
-  // TODO: add ConnectorError based tests
-
   "#validateEmptyCriteria" should {
     "return Valid if the data is not empty" in new ValidatorScope {
       await(RawDataValidator.validateEmptyCriteria(Map("field1" -> StringValue("value1")))).right.value shouldBe
@@ -75,6 +73,14 @@ class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar 
       await(RawDataValidator.validateFieldExistence(tableName, Set("field99", "field2"), connector)).right.value shouldBe
         ValidationResult.NonExistingFields(Set("field99"))
     }
+
+    "return the error if listFields fails" in new ValidatorScope {
+      when(connector.listFields(tableName)) thenReturn
+        Future.successful(Left(CommunicationsLinkFailure("Error")))
+
+      await(RawDataValidator.validateFieldExistence(tableName, Set("field1", "field2"), connector)).left.value shouldBe
+        CommunicationsLinkFailure("Error")
+    }
   }
 
   "#validateTableExists" should {
@@ -98,6 +104,14 @@ class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar 
       await(RawDataValidator.validateTableExists("unknown_table", connector)).right.value shouldBe
         ValidationResult.NonExistingTable
     }
+
+    "return the error if listTables fails" in new ValidatorScope {
+      when(connector.listTables()) thenReturn
+        Future.successful(Left(CommunicationsLinkFailure("Error")))
+
+      await(RawDataValidator.validateTableExists("unknown_table", connector)).left.value shouldBe
+        CommunicationsLinkFailure("Error")
+    }
   }
 
   "#validateTableExistsAndNotView" should {
@@ -120,6 +134,14 @@ class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar 
 
       await(RawDataValidator.validateTableExistsAndNotView("unknown_table", connector)).right.value shouldBe
         ValidationResult.NonExistingTable
+    }
+
+    "return the error if listTables fails" in new ValidatorScope {
+      when(connector.listTables()) thenReturn
+        Future.successful(Left(CommunicationsLinkFailure("Error")))
+
+      await(RawDataValidator.validateTableExistsAndNotView("unknown_table", connector)).left.value shouldBe
+        CommunicationsLinkFailure("Error")
     }
   }
 
@@ -167,6 +189,14 @@ class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar 
       await(RawDataValidator.validateUpdateFields(tableName, updateData, connector)).right.value shouldBe
         ValidationResult.NoIndexOnFields
     }
+
+    "return the error if listFields fails" in new ValidatorScope {
+      when(connector.listFields(tableName)) thenReturn
+        Future.successful(Left(CommunicationsLinkFailure("Error")))
+
+      await(RawDataValidator.validateUpdateFields(tableName, updateData, connector)).left.value shouldBe
+        CommunicationsLinkFailure("Error")
+    }
   }
 
   "#validateIndices" should {
@@ -182,6 +212,14 @@ class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar 
 
       await(RawDataValidator.validateIndices(tableName, Set("field1", "field2"), connector)).right.value shouldBe
         ValidationResult.NoIndexOnFields
+    }
+
+    "return the error if listFields fails" in new ValidatorScope {
+      when(connector.isOptimized(tableName, Seq("field1", "field2"))) thenReturn
+        Future.successful(Left(CommunicationsLinkFailure("Error")))
+
+      await(RawDataValidator.validateIndices(tableName, Set("field1", "field2"), connector)).left.value shouldBe
+        CommunicationsLinkFailure("Error")
     }
   }
 

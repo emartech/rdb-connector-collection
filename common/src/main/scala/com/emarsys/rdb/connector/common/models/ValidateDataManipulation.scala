@@ -5,8 +5,7 @@ import cats.instances.future._
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.Errors.ConnectorError
-import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.ValidationResult
-import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.ValidationResult._
+import com.emarsys.rdb.connector.common.models.ValidationResult._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -206,25 +205,5 @@ trait ValidateDataManipulation {
 object ValidateDataManipulation extends ValidateDataManipulation {
 
   val maxRows = 1000
-
-  sealed trait ValidationResult
-
-  object ValidationResult {
-    case object Valid            extends ValidationResult
-    case object DifferentFields  extends ValidationResult
-    case object EmptyData        extends ValidationResult
-    case object TooManyRows      extends ValidationResult
-    case object NonExistingTable extends ValidationResult
-
-    case class NonExistingFields(fields: Set[String]) extends ValidationResult
-
-    case object NoIndexOnFields extends ValidationResult
-
-    case object EmptyCriteria extends ValidationResult
-
-    case object InvalidOperationOnView extends ValidationResult
-
-    case class ValidationFailed(message: String) extends ValidationResult
-  }
 
 }

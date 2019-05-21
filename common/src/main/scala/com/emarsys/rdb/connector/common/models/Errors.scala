@@ -1,7 +1,5 @@
 package com.emarsys.rdb.connector.common.models
 
-import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.ValidationResult
-
 object Errors {
 
   sealed abstract class ConnectorError(message: String = "") extends Exception(message)

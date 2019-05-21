@@ -9,7 +9,7 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Recor
 import com.emarsys.rdb.connector.common.models.Errors.{FailedValidation, SimpleSelectIsNotGroupableFormat}
 import com.emarsys.rdb.connector.common.models.SimpleSelect.{AllField, TableName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, TableModel}
-import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.ValidationResult.InvalidOperationOnView
+import com.emarsys.rdb.connector.common.models.ValidationResult.InvalidOperationOnView
 import org.scalatest.{Matchers, WordSpecLike}
 
 import scala.concurrent.duration._

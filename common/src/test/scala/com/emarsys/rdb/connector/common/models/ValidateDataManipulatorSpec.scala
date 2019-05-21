@@ -3,7 +3,6 @@ package com.emarsys.rdb.connector.common.models
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.StringValue
 import com.emarsys.rdb.connector.common.models.DataManipulation.{FieldValueWrapper, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, TableModel}
-import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.ValidationResult
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar

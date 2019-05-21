@@ -11,7 +11,6 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Recor
 import com.emarsys.rdb.connector.common.models.Errors.{FailedValidation, SimpleSelectIsNotGroupableFormat}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors._
-import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.ValidationResult
 import com.emarsys.rdb.connector.common.{ConnectorResponse, notImplementedOperation}
 
 import scala.concurrent.duration.FiniteDuration

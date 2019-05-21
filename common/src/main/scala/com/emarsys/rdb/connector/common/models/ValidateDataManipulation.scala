@@ -86,7 +86,7 @@ trait ValidateDataManipulation {
   }
 
   private def validateEmptyCriteria(data: Criteria)(
-    implicit ec: ExecutionContext
+      implicit ec: ExecutionContext
   ): ConnectorResponseET[ValidationResult] =
     EitherT.rightT[Future, ConnectorError] {
       if (data.isEmpty) EmptyData else Valid
@@ -138,7 +138,7 @@ trait ValidateDataManipulation {
   }
 
   private def validateFieldExistence(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
-    implicit ec: ExecutionContext
+      implicit ec: ExecutionContext
   ): ConnectorResponseET[ValidationResult] = {
     if (updateData.isEmpty) {
       EitherT.rightT[Future, ConnectorError](EmptyData)

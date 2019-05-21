@@ -4,7 +4,7 @@ import java.sql.SQLTransientException
 import java.util.UUID
 
 import cats.data.EitherT
-import com.emarsys.rdb.connector.common.ConnectorResponse
+import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.common.models._
 import com.emarsys.rdb.connector.mysql.CertificateUtil.createTrustStoreTempUrl
@@ -116,7 +116,7 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
 
   private def createTrustStoreUrl(
       cert: String
-  )(implicit e: ExecutionContext): EitherT[Future, ConnectorError, String] = {
+  )(implicit e: ExecutionContext): ConnectorResponseET[String] = {
     EitherT
       .fromOption[Future](
         createTrustStoreTempUrl(cert),
@@ -126,7 +126,7 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
 
   private def createMySqlConnector(connectorConfig: MySqlConnectorConfig, poolName: String, db: Database)(
       implicit ec: ExecutionContext
-  ): EitherT[Future, ConnectorError, MySqlConnector] = {
+  ): ConnectorResponseET[MySqlConnector] = {
     EitherT(
       isSslUsedForConnection(db)
         .ifM(

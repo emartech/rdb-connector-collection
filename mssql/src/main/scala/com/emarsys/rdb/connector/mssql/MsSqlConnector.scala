@@ -3,7 +3,7 @@ package com.emarsys.rdb.connector.mssql
 import java.util.UUID
 
 import cats.data.EitherT
-import com.emarsys.rdb.connector.common.ConnectorResponse
+import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.common.models.Errors.{ConnectionConfigError, ConnectorError}
 import com.emarsys.rdb.connector.common.models.{CommonConnectionReadableData, ConnectionConfig, MetaData, _}
 import com.emarsys.rdb.connector.mssql.CertificateUtil.createTrustStoreTempFile
@@ -109,7 +109,7 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
 
   private def createTrustStorePath(
       cert: String
-  )(implicit e: ExecutionContext): EitherT[Future, ConnectorError, String] = {
+  )(implicit e: ExecutionContext): ConnectorResponseET[String] = {
     EitherT
       .fromOption[Future](
         createTrustStoreTempFile(cert),
@@ -119,7 +119,7 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
 
   private def createMsSqlConnector(connectorConfig: MsSqlConnectorConfig, poolName: String, db: Database)(
       implicit ec: ExecutionContext
-  ): EitherT[Future, ConnectorError, MsSqlConnector] = {
+  ): ConnectorResponseET[MsSqlConnector] = {
     EitherT(
       checkConnection(db)
         .as(Right(new MsSqlConnector(db, connectorConfig, poolName)))

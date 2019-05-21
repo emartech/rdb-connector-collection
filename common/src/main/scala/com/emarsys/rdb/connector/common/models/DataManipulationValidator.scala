@@ -8,18 +8,18 @@ import com.emarsys.rdb.connector.common.models.Errors.ConnectorError
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait ValidateDataManipulation {
+class DataManipulationValidator(validator: RawDataValidator) {
   private type DeferredValidation = () => ConnectorResponseET[ValidationResult]
 
-  val maxRows: Int
+  private val MaxRows = 1000
 
   def validateUpdateDefinition(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
       implicit ec: ExecutionContext
   ): ConnectorResponse[ValidationResult] = {
     runValidations(
-      () => DataValidator.validateUpdateFormat(updateData, maxRows),
-      () => DataValidator.validateTableExistsAndNotView(tableName, connector),
-      () => DataValidator.validateUpdateFields(tableName, updateData, connector)
+      () => validator.validateUpdateFormat(updateData, MaxRows),
+      () => validator.validateTableExistsAndNotView(tableName, connector),
+      () => validator.validateUpdateFields(tableName, updateData, connector)
     ).value
   }
 
@@ -27,9 +27,9 @@ trait ValidateDataManipulation {
       implicit ec: ExecutionContext
   ): ConnectorResponse[ValidationResult] = {
     val validationResult = runValidations(
-      () => DataValidator.validateFormat(dataToInsert, maxRows),
-      () => DataValidator.validateTableExistsAndNotView(tableName, connector),
-      () => DataValidator.validateFieldExistence(tableName, dataToInsert.head.keySet, connector)
+      () => validator.validateFormat(dataToInsert, MaxRows),
+      () => validator.validateTableExistsAndNotView(tableName, connector),
+      () => validator.validateFieldExistence(tableName, dataToInsert.head.keySet, connector)
     ) map {
       case ValidationResult.EmptyData => ValidationResult.Valid
       case otherValidationResult      => otherValidationResult
@@ -42,10 +42,10 @@ trait ValidateDataManipulation {
       implicit ec: ExecutionContext
   ): ConnectorResponse[ValidationResult] = {
     runValidations(
-      () => DataValidator.validateFormat(criteria, maxRows),
-      () => DataValidator.validateTableExistsAndNotView(tableName, connector),
-      () => DataValidator.validateFieldExistence(tableName, criteria.head.keySet, connector),
-      () => DataValidator.validateIndices(tableName, criteria.head.keySet, connector)
+      () => validator.validateFormat(criteria, MaxRows),
+      () => validator.validateTableExistsAndNotView(tableName, connector),
+      () => validator.validateFieldExistence(tableName, criteria.head.keySet, connector),
+      () => validator.validateIndices(tableName, criteria.head.keySet, connector)
     ).value
   }
 
@@ -53,10 +53,10 @@ trait ValidateDataManipulation {
       implicit ec: ExecutionContext
   ): ConnectorResponse[ValidationResult] = {
     runValidations(
-      () => DataValidator.validateEmptyCriteria(criteria),
-      () => DataValidator.validateTableExists(tableName, connector),
-      () => DataValidator.validateFieldExistence(tableName, criteria.keySet, connector),
-      () => DataValidator.validateIndices(tableName, criteria.keySet, connector)
+      () => validator.validateEmptyCriteria(criteria),
+      () => validator.validateTableExists(tableName, connector),
+      () => validator.validateFieldExistence(tableName, criteria.keySet, connector),
+      () => validator.validateIndices(tableName, criteria.keySet, connector)
     ).value
   }
 
@@ -66,6 +66,7 @@ trait ValidateDataManipulation {
     if (validations.isEmpty) {
       EitherT.rightT[Future, ConnectorError](ValidationResult.Valid)
     } else {
+      // TODO: head
       val validation = validations.head.apply()
 
       validation flatMap {
@@ -74,11 +75,5 @@ trait ValidateDataManipulation {
       }
     }
   }
-
-}
-
-object ValidateDataManipulation extends ValidateDataManipulation {
-
-  val maxRows = 1000
 
 }

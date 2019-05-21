@@ -9,7 +9,7 @@ import com.emarsys.rdb.connector.common.models.ValidationResult._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object DataValidator {
+trait RawDataValidator {
 
   def validateEmptyCriteria(data: Criteria)(
       implicit ec: ExecutionContext
@@ -144,3 +144,5 @@ object DataValidator {
   }
 
 }
+
+object RawDataValidator extends RawDataValidator

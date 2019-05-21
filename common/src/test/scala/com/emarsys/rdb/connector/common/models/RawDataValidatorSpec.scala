@@ -12,7 +12,7 @@ import org.scalatest.{EitherValues, Matchers, WordSpecLike}
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
-class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar with EitherValues {
+class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar with EitherValues {
   implicit val executionContext: ExecutionContext = ExecutionContext.global
 
   val tableName = "tableName"
@@ -47,14 +47,16 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
     Await.result(f.value, 3.seconds)
   }
 
+  // TODO: add ConnectorError based tests
+
   "#validateEmptyCriteria" should {
     "return Valid if the data is not empty" in new ValidatorScope {
-      await(DataValidator.validateEmptyCriteria(Map("field1" -> StringValue("value1")))).right.value shouldBe
+      await(RawDataValidator.validateEmptyCriteria(Map("field1" -> StringValue("value1")))).right.value shouldBe
         ValidationResult.Valid
     }
 
     "return EmptyData if the data is empty" in new ValidatorScope {
-      await(DataValidator.validateEmptyCriteria(Map())).right.value shouldBe
+      await(RawDataValidator.validateEmptyCriteria(Map())).right.value shouldBe
         ValidationResult.EmptyData
     }
   }
@@ -63,14 +65,14 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
     "return Valid if all fields exist" in new ValidatorScope {
       initFieldsForTable(tableName, Seq("field1", "field2"))
 
-      await(DataValidator.validateFieldExistence(tableName, Set("field1", "field2"), connector)).right.value shouldBe
+      await(RawDataValidator.validateFieldExistence(tableName, Set("field1", "field2"), connector)).right.value shouldBe
         ValidationResult.Valid
     }
 
     "return NonExistingFields if some of the fields not exist" in new ValidatorScope {
       initFieldsForTable(tableName, Seq("field1", "field2"))
 
-      await(DataValidator.validateFieldExistence(tableName, Set("field99", "field2"), connector)).right.value shouldBe
+      await(RawDataValidator.validateFieldExistence(tableName, Set("field99", "field2"), connector)).right.value shouldBe
         ValidationResult.NonExistingFields(Set("field99"))
     }
   }
@@ -79,21 +81,21 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
     "return Valid if the table exists as table" in new ValidatorScope {
       initTables()
 
-      await(DataValidator.validateTableExists(tableName, connector)).right.value shouldBe
+      await(RawDataValidator.validateTableExists(tableName, connector)).right.value shouldBe
         ValidationResult.Valid
     }
 
     "return Valid if the table exists as view" in new ValidatorScope {
       initTables()
 
-      await(DataValidator.validateTableExists(viewName, connector)).right.value shouldBe
+      await(RawDataValidator.validateTableExists(viewName, connector)).right.value shouldBe
         ValidationResult.Valid
     }
 
     "return NonExistingTable if the table not exists neither as table or view" in new ValidatorScope {
       initTables()
 
-      await(DataValidator.validateTableExists("unknown_table", connector)).right.value shouldBe
+      await(RawDataValidator.validateTableExists("unknown_table", connector)).right.value shouldBe
         ValidationResult.NonExistingTable
     }
   }
@@ -102,21 +104,21 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
     "return Valid if the table exists as table" in new ValidatorScope {
       initTables()
 
-      await(DataValidator.validateTableExistsAndNotView(tableName, connector)).right.value shouldBe
+      await(RawDataValidator.validateTableExistsAndNotView(tableName, connector)).right.value shouldBe
         ValidationResult.Valid
     }
 
     "return InvalidOperationOnView if the table exists as view" in new ValidatorScope {
       initTables()
 
-      await(DataValidator.validateTableExistsAndNotView(viewName, connector)).right.value shouldBe
+      await(RawDataValidator.validateTableExistsAndNotView(viewName, connector)).right.value shouldBe
         ValidationResult.InvalidOperationOnView
     }
 
     "return NonExistingTable if the table not exists neither as table or view" in new ValidatorScope {
       initTables()
 
-      await(DataValidator.validateTableExistsAndNotView("unknown_table", connector)).right.value shouldBe
+      await(RawDataValidator.validateTableExistsAndNotView("unknown_table", connector)).right.value shouldBe
         ValidationResult.NonExistingTable
     }
   }
@@ -138,7 +140,7 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
       initFieldsForTable(tableName, Seq("search_field11", "search_field12", "update_field11", "update_field12"))
       initIsOptimized(tableName, Seq("search_field11", "search_field12"), isOptimized = true)
 
-      await(DataValidator.validateUpdateFields(tableName, updateData, connector)).right.value shouldBe
+      await(RawDataValidator.validateUpdateFields(tableName, updateData, connector)).right.value shouldBe
         ValidationResult.Valid
     }
 
@@ -146,7 +148,7 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
       initFieldsForTable(tableName, Seq("search_field11", "search_field12", "update_field11", "update_field12"))
       initIsOptimized(tableName, Seq("search_field11", "search_field12"), isOptimized = true)
 
-      await(DataValidator.validateUpdateFields(tableName, Seq(), connector)).right.value shouldBe
+      await(RawDataValidator.validateUpdateFields(tableName, Seq(), connector)).right.value shouldBe
         ValidationResult.EmptyData
     }
 
@@ -154,7 +156,7 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
       initFieldsForTable(tableName, Seq("search_field11", "update_field12"))
       initIsOptimized(tableName, Seq("search_field11", "search_field12"), isOptimized = true)
 
-      await(DataValidator.validateUpdateFields(tableName, updateData, connector)).right.value shouldBe
+      await(RawDataValidator.validateUpdateFields(tableName, updateData, connector)).right.value shouldBe
         ValidationResult.NonExistingFields(Set("search_field12", "update_field11"))
     }
 
@@ -162,7 +164,7 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
       initFieldsForTable(tableName, Seq("search_field11", "search_field12", "update_field11", "update_field12"))
       initIsOptimized(tableName, Seq("search_field11", "search_field12"), isOptimized = false)
 
-      await(DataValidator.validateUpdateFields(tableName, updateData, connector)).right.value shouldBe
+      await(RawDataValidator.validateUpdateFields(tableName, updateData, connector)).right.value shouldBe
         ValidationResult.NoIndexOnFields
     }
   }
@@ -171,14 +173,14 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
     "return Valid if the fields are optimized" in new ValidatorScope {
       initIsOptimized(tableName, Seq("field1", "field2"), isOptimized = true)
 
-      await(DataValidator.validateIndices(tableName, Set("field1", "field2"), connector)).right.value shouldBe
+      await(RawDataValidator.validateIndices(tableName, Set("field1", "field2"), connector)).right.value shouldBe
         ValidationResult.Valid
     }
 
     "return NoIndexOnFields if the fields are not optimized" in new ValidatorScope {
       initIsOptimized(tableName, Seq("field1", "field2"), isOptimized = false)
 
-      await(DataValidator.validateIndices(tableName, Set("field1", "field2"), connector)).right.value shouldBe
+      await(RawDataValidator.validateIndices(tableName, Set("field1", "field2"), connector)).right.value shouldBe
         ValidationResult.NoIndexOnFields
     }
   }
@@ -190,22 +192,22 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
     val recordDifferentKey = Map("k1" -> StringValue("r4_v1"), "k2" -> StringValue("r4_v2"))
 
     "return TooManyRows if there are too many data" in new ValidatorScope {
-      await(DataValidator.validateFormat(Seq(record1, record2, record3), 2)).right.value shouldBe
+      await(RawDataValidator.validateFormat(Seq(record1, record2, record3), 2)).right.value shouldBe
         ValidationResult.TooManyRows
     }
 
     "return EmptyData if the data is empty" in new ValidatorScope {
-      await(DataValidator.validateFormat(Seq(), 2)).right.value shouldBe
+      await(RawDataValidator.validateFormat(Seq(), 2)).right.value shouldBe
         ValidationResult.EmptyData
     }
 
     "return DifferentFields if the data is empty" in new ValidatorScope {
-      await(DataValidator.validateFormat(Seq(record1, record2, recordDifferentKey), 3)).right.value shouldBe
+      await(RawDataValidator.validateFormat(Seq(record1, record2, recordDifferentKey), 3)).right.value shouldBe
         ValidationResult.DifferentFields
     }
 
     "return Valid everything is ok" in new ValidatorScope {
-      await(DataValidator.validateFormat(Seq(record1, record2, record3), 3)).right.value shouldBe
+      await(RawDataValidator.validateFormat(Seq(record1, record2, record3), 3)).right.value shouldBe
         ValidationResult.Valid
     }
   }
@@ -225,12 +227,12 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
     )
 
     "return TooManyRows if there are too many data" in new ValidatorScope {
-      await(DataValidator.validateUpdateFormat(Seq(updateData1, updateData2, updateData3), 2)).right.value shouldBe
+      await(RawDataValidator.validateUpdateFormat(Seq(updateData1, updateData2, updateData3), 2)).right.value shouldBe
         ValidationResult.TooManyRows
     }
 
     "return EmptyData if the data is empty" in new ValidatorScope {
-      await(DataValidator.validateUpdateFormat(Seq(), 2)).right.value shouldBe
+      await(RawDataValidator.validateUpdateFormat(Seq(), 2)).right.value shouldBe
         ValidationResult.EmptyData
     }
 
@@ -240,7 +242,7 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
         update = Map("k" -> StringValue("v"))
       )
       val data = Seq(updateData1, updateData2, updateDataWithEmptySearch)
-      await(DataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
+      await(RawDataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
         ValidationResult.EmptyCriteria
     }
 
@@ -250,7 +252,7 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
         update = Map()
       )
       val data = Seq(updateData1, updateData2, updateDataWithEmptyUpdate)
-      await(DataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
+      await(RawDataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
         ValidationResult.EmptyData
     }
 
@@ -260,7 +262,7 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
         update = Map("field3" -> StringValue("value33"))
       )
       val data = Seq(updateData1, updateData2, updateDataWithDifferentSeach)
-      await(DataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
+      await(RawDataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
         ValidationResult.DifferentFields
     }
 
@@ -270,13 +272,13 @@ class DataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar wit
         update = Map("field3_different" -> StringValue("value33"))
       )
       val data = Seq(updateData1, updateData2, updateDataWithDifferentSeach)
-      await(DataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
+      await(RawDataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
         ValidationResult.DifferentFields
     }
 
     "return Valid if everything is ok" in new ValidatorScope {
       val data = Seq(updateData1, updateData2, updateData3)
-      await(DataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
+      await(RawDataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
         ValidationResult.Valid
     }
   }

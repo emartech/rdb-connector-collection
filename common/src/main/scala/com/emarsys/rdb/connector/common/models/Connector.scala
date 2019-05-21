@@ -18,6 +18,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait Connector {
 
+  private val validator = new DataManipulationValidator(RawDataValidator)
+
   implicit val executionContext: ExecutionContext
   protected val fieldValueConverters: FieldValueConverters       = DefaultFieldValueConverters
   protected val groupLimitValidator: ValidateGroupLimitableQuery = ValidateGroupLimitableQuery
@@ -147,23 +149,23 @@ trait Connector {
   }
 
   final def update(tableName: String, definitions: Seq[UpdateDefinition]): ConnectorResponse[Int] = {
-    validateAndExecute(ValidateDataManipulation.validateUpdateDefinition, tableName, rawUpdate, definitions)
+    validateAndExecute(validator.validateUpdateDefinition, tableName, rawUpdate, definitions)
   }
 
   final def insertIgnore(tableName: String, records: Seq[Record]): ConnectorResponse[Int] = {
-    validateAndExecute(ValidateDataManipulation.validateInsertData, tableName, rawInsertData, records)
+    validateAndExecute(validator.validateInsertData, tableName, rawInsertData, records)
   }
 
   final def replaceData(tableName: String, records: Seq[Record]): ConnectorResponse[Int] = {
-    validateAndExecute(ValidateDataManipulation.validateInsertData, tableName, rawReplaceData, records)
+    validateAndExecute(validator.validateInsertData, tableName, rawReplaceData, records)
   }
 
   final def upsert(tableName: String, definitions: Seq[Record]): ConnectorResponse[Int] = {
-    validateAndExecute(ValidateDataManipulation.validateInsertData, tableName, rawUpsert, definitions)
+    validateAndExecute(validator.validateInsertData, tableName, rawUpsert, definitions)
   }
 
   final def delete(tableName: String, criteria: Seq[Criteria]): ConnectorResponse[Int] = {
-    validateAndExecute(ValidateDataManipulation.validateDeleteCriteria, tableName, rawDelete, criteria)
+    validateAndExecute(validator.validateDeleteCriteria, tableName, rawDelete, criteria)
   }
 
   final def search(
@@ -172,7 +174,7 @@ trait Connector {
       limit: Option[Int],
       timeout: FiniteDuration
   ): ConnectorResponse[Source[Seq[String], NotUsed]] = {
-    ValidateDataManipulation.validateSearchCriteria(tableName, criteria, this).flatMap {
+    validator.validateSearchCriteria(tableName, criteria, this).flatMap {
       case Right(ValidationResult.Valid) => rawSearch(tableName, criteria, limit, timeout)
       case Right(failedValidationResult) => Future.successful(Left(FailedValidation(failedValidationResult)))
       case Left(ex)                      => Future.successful(Left(Errors.ErrorWithMessage(ex.getMessage)))

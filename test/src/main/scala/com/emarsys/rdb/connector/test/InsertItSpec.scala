@@ -6,7 +6,7 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrappe
 import com.emarsys.rdb.connector.common.models.DataManipulation.Record
 import com.emarsys.rdb.connector.common.models.Errors.FailedValidation
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.ValidationResult.NonExistingFields
+import com.emarsys.rdb.connector.common.models.ValidationResult.NonExistingFields
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest._
 

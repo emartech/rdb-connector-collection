@@ -6,7 +6,7 @@ import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.FailedValidation
-import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.ValidationResult.NonExistingFields
+import com.emarsys.rdb.connector.common.models.ValidationResult.NonExistingFields
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar

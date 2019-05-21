@@ -12,7 +12,7 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrappe
 import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
 import com.emarsys.rdb.connector.common.models.Errors.FailedValidation
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.common.models.ValidateDataManipulation.ValidationResult.NonExistingFields
+import com.emarsys.rdb.connector.common.models.ValidationResult.NonExistingFields
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 
 import concurrent.duration._

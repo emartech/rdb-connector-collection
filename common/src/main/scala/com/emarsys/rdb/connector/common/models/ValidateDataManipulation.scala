@@ -19,11 +19,9 @@ trait ValidateDataManipulation {
       implicit ec: ExecutionContext
   ): ConnectorResponse[ValidationResult] = {
     runValidations(
-      Seq(
-        () => validateUpdateFormat(updateData),
-        () => validateTableExistsAndNotView(tableName, connector),
-        () => validateUpdateFields(tableName, updateData, connector)
-      )
+      () => validateUpdateFormat(updateData),
+      () => validateTableExistsAndNotView(tableName, connector),
+      () => validateUpdateFields(tableName, updateData, connector)
     ).value
   }
 
@@ -31,11 +29,9 @@ trait ValidateDataManipulation {
       implicit ec: ExecutionContext
   ): ConnectorResponse[ValidationResult] = {
     val validationResult = runValidations(
-      Seq(
-        () => validateFormat(dataToInsert),
-        () => validateTableExistsAndNotView(tableName, connector),
-        () => validateFieldExistence(tableName, dataToInsert.head.keySet, connector)
-      )
+      () => validateFormat(dataToInsert),
+      () => validateTableExistsAndNotView(tableName, connector),
+      () => validateFieldExistence(tableName, dataToInsert.head.keySet, connector)
     ) map {
       case EmptyData             => Valid
       case otherValidationResult => otherValidationResult
@@ -48,12 +44,10 @@ trait ValidateDataManipulation {
       implicit ec: ExecutionContext
   ): ConnectorResponse[ValidationResult] = {
     runValidations(
-      Seq(
-        () => validateFormat(criteria),
-        () => validateTableExistsAndNotView(tableName, connector),
-        () => validateFieldExistence(tableName, criteria.head.keySet, connector),
-        () => validateIndices(tableName, criteria.head.keySet, connector)
-      )
+      () => validateFormat(criteria),
+      () => validateTableExistsAndNotView(tableName, connector),
+      () => validateFieldExistence(tableName, criteria.head.keySet, connector),
+      () => validateIndices(tableName, criteria.head.keySet, connector)
     ).value
   }
 
@@ -61,17 +55,15 @@ trait ValidateDataManipulation {
       implicit ec: ExecutionContext
   ): ConnectorResponse[ValidationResult] = {
     runValidations(
-      Seq(
-        () => validateEmptyCriteria(criteria),
-        () => validateTableExists(tableName, connector),
-        () => validateFieldExistence(tableName, criteria.keySet, connector),
-        () => validateIndices(tableName, criteria.keySet, connector)
-      )
+      () => validateEmptyCriteria(criteria),
+      () => validateTableExists(tableName, connector),
+      () => validateFieldExistence(tableName, criteria.keySet, connector),
+      () => validateIndices(tableName, criteria.keySet, connector)
     ).value
   }
 
   private def runValidations(
-      validations: Seq[DeferredValidation]
+      validations: DeferredValidation*
   )(implicit ec: ExecutionContext): ConnectorResponseET[ValidationResult] = {
     if (validations.isEmpty) {
       EitherT.rightT[Future, ConnectorError](Valid)
@@ -79,7 +71,7 @@ trait ValidateDataManipulation {
       val validation = validations.head.apply()
 
       validation flatMap {
-        case Valid            => runValidations(validations.tail)
+        case Valid            => runValidations(validations.tail: _*)
         case validationResult => EitherT.rightT[Future, ConnectorError](validationResult)
       }
     }

@@ -182,7 +182,7 @@ class MySqlConnectorItSpec
 
         result shouldBe Left(
           SqlSyntaxError(
-            "java.sql.SQLException: Illegal mix of collations (utf8mb4_unicode_ci,IMPLICIT) and (utf8mb4_hungarian_ci,IMPLICIT) for operation '='"
+            "Illegal mix of collations (utf8mb4_unicode_ci,IMPLICIT) and (utf8mb4_hungarian_ci,IMPLICIT) for operation '='"
           )
         )
       }

@@ -16,7 +16,7 @@ object Dependencies {
       "org.typelevel"     %% "cats-core"            % catsCoreVersion,
       "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion % Test,
       "org.scalatest"     %% "scalatest"            % "3.0.1" % Test,
-      "org.mockito"       % "mockito-core"          % "2.11.0" % Test,
+      "org.mockito"       % "mockito-core"          % "2.28.2" % Test,
       "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.7" % Test
     ),
     scalaVersion := ScalaVersion,
@@ -42,7 +42,7 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion,
       "org.scalatest"     %% "scalatest"            % "3.0.1",
-      "org.mockito"       % "mockito-core"          % "2.11.0",
+      "org.mockito"       % "mockito-core"          % "2.28.2",
       "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.7"
     )
   )

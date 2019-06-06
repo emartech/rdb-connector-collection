@@ -9,6 +9,7 @@ import com.emarsys.rdb.connector.common.models.Errors._
 import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
 
 trait MySqlErrorHandling {
+  import ErrorConverter._
 
   val MYSQL_EXPLAIN_PERMISSION_DENIED = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"
   val MYSQL_STATEMENT_CLOSED          = "No operations allowed after statement closed."
@@ -27,7 +28,7 @@ trait MySqlErrorHandling {
       if (ex.getMessage == "Update statements should not return a ResultSet") {
         SqlSyntaxError("Wrong update statement: non update query given")
       } else {
-        ErrorWithMessage(ex.getMessage)
+        ErrorWithMessage(getErrorMessage(ex))
       }
     case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied") =>
       AccessDeniedError(getErrorMessage(ex))
@@ -39,30 +40,16 @@ trait MySqlErrorHandling {
       AccessDeniedError(getErrorMessage(ex))
     case ex: SQLException if ex.getMessage.contains(MYSQL_STATEMENT_CLOSED) =>
       InvalidDbOperation(s"Transient DB error: ${ex.toString}")
-    case ex: SQLException if ex.getMessage.startsWith(MYSQL_ILLEGAL_MIX_OF_COLLATIONS) => SqlSyntaxError(ex.toString)
-    case ex: SQLException if ex.getMessage.contains(MYSQL_CONNECTION_HOST_ERROR)       => ConnectionTimeout(ex.toString)
-  }
-
-  private def getErrorMessage(ex: Exception): String = {
-    val message       = ex.getMessage
-    val causeMessages = getCauseMessages(ex).mkString("\n")
-
-    s"$message\n$causeMessages"
-  }
-
-  private def getCauseMessages(ex: Throwable): List[String] = {
-    val cause = ex.getCause
-    if (cause != null) {
-      s"caused by: ${cause.getMessage}" :: getCauseMessages(cause)
-    } else {
-      Nil
-    }
+    case ex: SQLException if ex.getMessage.startsWith(MYSQL_ILLEGAL_MIX_OF_COLLATIONS) =>
+      SqlSyntaxError(getErrorMessage(ex))
+    case ex: SQLException if ex.getMessage.contains(MYSQL_CONNECTION_HOST_ERROR) =>
+      ConnectionTimeout(getErrorMessage(ex))
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
-    (errorHandler orElse ErrorConverter.default) andThen Left.apply
+    (errorHandler orElse default) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    (errorHandler orElse ErrorConverter.default) andThen Source.failed
+    (errorHandler orElse default) andThen Source.failed
 
 }

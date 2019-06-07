@@ -39,7 +39,9 @@ object ErrorConverter {
     def impl(currentEx: Throwable, seenErrors: Set[Throwable], messages: Chain[String]): Chain[String] = {
       val cause = currentEx.getCause
       if (cause != null && !seenErrors.contains(cause)) {
-        impl(cause, seenErrors + cause, messages :+ cause.getMessage)
+        val msg              = cause.getMessage
+        val expandedMessages = if (msg != null) messages :+ msg else messages
+        impl(cause, seenErrors + cause, expandedMessages)
       } else {
         messages
       }

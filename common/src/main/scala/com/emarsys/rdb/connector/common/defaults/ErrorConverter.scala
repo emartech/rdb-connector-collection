@@ -25,17 +25,16 @@ object ErrorConverter {
 
   def getErrorMessage(ex: Throwable): String = {
     val message       = ex.getMessage
-    val causeMessages = getCauseMessages(ex)
-    val allMessages   = message :: causeMessages
+    val causeMessages = getCauseMessages(ex).filterNot(_.isEmpty)
+    val allMessages   = (message :: causeMessages).distinct
 
-    allMessages.mkString("\n")
+    allMessages.mkString("\nCaused by: ")
   }
 
   def getCauseMessages(ex: Throwable): List[String] = {
     val cause = ex.getCause
-    println(cause)
     if (cause != null) {
-      s"Caused by: ${cause.getMessage}" :: getCauseMessages(cause)
+      cause.getMessage :: getCauseMessages(cause)
     } else {
       Nil
     }

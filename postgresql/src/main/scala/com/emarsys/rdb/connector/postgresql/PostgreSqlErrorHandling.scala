@@ -8,6 +8,7 @@ import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.models.Errors._
 
 trait PostgreSqlErrorHandling {
+  import ErrorConverter._
 
   val PSQL_STATE_QUERY_CANCELLED             = "57014"
   val PSQL_STATE_SYNTAX_ERROR                = "42601"
@@ -39,14 +40,15 @@ trait PostgreSqlErrorHandling {
       if (ex.getMessage == "Update statements should not return a ResultSet") {
         SqlSyntaxError("Wrong update statement: non update query given")
       } else {
-        ErrorWithMessage(ex.getMessage)
+        ErrorWithMessage(getErrorMessage(ex))
       }
-    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out") => ConnectionTimeout(ex.getMessage)
-    case ex: SQLException if ex.getSQLState == PSQL_STATE_QUERY_CANCELLED           => QueryTimeout(ex.getMessage)
-    case ex: SQLException if syntaxErrors.contains(ex.getSQLState)                  => SqlSyntaxError(ex.getMessage)
-    case ex: SQLException if ex.getSQLState == PSQL_STATE_PERMISSION_DENIED         => AccessDeniedError(ex.getMessage)
-    case ex: SQLException if ex.getSQLState == PSQL_STATE_RELATION_NOT_FOUND        => TableNotFound(ex.getMessage)
-    case ex: SQLException if connectionErrors.contains(ex.getSQLState)              => ConnectionError(ex)
+    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out") =>
+      ConnectionTimeout(getErrorMessage(ex))
+    case ex: SQLException if ex.getSQLState == PSQL_STATE_QUERY_CANCELLED    => QueryTimeout(getErrorMessage(ex))
+    case ex: SQLException if syntaxErrors.contains(ex.getSQLState)           => SqlSyntaxError(getErrorMessage(ex))
+    case ex: SQLException if ex.getSQLState == PSQL_STATE_PERMISSION_DENIED  => AccessDeniedError(getErrorMessage(ex))
+    case ex: SQLException if ex.getSQLState == PSQL_STATE_RELATION_NOT_FOUND => TableNotFound(getErrorMessage(ex))
+    case ex: SQLException if connectionErrors.contains(ex.getSQLState)       => ConnectionError(ex)
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =

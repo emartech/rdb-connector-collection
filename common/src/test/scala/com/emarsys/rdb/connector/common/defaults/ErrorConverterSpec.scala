@@ -4,9 +4,11 @@ import java.sql.{SQLException, SQLSyntaxErrorException}
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors._
+import org.scalatest.concurrent.{Signaler, ThreadSignaler}
+import org.scalatest.time.{Milliseconds, Span}
 import org.scalatest.{Matchers, WordSpecLike}
 
-class ErrorConverterSpec extends WordSpecLike with Matchers {
+class ErrorConverterSpec extends WordSpecLike with Matchers with org.scalatest.concurrent.TimeLimits {
   "The default common error converter" should {
     "not touch ConnectorErrors" in {
       ErrorConverter.common(TooManyQueries("a")) shouldBe TooManyQueries("a")
@@ -48,8 +50,16 @@ class ErrorConverterSpec extends WordSpecLike with Matchers {
   "generate composite message from exception with causes" in {
     val cause = new RuntimeException("Serious error")
     val e     = new Exception("Greivous error", cause)
-    println("wat")
-    println(e.getCause)
     ErrorConverter.default(e) shouldEqual ErrorWithMessage(s"Greivous error\nCaused by: Serious error")
+  }
+
+  "avoid infinite loop when exception cause is cyclic" in {
+    implicit val signaler: Signaler = ThreadSignaler
+    val cause                       = new RuntimeException("Serious error")
+    val e                           = new Exception("Greivous error", cause)
+    cause.initCause(e)
+    failAfter(Span(10, Milliseconds)) {
+      ErrorConverter.default(e) shouldEqual ErrorWithMessage(s"Greivous error\nCaused by: Serious error")
+    }
   }
 }

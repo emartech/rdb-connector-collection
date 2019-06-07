@@ -3,7 +3,10 @@ package com.emarsys.rdb.connector.common.defaults
 import java.sql.{SQLException, SQLSyntaxErrorException}
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
+import cats.data.Chain
 import com.emarsys.rdb.connector.common.models.Errors._
+
+import scala.annotation.tailrec
 
 object ErrorConverter {
   val common: PartialFunction[Throwable, ConnectorError] = {
@@ -32,11 +35,16 @@ object ErrorConverter {
   }
 
   def getCauseMessages(ex: Throwable): List[String] = {
-    val cause = ex.getCause
-    if (cause != null) {
-      cause.getMessage :: getCauseMessages(cause)
-    } else {
-      Nil
+    @tailrec
+    def impl(currentEx: Throwable, seenErrors: Set[Throwable], messages: Chain[String]): Chain[String] = {
+      val cause = currentEx.getCause
+      if (cause != null && !seenErrors.contains(cause)) {
+        impl(cause, seenErrors + cause, messages :+ cause.getMessage)
+      } else {
+        messages
+      }
     }
+
+    impl(ex, Set.empty, Chain.empty).toList
   }
 }

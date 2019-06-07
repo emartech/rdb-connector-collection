@@ -8,6 +8,8 @@ import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.models.Errors._
 
 trait RedshiftErrorHandling {
+  import ErrorConverter._
+
   val REDSHIFT_STATE_GENERAL_ERROR      = "HY000"
   val REDSHIFT_STATE_QUERY_CANCELLED    = "57014"
   val REDSHIFT_STATE_SYNTAX_ERROR       = "42601"
@@ -30,12 +32,12 @@ trait RedshiftErrorHandling {
   )
 
   private def errorHandler: PartialFunction[Throwable, ConnectorError] = {
-    case ex: SQLException if isConnectionTimeout(ex)                             => ConnectionTimeout(ex.getMessage)
-    case ex: SQLException if isTcpSocketTimeout(ex)                              => QueryTimeout(ex.getMessage)
-    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_QUERY_CANCELLED    => QueryTimeout(ex.getMessage)
-    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_SYNTAX_ERROR       => SqlSyntaxError(ex.getMessage)
-    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_PERMISSION_DENIED  => AccessDeniedError(ex.getMessage)
-    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_RELATION_NOT_FOUND => TableNotFound(ex.getMessage)
+    case ex: SQLException if isConnectionTimeout(ex)                             => ConnectionTimeout(getErrorMessage(ex))
+    case ex: SQLException if isTcpSocketTimeout(ex)                              => QueryTimeout(getErrorMessage(ex))
+    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_QUERY_CANCELLED    => QueryTimeout(getErrorMessage(ex))
+    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_SYNTAX_ERROR       => SqlSyntaxError(getErrorMessage(ex))
+    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_PERMISSION_DENIED  => AccessDeniedError(getErrorMessage(ex))
+    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_RELATION_NOT_FOUND => TableNotFound(getErrorMessage(ex))
     case ex: SQLException if connectionErrors.contains(ex.getSQLState)           => ConnectionError(ex)
   }
 

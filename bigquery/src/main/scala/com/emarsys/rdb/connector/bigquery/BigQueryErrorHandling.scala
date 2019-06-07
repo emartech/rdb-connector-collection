@@ -10,9 +10,10 @@ import com.emarsys.rdb.connector.common.models.Errors._
 import scala.concurrent.TimeoutException
 
 trait BigQueryErrorHandling {
+  import ErrorConverter._
 
   protected def errorHandler: PartialFunction[Throwable, ConnectorError] = {
-    case to: TimeoutException => QueryTimeout(to.getMessage)
+    case ex: TimeoutException => QueryTimeout(getErrorMessage(ex))
   }
 
   protected def eitherErrorHandler[T]: PartialFunction[Throwable, Either[ConnectorError, T]] =

@@ -9,6 +9,7 @@ import com.emarsys.rdb.connector.common.models.Errors._
 import com.microsoft.sqlserver.jdbc.SQLServerException
 
 trait MsSqlErrorHandling {
+  import ErrorConverter._
 
   val MSSQL_STATE_QUERY_CANCELLED            = "HY008"
   val MSSQL_STATE_SYNTAX_ERROR               = "S0001"
@@ -25,13 +26,13 @@ trait MsSqlErrorHandling {
   )
 
   protected def errorHandler(): PartialFunction[Throwable, ConnectorError] = {
-    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_QUERY_CANCELLED     => QueryTimeout(ex.getMessage)
-    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SYNTAX_ERROR        => SqlSyntaxError(ex.getMessage)
-    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_PERMISSION_DENIED   => AccessDeniedError(ex.getMessage)
-    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_INVALID_OBJECT_NAME => TableNotFound(ex.getMessage)
+    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_QUERY_CANCELLED     => QueryTimeout(getErrorMessage(ex))
+    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SYNTAX_ERROR        => SqlSyntaxError(getErrorMessage(ex))
+    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_PERMISSION_DENIED   => AccessDeniedError(getErrorMessage(ex))
+    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_INVALID_OBJECT_NAME => TableNotFound(getErrorMessage(ex))
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SHOWPLAN_PERMISSION_DENIED =>
-      AccessDeniedError(ex.getMessage)
-    case ex: SQLException if ex.getMessage.contains(MSSQL_EXPLAIN_PERMISSION_DENIED) => AccessDeniedError(ex.getMessage)
+      AccessDeniedError(getErrorMessage(ex))
+    case ex: SQLException if ex.getMessage.contains(MSSQL_EXPLAIN_PERMISSION_DENIED) => AccessDeniedError(getErrorMessage(ex))
     case ex: SQLException if connectionErrors.contains(ex.getSQLState)               => ConnectionError(ex)
   }
 

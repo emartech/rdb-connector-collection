@@ -15,6 +15,7 @@ trait MySqlErrorHandling {
   val MYSQL_STATEMENT_CLOSED          = "No operations allowed after statement closed."
   val MYSQL_ILLEGAL_MIX_OF_COLLATIONS = "Illegal mix of collations"
   val MYSQL_CONNECTION_HOST_ERROR     = "Can't connect to MySQL server on"
+  val MYSQL_LOCK_WAIT_TIMEOUT         = "Lock wait timeout exceeded; try restarting transaction"
 
   protected def handleNotExistingTable[T](
       table: String
@@ -38,13 +39,15 @@ trait MySqlErrorHandling {
       ConnectionTimeout(getErrorMessage(ex))
     case ex: SQLException if ex.getMessage.contains(MYSQL_EXPLAIN_PERMISSION_DENIED) =>
       AccessDeniedError(getErrorMessage(ex))
-    case ex: SQLException if ex.getMessage.contains(MYSQL_STATEMENT_CLOSED) =>
-      InvalidDbOperation(s"Transient DB error: ${ex.toString}")
+    case ex: SQLException if isTransientDbError(ex.getMessage) => TransientDbError(getErrorMessage(ex))
     case ex: SQLException if ex.getMessage.startsWith(MYSQL_ILLEGAL_MIX_OF_COLLATIONS) =>
       SqlSyntaxError(getErrorMessage(ex))
     case ex: SQLException if ex.getMessage.contains(MYSQL_CONNECTION_HOST_ERROR) =>
       ConnectionTimeout(getErrorMessage(ex))
   }
+
+  private def isTransientDbError(message: String): Boolean =
+    List(MYSQL_STATEMENT_CLOSED, MYSQL_LOCK_WAIT_TIMEOUT).exists(message.contains)
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
     (errorHandler orElse default) andThen Left.apply

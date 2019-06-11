@@ -4,10 +4,12 @@ import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionEx
 
 import com.emarsys.rdb.connector.common.models.Errors
 import com.emarsys.rdb.connector.common.models.Errors._
+import com.mysql.cj.exceptions.MysqlErrorNumbers
 import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
+import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.{Matchers, WordSpecLike}
 
-class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
+class MySqlErrorHandlingSpec extends WordSpecLike with Matchers with TableDrivenPropertyChecks {
 
   "MySqlErrorHandling" should {
     "convert timeout transient sql error to connection timeout error" in new MySqlErrorHandling {
@@ -46,12 +48,20 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
       eitherErrorHandler().apply(e) shouldEqual Left(AccessDeniedError(msg))
     }
 
-    "convert statement closed exception to InvalidDbOperation if the message implies that" in new MySqlErrorHandling {
+    "convert statement closed exception to TransientDbError if the message implies that" in new MySqlErrorHandling {
       val msg = "No operations allowed after statement closed."
       val e   = new SQLException(msg)
-      eitherErrorHandler().apply(e) shouldEqual Left(
-        InvalidDbOperation(s"Transient DB error: java.sql.SQLException: $msg")
+      eitherErrorHandler().apply(e) shouldEqual Left(TransientDbError(msg))
+    }
+
+    "convert lock wait timeout exception to TransientDbError if the message implies that" in new MySqlErrorHandling {
+      val msg = "Lock wait timeout exceeded; try restarting transaction"
+      val e = new SQLException(
+        msg,
+        MysqlErrorNumbers.SQL_STATE_ROLLBACK_SERIALIZATION_FAILURE,
+        MysqlErrorNumbers.ER_LOCK_WAIT_TIMEOUT
       )
+      eitherErrorHandler().apply(e) shouldEqual Left(TransientDbError(msg))
     }
 
     "convert illegal mix of collations error to SqlSyntaxError" in new MySqlErrorHandling {

@@ -18,7 +18,7 @@ object Errors {
   case class SimpleSelectIsNotGroupableFormat(message: String) extends ConnectorError(message)
   case class TooManyQueries(message: String)                   extends ConnectorError(message)
   case class StuckPool(message: String)                        extends ConnectorError(message)
-  case class InvalidDbOperation(message: String)               extends ConnectorError(message)
+  case class TransientDbError(message: String)                 extends ConnectorError(message)
   case class FailedValidation(validationResult: ValidationResult)
       extends ConnectorError(s"Validation failed: $validationResult")
 }

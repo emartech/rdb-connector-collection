@@ -5,10 +5,9 @@ import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionEx
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.mysql.cj.exceptions.MysqlErrorNumbers
 import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
-import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.{Matchers, WordSpecLike}
 
-class MySqlErrorHandlingSpec extends WordSpecLike with Matchers with TableDrivenPropertyChecks {
+class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
 
   private def shouldBeWithCause[T](
       result: Either[ConnectorError, T],

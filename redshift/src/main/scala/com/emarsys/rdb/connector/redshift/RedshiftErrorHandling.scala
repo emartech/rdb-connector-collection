@@ -32,11 +32,12 @@ trait RedshiftErrorHandling {
   )
 
   private def errorHandler: PartialFunction[Throwable, ConnectorError] = {
-    case ex: SQLException if isConnectionTimeout(ex)                             => ConnectionTimeout(getErrorMessage(ex))
-    case ex: SQLException if isTcpSocketTimeout(ex)                              => QueryTimeout(getErrorMessage(ex))
-    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_QUERY_CANCELLED    => QueryTimeout(getErrorMessage(ex))
-    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_SYNTAX_ERROR       => SqlSyntaxError(getErrorMessage(ex))
-    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_PERMISSION_DENIED  => AccessDeniedError(getErrorMessage(ex))
+    case ex: SQLException if isConnectionTimeout(ex)                          => ConnectionTimeout(getErrorMessage(ex))
+    case ex: SQLException if isTcpSocketTimeout(ex)                           => QueryTimeout(getErrorMessage(ex))
+    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_QUERY_CANCELLED => QueryTimeout(getErrorMessage(ex))
+    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_SYNTAX_ERROR    => SqlSyntaxError(getErrorMessage(ex))
+    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_PERMISSION_DENIED =>
+      AccessDeniedError(getErrorMessage(ex))
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_RELATION_NOT_FOUND => TableNotFound(getErrorMessage(ex))
     case ex: SQLException if connectionErrors.contains(ex.getSQLState)           => ConnectionError(ex)
   }

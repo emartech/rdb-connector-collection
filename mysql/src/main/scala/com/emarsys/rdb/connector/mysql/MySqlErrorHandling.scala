@@ -21,29 +21,32 @@ trait MySqlErrorHandling {
       table: String
   ): PartialFunction[Throwable, Either[ConnectorError, T]] = {
     case e: Exception if e.getMessage.contains("doesn't exist") =>
-      Left(TableNotFound(table))
+      Left(TableNotFound(table).withCause(e))
   }
 
   private def errorHandler: PartialFunction[Throwable, ConnectorError] = {
     case ex: slick.SlickException =>
       if (ex.getMessage == "Update statements should not return a ResultSet") {
-        SqlSyntaxError("Wrong update statement: non update query given")
+        SqlSyntaxError("Wrong update statement: non update query given").withCause(ex)
       } else {
-        ErrorWithMessage(getErrorMessage(ex))
+        ErrorWithMessage(getErrorMessage(ex)).withCause(ex)
       }
     case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied") =>
-      AccessDeniedError(getErrorMessage(ex))
-    case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled") => QueryTimeout(getErrorMessage(ex))
-    case ex: MySQLTimeoutException                                        => ConnectionTimeout(getErrorMessage(ex))
+      AccessDeniedError(getErrorMessage(ex)).withCause(ex)
+    case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled") =>
+      QueryTimeout(getErrorMessage(ex)).withCause(ex)
+    case ex: MySQLTimeoutException =>
+      ConnectionTimeout(getErrorMessage(ex)).withCause(ex)
     case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out") =>
-      ConnectionTimeout(getErrorMessage(ex))
+      ConnectionTimeout(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if ex.getMessage.contains(MYSQL_EXPLAIN_PERMISSION_DENIED) =>
-      AccessDeniedError(getErrorMessage(ex))
-    case ex: SQLException if isTransientDbError(ex.getMessage) => TransientDbError(getErrorMessage(ex))
+      AccessDeniedError(getErrorMessage(ex)).withCause(ex)
+    case ex: SQLException if isTransientDbError(ex.getMessage) =>
+      TransientDbError(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if ex.getMessage.startsWith(MYSQL_ILLEGAL_MIX_OF_COLLATIONS) =>
-      SqlSyntaxError(getErrorMessage(ex))
+      SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if ex.getMessage.contains(MYSQL_CONNECTION_HOST_ERROR) =>
-      ConnectionTimeout(getErrorMessage(ex))
+      ConnectionTimeout(getErrorMessage(ex)).withCause(ex)
   }
 
   private def isTransientDbError(message: String): Boolean =

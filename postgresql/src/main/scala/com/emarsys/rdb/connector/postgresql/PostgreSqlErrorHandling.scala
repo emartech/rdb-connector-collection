@@ -38,17 +38,22 @@ trait PostgreSqlErrorHandling {
   private def errorHandler(): PartialFunction[Throwable, ConnectorError] = {
     case ex: slick.SlickException =>
       if (ex.getMessage == "Update statements should not return a ResultSet") {
-        SqlSyntaxError("Wrong update statement: non update query given")
+        SqlSyntaxError("Wrong update statement: non update query given").withCause(ex)
       } else {
-        ErrorWithMessage(getErrorMessage(ex))
+        ErrorWithMessage(getErrorMessage(ex)).withCause(ex)
       }
     case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out") =>
-      ConnectionTimeout(getErrorMessage(ex))
-    case ex: SQLException if ex.getSQLState == PSQL_STATE_QUERY_CANCELLED    => QueryTimeout(getErrorMessage(ex))
-    case ex: SQLException if syntaxErrors.contains(ex.getSQLState)           => SqlSyntaxError(getErrorMessage(ex))
-    case ex: SQLException if ex.getSQLState == PSQL_STATE_PERMISSION_DENIED  => AccessDeniedError(getErrorMessage(ex))
-    case ex: SQLException if ex.getSQLState == PSQL_STATE_RELATION_NOT_FOUND => TableNotFound(getErrorMessage(ex))
-    case ex: SQLException if connectionErrors.contains(ex.getSQLState)       => ConnectionError(ex)
+      ConnectionTimeout(getErrorMessage(ex)).withCause(ex)
+    case ex: SQLException if ex.getSQLState == PSQL_STATE_QUERY_CANCELLED =>
+      QueryTimeout(getErrorMessage(ex)).withCause(ex)
+    case ex: SQLException if syntaxErrors.contains(ex.getSQLState) =>
+      SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
+    case ex: SQLException if ex.getSQLState == PSQL_STATE_PERMISSION_DENIED =>
+      AccessDeniedError(getErrorMessage(ex)).withCause(ex)
+    case ex: SQLException if ex.getSQLState == PSQL_STATE_RELATION_NOT_FOUND =>
+      TableNotFound(getErrorMessage(ex)).withCause(ex)
+    case ex: SQLException if connectionErrors.contains(ex.getSQLState) =>
+      ConnectionError(ex).withCause(ex)
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =

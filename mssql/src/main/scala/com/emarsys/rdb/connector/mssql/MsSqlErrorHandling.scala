@@ -26,17 +26,20 @@ trait MsSqlErrorHandling {
   )
 
   protected def errorHandler(): PartialFunction[Throwable, ConnectorError] = {
-    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_QUERY_CANCELLED => QueryTimeout(getErrorMessage(ex))
-    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SYNTAX_ERROR    => SqlSyntaxError(getErrorMessage(ex))
+    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_QUERY_CANCELLED =>
+      QueryTimeout(getErrorMessage(ex)).withCause(ex)
+    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SYNTAX_ERROR =>
+      SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_PERMISSION_DENIED =>
-      AccessDeniedError(getErrorMessage(ex))
+      AccessDeniedError(getErrorMessage(ex)).withCause(ex)
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_INVALID_OBJECT_NAME =>
-      TableNotFound(getErrorMessage(ex))
+      TableNotFound(getErrorMessage(ex)).withCause(ex)
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SHOWPLAN_PERMISSION_DENIED =>
-      AccessDeniedError(getErrorMessage(ex))
+      AccessDeniedError(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if ex.getMessage.contains(MSSQL_EXPLAIN_PERMISSION_DENIED) =>
-      AccessDeniedError(getErrorMessage(ex))
-    case ex: SQLException if connectionErrors.contains(ex.getSQLState) => ConnectionError(ex)
+      AccessDeniedError(getErrorMessage(ex)).withCause(ex)
+    case ex: SQLException if connectionErrors.contains(ex.getSQLState) =>
+      ConnectionError(ex).withCause(ex)
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =

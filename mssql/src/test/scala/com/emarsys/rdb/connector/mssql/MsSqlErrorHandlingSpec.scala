@@ -9,24 +9,33 @@ import org.scalatest.{Matchers, PrivateMethodTester, WordSpecLike}
 
 class MsSqlErrorHandlingSpec extends WordSpecLike with Matchers with MockitoSugar with PrivateMethodTester {
 
+  val possibleSQLErrorsCodes = Seq(
+    ("HY008", "query cancelled", QueryTimeout("msg")),
+    ("S0001", "sql syntax error", SqlSyntaxError("msg")),
+    ("S0005", "permission denied", AccessDeniedError("msg")),
+    ("S0002", "invalid object name", TableNotFound("msg"))
+  )
+
+  val possibleConnectionErrors = Seq(
+    ("08S01", "bad host error")
+  )
+
+  private def shouldBeWithCause[T](
+      result: Either[ConnectorError, T],
+      expected: ConnectorError,
+      expectedCause: Throwable
+  ): Unit = {
+    result shouldBe Left(expected)
+    result.left.get.getCause shouldBe expectedCause
+  }
+
   "ErrorHandling" should {
-
-    val possibleSQLErrorsCodes = Seq(
-      ("HY008", "query cancelled", QueryTimeout("msg")),
-      ("S0001", "sql syntax error", SqlSyntaxError("msg")),
-      ("S0005", "permission denied", AccessDeniedError("msg")),
-      ("S0002", "invalid object name", TableNotFound("msg"))
-    )
-
-    val possibleConnectionErrors = Seq(
-      ("08S01", "bad host error")
-    )
 
     possibleSQLErrorsCodes.foreach(
       errorWithResponse =>
         s"""convert ${errorWithResponse._2} to ${errorWithResponse._3.getClass.getSimpleName}""" in new MsSqlErrorHandling {
           val error = new SQLServerException("msg", errorWithResponse._1, 0, new Exception())
-          eitherErrorHandler().apply(error) shouldEqual Left(errorWithResponse._3)
+          shouldBeWithCause(eitherErrorHandler().apply(error), errorWithResponse._3, error)
         }
     )
 
@@ -34,14 +43,14 @@ class MsSqlErrorHandlingSpec extends WordSpecLike with Matchers with MockitoSuga
       errorCode =>
         s"""convert ${errorCode._2} to ConnectionError""" in new MsSqlErrorHandling {
           val error = new SQLException("msg", errorCode._1)
-          eitherErrorHandler().apply(error) shouldEqual Left(ConnectionError(error))
+          shouldBeWithCause(eitherErrorHandler().apply(error), ConnectionError(error), error)
         }
     )
 
     "handle EXPLAIN/SHOW can not be issued" in new MsSqlErrorHandling {
-      val error = new SQLException("EXPLAIN/SHOW can not be issued; lacking privileges for underlying table", "HY000")
-      eitherErrorHandler().apply(error) shouldBe
-        Left(AccessDeniedError("EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"))
+      val msg   = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"
+      val error = new SQLException(msg, "HY000")
+      shouldBeWithCause(eitherErrorHandler().apply(error), AccessDeniedError(msg), error)
     }
   }
 }

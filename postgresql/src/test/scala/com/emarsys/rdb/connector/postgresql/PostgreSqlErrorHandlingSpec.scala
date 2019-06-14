@@ -41,12 +41,22 @@ class PostgreSqlErrorHandlingSpec extends WordSpec with Matchers with TableDrive
     ("connection times out", connectionTimeoutException, ConnectionTimeout(timeoutMessage))
   )
 
+  private def shouldBeWithCause[T](
+      result: Either[ConnectorError, T],
+      expected: ConnectorError,
+      expectedCause: Throwable
+  ): Unit = {
+    result shouldBe Left(expected)
+    result.left.get.getCause shouldBe expectedCause
+  }
+
   "PostgreSqlErrorHandling" should {
 
     forAll(testCases) {
       case (errorType, sqlException, clientError) =>
         s"convert $errorType to ${clientError.getClass.getSimpleName}" in new PostgreSqlErrorHandling {
           eitherErrorHandler().apply(sqlException) shouldEqual Left(clientError)
+          shouldBeWithCause(eitherErrorHandler().apply(sqlException), clientError, sqlException)
         }
     }
   }

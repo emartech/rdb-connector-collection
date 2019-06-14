@@ -13,7 +13,7 @@ trait BigQueryErrorHandling {
   import ErrorConverter._
 
   protected def errorHandler: PartialFunction[Throwable, ConnectorError] = {
-    case ex: TimeoutException => QueryTimeout(getErrorMessage(ex))
+    case ex: TimeoutException => QueryTimeout(getErrorMessage(ex)).withCause(ex)
   }
 
   protected def eitherErrorHandler[T]: PartialFunction[Throwable, Either[ConnectorError, T]] =

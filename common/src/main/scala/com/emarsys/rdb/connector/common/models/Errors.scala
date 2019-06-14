@@ -2,7 +2,12 @@ package com.emarsys.rdb.connector.common.models
 
 object Errors {
 
-  sealed abstract class ConnectorError(message: String = "") extends Exception(message)
+  sealed abstract class ConnectorError(message: String = "") extends Exception(message) {
+    def withCause(cause: Throwable): ConnectorError = {
+      this.initCause(cause)
+      this
+    }
+  }
 
   case class ConnectionError(error: Throwable)                 extends ConnectorError(error.toString)
   case class ConnectionConfigError(message: String)            extends ConnectorError(message)

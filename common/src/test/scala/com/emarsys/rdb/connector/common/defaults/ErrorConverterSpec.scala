@@ -9,57 +9,79 @@ import org.scalatest.time.{Milliseconds, Span}
 import org.scalatest.{Matchers, WordSpecLike}
 
 class ErrorConverterSpec extends WordSpecLike with Matchers with org.scalatest.concurrent.TimeLimits {
+
+  private def shouldBeWithCause(result: ConnectorError, expected: ConnectorError, expectedCause: Throwable): Unit = {
+    result shouldBe expected
+    result.getCause shouldBe expectedCause
+  }
+
   "The default common error converter" should {
     "not touch ConnectorErrors" in {
-      ErrorConverter.common(TooManyQueries("a")) shouldBe TooManyQueries("a")
+      val exception = TooManyQueries("a")
+      shouldBeWithCause(ErrorConverter.common(exception), TooManyQueries("a"), expectedCause = null)
     }
 
     "convert RejectedExecutionExceptions to TooManyQueries" in {
-      ErrorConverter.common(new RejectedExecutionException("msg")) shouldBe TooManyQueries("msg")
+      val exception = new RejectedExecutionException("msg")
+      shouldBeWithCause(ErrorConverter.common(exception), TooManyQueries("msg"), exception)
     }
 
     "convert TimeoutException to CompletionTimeout" in {
-      ErrorConverter.common(new TimeoutException("msg")) shouldBe CompletionTimeout("msg")
+      val exception = new TimeoutException("msg")
+      shouldBeWithCause(ErrorConverter.common(exception), CompletionTimeout("msg"), exception)
     }
 
     "convert all other errors to ErrorWithMessage" in {
-      ErrorConverter.common(new Exception("msg")) shouldBe ErrorWithMessage("msg")
+      val exception = new RuntimeException("msg")
+      shouldBeWithCause(ErrorConverter.common(exception), ErrorWithMessage("msg"), exception)
     }
   }
 
   "The default SQL error converter" should {
     "recognize syntax errors" in {
-      ErrorConverter.sql(new SQLSyntaxErrorException("msg")) shouldBe SqlSyntaxError("msg")
+      val exception = new SQLSyntaxErrorException("msg")
+      shouldBeWithCause(ErrorConverter.sql(exception), SqlSyntaxError("msg"), exception)
     }
 
     "recognize comms. link failres" in {
-      val message = "Communications link failure - the last packet..."
-      ErrorConverter.sql(new SQLException(message, "08S01")) shouldBe CommunicationsLinkFailure(message)
+      val message   = "Communications link failure - the last packet..."
+      val exception = new SQLException(message, "08S01")
+      shouldBeWithCause(ErrorConverter.sql(exception), CommunicationsLinkFailure(message), exception)
     }
 
     "rephrase SQLExceptions" in {
-      ErrorConverter.sql(new SQLException("msg", "state", 999)) shouldBe ErrorWithMessage("[state] - [999] - msg")
+      val exception = new SQLException("msg", "state", 999)
+      shouldBeWithCause(ErrorConverter.sql(exception), ErrorWithMessage("[state] - [999] - msg"), exception)
     }
 
     "recognize stucked pools" in {
-      val msg = "Task ... rejected from slick.util.AsyncExecutor...[Running, .... active threads = 0, ...]"
-      ErrorConverter.sql(new RejectedExecutionException(msg)) shouldBe StuckPool(msg)
+      val msg       = "Task ... rejected from slick.util.AsyncExecutor...[Running, .... active threads = 0, ...]"
+      val exception = new RejectedExecutionException(msg)
+      shouldBeWithCause(ErrorConverter.sql(exception), StuckPool(msg), exception)
     }
   }
 
   "generate composite message from exception with causes" in {
-    val cause = new RuntimeException("Serious error")
-    val e     = new Exception("Greivous error", cause)
-    ErrorConverter.default(e) shouldEqual ErrorWithMessage(s"Greivous error\nCaused by: Serious error")
+    val cause     = new RuntimeException("Serious error")
+    val exception = new Exception("Greivous error", cause)
+    shouldBeWithCause(
+      ErrorConverter.default(exception),
+      ErrorWithMessage(s"Greivous error\nCaused by: Serious error"),
+      exception
+    )
   }
 
   "avoid infinite loop when exception cause is cyclic" in {
     implicit val signaler: Signaler = ThreadSignaler
     val cause                       = new RuntimeException("Serious error")
-    val e                           = new Exception("Greivous error", cause)
-    cause.initCause(e)
+    val exception                   = new Exception("Greivous error", cause)
+    cause.initCause(exception)
     failAfter(Span(10, Milliseconds)) {
-      ErrorConverter.default(e) shouldEqual ErrorWithMessage(s"Greivous error\nCaused by: Serious error")
+      shouldBeWithCause(
+        ErrorConverter.default(exception),
+        ErrorWithMessage(s"Greivous error\nCaused by: Serious error"),
+        exception
+      )
     }
   }
 }

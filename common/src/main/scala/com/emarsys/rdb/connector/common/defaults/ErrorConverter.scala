@@ -11,17 +11,20 @@ import scala.annotation.tailrec
 object ErrorConverter {
   val common: PartialFunction[Throwable, ConnectorError] = {
     case e: ConnectorError             => e
-    case e: RejectedExecutionException => TooManyQueries(getErrorMessage(e))
-    case e: TimeoutException           => CompletionTimeout(getErrorMessage(e))
-    case e                             => ErrorWithMessage(getErrorMessage(e))
+    case e: RejectedExecutionException => TooManyQueries(getErrorMessage(e)).withCause(e)
+    case e: TimeoutException           => CompletionTimeout(getErrorMessage(e)).withCause(e)
+    case e                             => ErrorWithMessage(getErrorMessage(e)).withCause(e)
   }
 
   val sql: PartialFunction[Throwable, ConnectorError] = {
-    case e: RejectedExecutionException if e.getMessage.contains("active threads = 0") => StuckPool(getErrorMessage(e))
-    case e: SQLSyntaxErrorException                                                   => SqlSyntaxError(getErrorMessage(e))
+    case e: RejectedExecutionException if e.getMessage.contains("active threads = 0") =>
+      StuckPool(getErrorMessage(e)).withCause(e)
+    case e: SQLSyntaxErrorException =>
+      SqlSyntaxError(getErrorMessage(e)).withCause(e)
     case e: SQLException if e.getMessage.contains("Communications link failure") =>
-      CommunicationsLinkFailure(getErrorMessage(e))
-    case e: SQLException => ErrorWithMessage(s"[${e.getSQLState}] - [${e.getErrorCode}] - ${getErrorMessage(e)}")
+      CommunicationsLinkFailure(getErrorMessage(e)).withCause(e)
+    case e: SQLException =>
+      ErrorWithMessage(s"[${e.getSQLState}] - [${e.getErrorCode}] - ${getErrorMessage(e)}").withCause(e)
   }
 
   val default = sql orElse common

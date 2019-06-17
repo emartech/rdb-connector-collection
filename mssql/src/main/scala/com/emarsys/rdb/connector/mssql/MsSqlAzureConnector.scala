@@ -77,7 +77,7 @@ trait MsSqlAzureConnectorTrait extends MsSqlConnectorHelper {
       .recover {
         case ex =>
           db.shutdown
-          Left(ConnectionError(ex))
+          Left(ConnectionError(ex).withCause(ex))
       }
   }
 

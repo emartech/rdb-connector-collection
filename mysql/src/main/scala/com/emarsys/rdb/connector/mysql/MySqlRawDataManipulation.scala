@@ -112,7 +112,7 @@ trait MySqlRawDataManipulation {
           )
       )
       .recover {
-        case ex => Left(ErrorWithMessage(ex.toString))
+        case ex => Left(ErrorWithMessage(ex.getMessage).withCause(ex))
       }
   }
 

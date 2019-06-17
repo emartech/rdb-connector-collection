@@ -58,7 +58,7 @@ class MsSqlConnectorItSpec
         val connectorEither = Await.result(MsSqlConnector.create(conn), 5.seconds)
 
         connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe an[ErrorWithMessage]
+        connectorEither.left.get shouldBe an[ConnectionTimeout]
       }
 
       "connect fail when wrong certificate" in {

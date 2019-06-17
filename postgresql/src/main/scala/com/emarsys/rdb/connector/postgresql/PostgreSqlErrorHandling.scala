@@ -42,8 +42,6 @@ trait PostgreSqlErrorHandling {
       } else {
         ErrorWithMessage(getErrorMessage(ex)).withCause(ex)
       }
-    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out") =>
-      ConnectionTimeout(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if ex.getSQLState == PSQL_STATE_QUERY_CANCELLED =>
       QueryTimeout(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if syntaxErrors.contains(ex.getSQLState) =>

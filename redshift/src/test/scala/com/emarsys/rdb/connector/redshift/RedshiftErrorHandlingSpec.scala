@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.redshift
 
-import java.sql.SQLException
+import java.sql.{SQLException, SQLTransientConnectionException}
 
 import com.emarsys.rdb.connector.common.models.Errors._
 import org.scalatest.{Matchers, WordSpecLike}
@@ -41,7 +41,7 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
     result.left.get.getCause shouldBe expectedCause
   }
 
-  "MySqlErrorHandling" should {
+  "RedshiftErrorHandling" should {
 
     possibleSQLErrors.foreach {
       case (sqlState, message, expectedError) =>
@@ -60,5 +60,22 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
           shouldBeWithCause(eitherErrorHandler.apply(sqlException), ConnectionError(sqlException), sqlException)
         }
     }
+
+    "convert timeout transient sql error to connection timeout error" in new RedshiftErrorHandling {
+      val msg          = "Connection is not available, request timed out after"
+      val sqlException = new SQLTransientConnectionException(msg)
+      shouldBeWithCause(eitherErrorHandler.apply(sqlException), ConnectionTimeout(msg), sqlException)
+    }
+
+    "convert sql error to error with message and state if not timeout" in new RedshiftErrorHandling {
+      val msg          = "Other transient error"
+      val sqlException = new SQLTransientConnectionException(msg, "not-handled-sql-state", 999)
+      shouldBeWithCause(
+        eitherErrorHandler.apply(sqlException),
+        ErrorWithMessage(s"[not-handled-sql-state] - [999] - $msg"),
+        sqlException
+      )
+    }
+
   }
 }

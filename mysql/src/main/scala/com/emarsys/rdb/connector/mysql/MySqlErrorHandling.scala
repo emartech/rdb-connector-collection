@@ -37,8 +37,6 @@ trait MySqlErrorHandling {
       QueryTimeout(getErrorMessage(ex)).withCause(ex)
     case ex: MySQLTimeoutException =>
       ConnectionTimeout(getErrorMessage(ex)).withCause(ex)
-    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out") =>
-      ConnectionTimeout(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if ex.getMessage.contains(MYSQL_EXPLAIN_PERMISSION_DENIED) =>
       AccessDeniedError(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if isTransientDbError(ex.getMessage) =>

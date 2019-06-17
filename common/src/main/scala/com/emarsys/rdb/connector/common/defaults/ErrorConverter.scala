@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.common.defaults
 
-import java.sql.{SQLException, SQLSyntaxErrorException}
+import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionException}
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import cats.data.Chain
@@ -23,6 +23,8 @@ object ErrorConverter {
       SqlSyntaxError(getErrorMessage(e)).withCause(e)
     case e: SQLException if e.getMessage.contains("Communications link failure") =>
       CommunicationsLinkFailure(getErrorMessage(e)).withCause(e)
+    case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out") =>
+      ConnectionTimeout(getErrorMessage(ex)).withCause(ex)
     case e: SQLException =>
       ErrorWithMessage(s"[${e.getSQLState}] - [${e.getErrorCode}] - ${getErrorMessage(e)}").withCause(e)
   }

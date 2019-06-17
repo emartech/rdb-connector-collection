@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.mssql
 
-import java.sql.SQLException
+import java.sql.{SQLException, SQLTransientConnectionException}
 
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.microsoft.sqlserver.jdbc.SQLServerException
@@ -52,5 +52,22 @@ class MsSqlErrorHandlingSpec extends WordSpecLike with Matchers with MockitoSuga
       val error = new SQLException(msg, "HY000")
       shouldBeWithCause(eitherErrorHandler().apply(error), AccessDeniedError(msg), error)
     }
+
+    "convert timeout transient sql error to connection timeout error" in new MsSqlErrorHandling {
+      val msg   = "Connection is not available, request timed out after"
+      val error = new SQLTransientConnectionException(msg)
+      shouldBeWithCause(eitherErrorHandler().apply(error), ConnectionTimeout(msg), error)
+    }
+
+    "convert sql error to error with message and state if not timeout" in new MsSqlErrorHandling {
+      val msg   = "Other transient error"
+      val error = new SQLTransientConnectionException(msg, "not-handled-sql-state", 999)
+      shouldBeWithCause(
+        eitherErrorHandler().apply(error),
+        ErrorWithMessage(s"[not-handled-sql-state] - [999] - $msg"),
+        error
+      )
+    }
+
   }
 }

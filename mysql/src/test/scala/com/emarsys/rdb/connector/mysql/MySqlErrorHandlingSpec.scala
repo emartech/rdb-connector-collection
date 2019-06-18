@@ -2,7 +2,6 @@ package com.emarsys.rdb.connector.mysql
 
 import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionException}
 
-import com.emarsys.rdb.connector.common.models.Errors
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.mysql.cj.exceptions.MysqlErrorNumbers
 import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
@@ -89,5 +88,13 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers with TableDriven
       val e   = new SQLException(msg)
       shouldBeWithCause(eitherErrorHandler().apply(e), ConnectionTimeout(msg), e)
     }
+
+    "convert invalid view use to SqlSyntaxError" in new MySqlErrorHandling {
+      val msg =
+        """View 'compose.PostPurchaseView' references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them"""
+      val e = new SQLException(msg)
+      shouldBeWithCause(eitherErrorHandler().apply(e), SqlSyntaxError(msg), e)
+    }
+
   }
 }

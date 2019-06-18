@@ -11,11 +11,14 @@ import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
 trait MySqlErrorHandling {
   import ErrorConverter._
 
-  val MYSQL_EXPLAIN_PERMISSION_DENIED = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"
-  val MYSQL_STATEMENT_CLOSED          = "No operations allowed after statement closed."
-  val MYSQL_ILLEGAL_MIX_OF_COLLATIONS = "Illegal mix of collations"
-  val MYSQL_CONNECTION_HOST_ERROR     = "Can't connect to MySQL server on"
-  val MYSQL_LOCK_WAIT_TIMEOUT         = "Lock wait timeout exceeded; try restarting transaction"
+  val MYSQL_EXPLAIN_PERMISSION_DENIED  = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"
+  val MYSQL_STATEMENT_CLOSED           = "No operations allowed after statement closed."
+  val MYSQL_ILLEGAL_MIX_OF_COLLATIONS  = "Illegal mix of collations"
+  val MYSQL_VIEW_INVALID_REFERENCE_BEG = "View"
+  val MYSQL_VIEW_INVALID_REFERENCE_END =
+    "references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them"
+  val MYSQL_CONNECTION_HOST_ERROR = "Can't connect to MySQL server on"
+  val MYSQL_LOCK_WAIT_TIMEOUT     = "Lock wait timeout exceeded; try restarting transaction"
 
   protected def handleNotExistingTable[T](
       table: String
@@ -41,7 +44,7 @@ trait MySqlErrorHandling {
       AccessDeniedError(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if isTransientDbError(ex.getMessage) =>
       TransientDbError(getErrorMessage(ex)).withCause(ex)
-    case ex: SQLException if ex.getMessage.startsWith(MYSQL_ILLEGAL_MIX_OF_COLLATIONS) =>
+    case ex: SQLException if isSyntaxError(ex.getMessage) =>
       SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if ex.getMessage.contains(MYSQL_CONNECTION_HOST_ERROR) =>
       ConnectionTimeout(getErrorMessage(ex)).withCause(ex)
@@ -49,6 +52,11 @@ trait MySqlErrorHandling {
 
   private def isTransientDbError(message: String): Boolean =
     List(MYSQL_STATEMENT_CLOSED, MYSQL_LOCK_WAIT_TIMEOUT).exists(message.contains)
+
+  private def isSyntaxError(message: String): Boolean = {
+    message.startsWith(MYSQL_ILLEGAL_MIX_OF_COLLATIONS) ||
+    (message.startsWith(MYSQL_VIEW_INVALID_REFERENCE_BEG) && message.endsWith(MYSQL_VIEW_INVALID_REFERENCE_END))
+  }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
     (errorHandler orElse default) andThen Left.apply

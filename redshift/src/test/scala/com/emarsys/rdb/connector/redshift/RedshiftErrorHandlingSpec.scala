@@ -22,7 +22,12 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
     ("57014", "query cancelled", QueryTimeout("query cancelled")),
     ("42601", "sql syntax error", SqlSyntaxError("sql syntax error")),
     ("42501", "permission denied", AccessDeniedError("permission denied")),
-    ("42P01", "relation not found", TableNotFound("relation not found"))
+    ("42P01", "relation not found", TableNotFound("relation not found")),
+    (
+      "42702",
+      "[Amazon](500310) Invalid operation: column reference \"seller_id\" is ambiguous;",
+      SqlSyntaxError("[Amazon](500310) Invalid operation: column reference \"seller_id\" is ambiguous;")
+    )
   )
 
   val possibleConnectionErrors = Seq(

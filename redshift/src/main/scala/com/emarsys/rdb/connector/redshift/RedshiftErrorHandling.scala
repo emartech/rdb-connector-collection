@@ -10,11 +10,12 @@ import com.emarsys.rdb.connector.common.models.Errors._
 trait RedshiftErrorHandling {
   import ErrorConverter._
 
-  val REDSHIFT_STATE_GENERAL_ERROR      = "HY000"
-  val REDSHIFT_STATE_QUERY_CANCELLED    = "57014"
-  val REDSHIFT_STATE_SYNTAX_ERROR       = "42601"
-  val REDSHIFT_STATE_PERMISSION_DENIED  = "42501"
-  val REDSHIFT_STATE_RELATION_NOT_FOUND = "42P01"
+  val REDSHIFT_STATE_GENERAL_ERROR        = "HY000"
+  val REDSHIFT_STATE_QUERY_CANCELLED      = "57014"
+  val REDSHIFT_STATE_SYNTAX_ERROR         = "42601"
+  val REDSHIFT_STATE_AMBIGUOUS_COLUMN_REF = "42702"
+  val REDSHIFT_STATE_PERMISSION_DENIED    = "42501"
+  val REDSHIFT_STATE_RELATION_NOT_FOUND   = "42P01"
 
   val REDSHIFT_MESSAGE_CONNECTION_TIMEOUT = "Connection is not available, request timed out after"
   val REDSHIFT_MESSAGE_TCP_SOCKET_TIMEOUT = "The TCP Socket has timed out while waiting for response"
@@ -39,6 +40,8 @@ trait RedshiftErrorHandling {
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_QUERY_CANCELLED =>
       QueryTimeout(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_SYNTAX_ERROR =>
+      SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
+    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_AMBIGUOUS_COLUMN_REF =>
       SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_PERMISSION_DENIED =>
       AccessDeniedError(getErrorMessage(ex)).withCause(ex)

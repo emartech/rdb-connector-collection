@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.mysql
 
-import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionException}
+import java.sql.{SQLException, SQLSyntaxErrorException}
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
@@ -13,6 +13,7 @@ trait MySqlErrorHandling {
 
   val MYSQL_EXPLAIN_PERMISSION_DENIED  = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"
   val MYSQL_STATEMENT_CLOSED           = "No operations allowed after statement closed."
+  val MYSQL_CONNECTION_CLOSED          = "No operations allowed after connection closed."
   val MYSQL_ILLEGAL_MIX_OF_COLLATIONS  = "Illegal mix of collations"
   val MYSQL_VIEW_INVALID_REFERENCE_BEG = "View"
   val MYSQL_VIEW_INVALID_REFERENCE_END =
@@ -51,7 +52,7 @@ trait MySqlErrorHandling {
   }
 
   private def isTransientDbError(message: String): Boolean =
-    List(MYSQL_STATEMENT_CLOSED, MYSQL_LOCK_WAIT_TIMEOUT).exists(message.contains)
+    List(MYSQL_STATEMENT_CLOSED, MYSQL_LOCK_WAIT_TIMEOUT, MYSQL_CONNECTION_CLOSED).exists(message.contains)
 
   private def isSyntaxError(message: String): Boolean = {
     message.startsWith(MYSQL_ILLEGAL_MIX_OF_COLLATIONS) ||

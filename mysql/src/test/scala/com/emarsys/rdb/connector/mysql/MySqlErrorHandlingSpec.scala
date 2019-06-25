@@ -65,6 +65,12 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
       shouldBeWithCause(eitherErrorHandler().apply(e), TransientDbError(msg), e)
     }
 
+    "convert connection closed exception to TransientDbError if the message implies that" in new MySqlErrorHandling {
+      val msg = "No operations allowed after connection closed."
+      val e   = new SQLException(msg)
+      shouldBeWithCause(eitherErrorHandler().apply(e), TransientDbError(msg), e)
+    }
+
     "convert lock wait timeout exception to TransientDbError if the message implies that" in new MySqlErrorHandling {
       val msg = "Lock wait timeout exceeded; try restarting transaction"
       val e = new SQLException(

@@ -65,15 +65,15 @@ class RawSelectItSpecSpec extends TestKit(ActorSystem()) with RawSelectItSpec wi
     )
   )
 
-  when(connector.validateRawSelect(simpleSelect)).thenReturn(Future(Right()))
+  when(connector.validateRawSelect(simpleSelect)).thenReturn(Future(Right(())))
 
   when(connector.validateRawSelect(badSimpleSelect)).thenReturn(Future(Left(ErrorWithMessage("bad query"))))
 
-  when(connector.validateRawSelect(simpleSelectNoSemicolon)).thenReturn(Future(Right()))
+  when(connector.validateRawSelect(simpleSelectNoSemicolon)).thenReturn(Future(Right(())))
 
-  when(connector.validateProjectedRawSelect(simpleSelect, Seq("A1"))).thenReturn(Future(Right()))
+  when(connector.validateProjectedRawSelect(simpleSelect, Seq("A1"))).thenReturn(Future(Right(())))
 
-  when(connector.validateProjectedRawSelect(simpleSelectNoSemicolon, Seq("A1"))).thenReturn(Future(Right()))
+  when(connector.validateProjectedRawSelect(simpleSelectNoSemicolon, Seq("A1"))).thenReturn(Future(Right(())))
 
   when(connector.validateProjectedRawSelect(simpleSelect, Seq("NONEXISTENT_COLUMN")))
     .thenReturn(Future(Left(ErrorWithMessage("bad query"))))

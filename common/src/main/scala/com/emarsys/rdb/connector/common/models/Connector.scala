@@ -8,7 +8,10 @@ import com.emarsys.rdb.connector.common.defaults.{
   GroupWithLimitStage
 }
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
-import com.emarsys.rdb.connector.common.models.Errors.{FailedValidation, SimpleSelectIsNotGroupableFormat}
+import com.emarsys.rdb.connector.common.models.Errors.{
+  FailedValidation,
+  SimpleSelectIsNotGroupableFormat
+}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors._
 import com.emarsys.rdb.connector.common.{ConnectorResponse, notImplementedOperation}
@@ -18,7 +21,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait Connector {
 
-  private val validator = new DataManipulationValidator(RawDataValidator)
+  protected val validator = new DataManipulationValidator(RawDataValidator)
 
   implicit val executionContext: ExecutionContext
   protected val fieldValueConverters: FieldValueConverters       = DefaultFieldValueConverters
@@ -186,7 +189,7 @@ trait Connector {
     validationFn(tableName, data, this).flatMap {
       case Right(ValidationResult.Valid) => executionFn(tableName, data)
       case Right(failedValidationResult) => Future.successful(Left(FailedValidation(failedValidationResult)))
-      case Left(ex)                      => Future.successful(Left(Errors.ErrorWithMessage(ex.getMessage)))
+      case Left(ex)                      => Future.successful(Left(ex))
     }
   }
 

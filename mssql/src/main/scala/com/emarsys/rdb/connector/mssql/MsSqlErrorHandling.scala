@@ -45,10 +45,13 @@ trait MsSqlErrorHandling {
       ConnectionError(ex).withCause(ex)
   }
 
+  protected def onDuplicateKey[T](default: => T): PartialFunction[Throwable, T] = {
+    case ex: SQLServerException if ex.getSQLState == MSSQL_DUPLICATE_PRIMARY_KEY => default
+  }
+
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
     (errorHandler orElse ErrorConverter.default) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
     (errorHandler orElse ErrorConverter.default) andThen Source.failed
-
 }

@@ -13,6 +13,10 @@ import scala.concurrent.Future
 trait MsSqlRawDataManipulation {
   self: MsSqlConnector =>
 
+  import cats.instances.list._
+  import cats.instances.future._
+  import cats.syntax.traverse._
+
   override def rawUpdate(tableName: String, definitions: Seq[UpdateDefinition]): ConnectorResponse[Int] = {
     if (definitions.isEmpty) {
       Future.successful(Right(0))
@@ -38,9 +42,20 @@ trait MsSqlRawDataManipulation {
     } else {
       db.run(sqlu"#${createInsertQuery(tableName, definitions)}")
         .map(result => Right(result))
+        .recoverWith(onDuplicateKey(insertOneByOne(tableName, definitions)))
         .recover(eitherErrorHandler())
     }
   }
+
+  private def insertOneByOne(tableName: String, definitions: Seq[Record]): ConnectorResponse[Int] =
+    definitions
+      .map(List(_))
+      .toList
+      .traverse { record =>
+        db.run(sqlu"#${createInsertQuery(tableName, record)}")
+          .recover(onDuplicateKey(0))
+      }
+      .map(affectedRows => Right(affectedRows.sum))
 
   override def rawDelete(tableName: String, criteria: Seq[Criteria]): ConnectorResponse[Int] = {
     if (criteria.isEmpty) {

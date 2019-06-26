@@ -16,6 +16,7 @@ trait MsSqlErrorHandling {
   val MSSQL_STATE_SHOWPLAN_PERMISSION_DENIED = "S0004"
   val MSSQL_STATE_PERMISSION_DENIED          = "S0005"
   val MSSQL_STATE_INVALID_OBJECT_NAME        = "S0002"
+  val MSSQL_DUPLICATE_PRIMARY_KEY            = "23000"
 
   val MSSQL_BAD_HOST_ERROR = "08S01"
 
@@ -29,6 +30,8 @@ trait MsSqlErrorHandling {
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_QUERY_CANCELLED =>
       QueryTimeout(getErrorMessage(ex)).withCause(ex)
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SYNTAX_ERROR =>
+      SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
+    case ex: SQLServerException if ex.getSQLState == MSSQL_DUPLICATE_PRIMARY_KEY =>
       SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_PERMISSION_DENIED =>
       AccessDeniedError(getErrorMessage(ex)).withCause(ex)

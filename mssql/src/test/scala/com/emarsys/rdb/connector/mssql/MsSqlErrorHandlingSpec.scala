@@ -13,7 +13,8 @@ class MsSqlErrorHandlingSpec extends WordSpecLike with Matchers with MockitoSuga
     ("HY008", "query cancelled", QueryTimeout("msg")),
     ("S0001", "sql syntax error", SqlSyntaxError("msg")),
     ("S0005", "permission denied", AccessDeniedError("msg")),
-    ("S0002", "invalid object name", TableNotFound("msg"))
+    ("S0002", "invalid object name", TableNotFound("msg")),
+    ("23000", "duplicate key in object", SqlSyntaxError("msg"))
   )
 
   val possibleConnectionErrors = Seq(

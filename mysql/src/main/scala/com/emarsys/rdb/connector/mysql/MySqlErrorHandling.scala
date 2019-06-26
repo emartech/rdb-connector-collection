@@ -20,6 +20,7 @@ trait MySqlErrorHandling {
     "references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them"
   val MYSQL_CONNECTION_HOST_ERROR = "Can't connect to MySQL server on"
   val MYSQL_LOCK_WAIT_TIMEOUT     = "Lock wait timeout exceeded; try restarting transaction"
+  val MYSQL_READONLY              = "The MySQL server is running with the --read-only option"
 
   protected def handleNotExistingTable[T](
       table: String
@@ -52,7 +53,9 @@ trait MySqlErrorHandling {
   }
 
   private def isTransientDbError(message: String): Boolean =
-    List(MYSQL_STATEMENT_CLOSED, MYSQL_LOCK_WAIT_TIMEOUT, MYSQL_CONNECTION_CLOSED).exists(message.contains)
+    List(MYSQL_STATEMENT_CLOSED, MYSQL_LOCK_WAIT_TIMEOUT, MYSQL_CONNECTION_CLOSED, MYSQL_READONLY).exists(
+      message.contains
+    )
 
   private def isSyntaxError(message: String): Boolean = {
     message.startsWith(MYSQL_ILLEGAL_MIX_OF_COLLATIONS) ||

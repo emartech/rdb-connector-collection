@@ -71,6 +71,12 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
       shouldBeWithCause(eitherErrorHandler().apply(e), TransientDbError(msg), e)
     }
 
+    "convert exceptions raised because of a read-only master to TransientDbError" in new MySqlErrorHandling {
+      val msg = "The MySQL server is running with the --read-only option so it cannot execute this statement"
+      val e   = new SQLException(msg)
+      shouldBeWithCause(eitherErrorHandler().apply(e), TransientDbError(msg), e)
+    }
+
     "convert lock wait timeout exception to TransientDbError if the message implies that" in new MySqlErrorHandling {
       val msg = "Lock wait timeout exceeded; try restarting transaction"
       val e = new SQLException(

@@ -1,9 +1,7 @@
 package com.emarsys.rdb.connector.test
 
-import akka.NotUsed
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.scaladsl.Sink
 import akka.stream.Materializer
-import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Connector
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
@@ -84,11 +82,11 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
 
     "#validateProjectedRawSelect" should {
       "return ok if ok" in {
-        Await.result(connector.validateProjectedRawSelect(simpleSelect, Seq("A1")), awaitTimeout) shouldBe Right()
+        Await.result(connector.validateProjectedRawSelect(simpleSelect, Seq("A1")), awaitTimeout) shouldBe Right(())
       }
 
       "return ok if no ; in query" in {
-        Await.result(connector.validateProjectedRawSelect(simpleSelectNoSemicolon, Seq("A1")), awaitTimeout) shouldBe Right()
+        Await.result(connector.validateProjectedRawSelect(simpleSelectNoSemicolon, Seq("A1")), awaitTimeout) shouldBe Right(())
       }
 
       "return error if not ok" in {
@@ -100,12 +98,12 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
 
     "#validateRawSelect" should {
       "return ok if ok" in {
-        Await.result(connector.validateRawSelect(simpleSelect), awaitTimeout) shouldBe Right()
+        Await.result(connector.validateRawSelect(simpleSelect), awaitTimeout) shouldBe Right(())
       }
 
       "return ok if no ; in query" in {
 
-        Await.result(connector.validateRawSelect(simpleSelectNoSemicolon), awaitTimeout) shouldBe Right()
+        Await.result(connector.validateRawSelect(simpleSelectNoSemicolon), awaitTimeout) shouldBe Right(())
       }
 
       "return error if not ok" in {

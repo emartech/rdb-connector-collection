@@ -1,13 +1,10 @@
 package com.emarsys.rdb.connector.test
 
-import akka.NotUsed
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Sink, Source}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
 /*

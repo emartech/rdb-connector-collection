@@ -10,15 +10,7 @@ object Dependencies {
   val akkaHttpVersion = "10.0.7"
   val catsCoreVersion = "1.6.0"
 
-  val Common = Seq(
-    libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-stream"          % akkaVersion,
-      "org.typelevel"     %% "cats-core"            % catsCoreVersion,
-      "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion % Test,
-      "org.scalatest"     %% "scalatest"            % "3.0.1" % Test,
-      "org.mockito"       % "mockito-core"          % "2.28.2" % Test,
-      "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.7" % Test
-    ),
+  val scala = Seq(
     scalaVersion := ScalaVersion,
     scalacOptions ++= Seq(
       "-encoding",
@@ -35,10 +27,20 @@ object Dependencies {
       "-Xfuture",
       "-target:jvm-1.8"
     )
-    //scalafmtOnCompile := true,
   )
 
-  val ConnectorTest = Seq(
+  val Common = scala ++ Seq(
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" %% "akka-stream"          % akkaVersion,
+      "org.typelevel"     %% "cats-core"            % catsCoreVersion,
+      "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion % Test,
+      "org.scalatest"     %% "scalatest"            % "3.0.1" % Test,
+      "org.mockito"       % "mockito-core"          % "2.28.2" % Test,
+      "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.7" % Test
+    )
+  )
+
+  val ConnectorTest = scala ++ Seq(
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion,
       "org.scalatest"     %% "scalatest"            % "3.0.1",

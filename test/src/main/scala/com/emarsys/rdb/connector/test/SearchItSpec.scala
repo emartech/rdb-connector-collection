@@ -1,9 +1,6 @@
 package com.emarsys.rdb.connector.test
 
-import akka.NotUsed
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Sink, Source}
-import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{
   BooleanValue,
@@ -13,7 +10,6 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrappe
 }
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
 /*
@@ -60,8 +56,6 @@ trait SearchItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
   def initDb(): Unit
 
   def cleanUpDb(): Unit
-
-  private val headerLineSize = 1
 
   s"SearchItSpec $uuid" when {
 

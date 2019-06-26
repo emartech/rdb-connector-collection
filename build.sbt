@@ -15,6 +15,7 @@ lazy val connectorCollection = project
   .aggregate(connectors: _*)
   .settings(Test / fork := true)
   .settings(Global / concurrentRestrictions += Tags.limit(Tags.Test, 1))
+  .settings(Dependencies.scala)
   .settings(meta: _*)
   .settings(
     publishArtifact := false,

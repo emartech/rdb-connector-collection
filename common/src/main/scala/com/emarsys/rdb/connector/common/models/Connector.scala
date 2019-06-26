@@ -174,19 +174,15 @@ trait Connector {
       limit: Option[Int],
       timeout: FiniteDuration
   ): ConnectorResponse[Source[Seq[String], NotUsed]] = {
-    validator.validateSearchCriteria(tableName, criteria, this).flatMap {
-      case Right(ValidationResult.Valid) => rawSearch(tableName, criteria, limit, timeout)
-      case Right(failedValidationResult) => Future.successful(Left(FailedValidation(failedValidationResult)))
-      case Left(ex)                      => Future.successful(Left(Errors.ErrorWithMessage(ex.getMessage)))
-    }
+    validateAndExecute(validator.validateSearchCriteria, tableName, rawSearch(_, _, limit, timeout), criteria)
   }
 
-  private def validateAndExecute[T](
-      validationFn: (String, Seq[T], Connector) => ConnectorResponse[ValidationResult],
+  private def validateAndExecute[A, C](
+      validationFn: (String, C, Connector) => ConnectorResponse[ValidationResult],
       tableName: String,
-      executionFn: (String, Seq[T]) => ConnectorResponse[Int],
-      data: Seq[T]
-  ) = {
+      executionFn: (String, C) => ConnectorResponse[A],
+      data: C
+  ): ConnectorResponse[A] = {
     validationFn(tableName, data, this).flatMap {
       case Right(ValidationResult.Valid) => executionFn(tableName, data)
       case Right(failedValidationResult) => Future.successful(Left(FailedValidation(failedValidationResult)))

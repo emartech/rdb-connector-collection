@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.common
 
-import com.emarsys.rdb.connector.common.models.{CommonConnectionReadableData, ConnectionConfig}
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig}
 import org.scalatest.{Matchers, WordSpecLike}
 import spray.json._
 

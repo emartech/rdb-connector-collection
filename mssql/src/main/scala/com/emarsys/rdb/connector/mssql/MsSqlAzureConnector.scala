@@ -4,7 +4,7 @@ import java.util.UUID
 
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.{ConnectionConfigError, ConnectionError}
-import com.emarsys.rdb.connector.common.models.{CommonConnectionReadableData, ConnectionConfig}
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig}
 import com.emarsys.rdb.connector.mssql.MsSqlAzureConnector.{
   AzureMsSqlPort,
   MsSqlAzureConnectionConfig,

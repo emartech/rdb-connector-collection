@@ -7,8 +7,9 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.util.Timeout
 import com.emarsys.rdb.connector.bigquery.BigQueryConnector.BigQueryConnectionConfig
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
+import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.models.DataManipulation.Criteria
-import com.emarsys.rdb.connector.common.models.{CommonConnectionReadableData, _}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, notImplementedOperation}
 
 import scala.concurrent.duration._

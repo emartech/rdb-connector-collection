@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.common
 
-package object models {
+object Models {
 
   case class CommonConnectionReadableData(`type`: String, location: String, dataset: String, user: String)
 

@@ -6,7 +6,8 @@ import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.ConnectionConfigError
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
-import com.emarsys.rdb.connector.common.models.{CommonConnectionReadableData, ConnectionConfig, MetaData, _}
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData, _}
+import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.redshift.RedshiftConnector.{RedshiftConnectionConfig, RedshiftConnectorConfig}
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import slick.jdbc.PostgresProfile.api._

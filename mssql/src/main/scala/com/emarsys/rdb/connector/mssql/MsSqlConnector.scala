@@ -5,7 +5,8 @@ import java.util.UUID
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.common.models.Errors.{ConnectionConfigError, ConnectorError}
-import com.emarsys.rdb.connector.common.models.{CommonConnectionReadableData, ConnectionConfig, MetaData, _}
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
+import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.mssql.CertificateUtil.createTrustStoreTempFile
 import com.emarsys.rdb.connector.mssql.MsSqlConnector.{MsSqlConnectionConfig, MsSqlConnectorConfig}
 import com.typesafe.config.ConfigValueFactory.fromAnyRef

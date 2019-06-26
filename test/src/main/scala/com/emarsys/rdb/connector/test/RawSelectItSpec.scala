@@ -86,7 +86,9 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
       }
 
       "return ok if no ; in query" in {
-        Await.result(connector.validateProjectedRawSelect(simpleSelectNoSemicolon, Seq("A1")), awaitTimeout) shouldBe Right(())
+        Await.result(connector.validateProjectedRawSelect(simpleSelectNoSemicolon, Seq("A1")), awaitTimeout) shouldBe Right(
+          ()
+        )
       }
 
       "return error if not ok" in {

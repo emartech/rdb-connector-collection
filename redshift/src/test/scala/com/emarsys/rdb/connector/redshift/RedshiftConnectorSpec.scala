@@ -3,7 +3,7 @@ package com.emarsys.rdb.connector.redshift
 import java.lang.management.ManagementFactory
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.models.MetaData
+import com.emarsys.rdb.connector.common.Models.MetaData
 import com.emarsys.rdb.connector.redshift.RedshiftConnector.RedshiftConnectionConfig
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}

@@ -6,8 +6,8 @@ import java.util.UUID
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
+import com.emarsys.rdb.connector.common.models.Errors.{ConnectionConfigError, ConnectorError}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
-import com.emarsys.rdb.connector.common.models.Errors.ConnectionConfigError
 import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.{PostgreSqlConnectionConfig, PostgreSqlConnectorConfig}
 import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import com.typesafe.config.{Config, ConfigFactory}
@@ -134,7 +134,7 @@ trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHa
       poolName: String,
       config: PostgreSqlConnectionConfig,
       db: Database
-  )(implicit ec: ExecutionContext): EitherT[Future, Errors.ConnectorError, PostgreSqlConnector] = {
+  )(implicit ec: ExecutionContext): EitherT[Future, ConnectorError, PostgreSqlConnector] = {
     EitherT(
       checkConnection(db)
         .as(Right(new PostgreSqlConnector(db, connectorConfig, poolName, createSchemaName(config))))

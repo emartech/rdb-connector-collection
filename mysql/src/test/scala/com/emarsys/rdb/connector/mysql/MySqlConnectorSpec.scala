@@ -4,7 +4,7 @@ import java.lang.management.ManagementFactory
 import java.util.UUID
 
 import com.emarsys.rdb.connector.common.models.Errors.ConnectionTimeout
-import com.emarsys.rdb.connector.common.models.MetaData
+import com.emarsys.rdb.connector.common.Models.MetaData
 import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectionConfig
 import com.mysql.cj.jdbc.exceptions.MySQLTransactionRollbackException
 import com.zaxxer.hikari.HikariPoolMXBean

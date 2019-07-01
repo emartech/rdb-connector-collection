@@ -3,18 +3,25 @@ package com.emarsys.rdb.connector.mssql
 import java.io.{ByteArrayInputStream, File, FileOutputStream}
 import java.security.KeyStore
 import java.security.cert.{Certificate, CertificateFactory}
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.util.Try
 
 object CertificateUtil {
 
-  def createTrustStoreTempFile(certificate: String): Try[String] = {
-    Try {
-      val cert     = createCertificateFromString(certificate)
-      val keyStore = createKeystoreWithCertificate(cert)
-      val filePath = createKeystoreTempFile(keyStore)
+  val certPool: java.util.Map[String, String] = new ConcurrentHashMap[String, String]()
 
-      filePath
+  def createTrustStoreTempFile(certificate: String): Try[String] = {
+    Option(certPool.get(certificate)).map(Try(_)).getOrElse {
+      Try {
+        val cert     = createCertificateFromString(certificate)
+        val keyStore = createKeystoreWithCertificate(cert)
+        val filePath = createKeystoreTempFile(keyStore)
+
+        val path = s"file:$filePath"
+        certPool.put(certificate, path)
+        path
+      }
     }
   }
 

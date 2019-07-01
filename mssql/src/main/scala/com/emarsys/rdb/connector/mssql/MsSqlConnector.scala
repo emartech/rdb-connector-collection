@@ -112,10 +112,8 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
       cert: String
   )(implicit e: ExecutionContext): ConnectorResponseET[String] = {
     EitherT
-      .fromOption[Future](
-        createTrustStoreTempFile(cert),
-        ConnectionConfigError("Wrong SSL cert format"): ConnectorError
-      )
+      .fromEither[Future](createTrustStoreTempFile(cert).toEither)
+      .leftMap(ex => ConnectionConfigError("Wrong SSL cert format").withCause(ex))
   }
 
   private def createMsSqlConnector(connectorConfig: MsSqlConnectorConfig, poolName: String, db: Database)(

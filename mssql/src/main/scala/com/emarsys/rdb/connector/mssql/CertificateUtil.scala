@@ -8,14 +8,14 @@ import scala.util.Try
 
 object CertificateUtil {
 
-  def createTrustStoreTempFile(certificate: String): Option[String] = {
+  def createTrustStoreTempFile(certificate: String): Try[String] = {
     Try {
       val cert     = createCertificateFromString(certificate)
       val keyStore = createKeystoreWithCertificate(cert)
       val filePath = createKeystoreTempFile(keyStore)
 
       filePath
-    }.toOption
+    }
   }
 
   private def createCertificateFromString(certificate: String): Certificate = {

@@ -119,10 +119,8 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
       cert: String
   )(implicit e: ExecutionContext): ConnectorResponseET[String] = {
     EitherT
-      .fromOption[Future](
-        createTrustStoreTempUrl(cert),
-        ConnectionConfigError("Wrong SSL cert format"): ConnectorError
-      )
+      .fromEither[Future](createTrustStoreTempUrl(cert).toEither)
+      .leftMap(ex => ConnectionConfigError("Wrong SSL cert format").withCause(ex))
   }
 
   private def createMySqlConnector(connectorConfig: MySqlConnectorConfig, poolName: String, db: Database)(

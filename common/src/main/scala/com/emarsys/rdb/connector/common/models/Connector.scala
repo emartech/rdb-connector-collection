@@ -87,7 +87,7 @@ trait Connector {
       timeout: FiniteDuration
   ): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     import ValidateGroupLimitableQuery.GroupLimitValidationResult._
-    groupLimitValidator.groupLimitableQueryValidation(select) match {
+    groupLimitValidator.validate(select) match {
       case Simple                => simpleSelect(select.copy(limit = Option(groupLimit)), timeout)
       case Groupable(references) => runSelectWithGroupLimit(select, groupLimit, references, timeout)
       case NotGroupable          => Future.successful(Left(SimpleSelectIsNotGroupableFormat(select.toString)))

@@ -234,7 +234,7 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
     "use simpleSelect if validator choose Simple" in new TestScope {
       var calledWith: Seq[SimpleSelect] = Seq.empty
       val stubbedGroupLimitValidator = new ValidateGroupLimitableQuery {
-        override def groupLimitableQueryValidation(
+        override def validate(
             simpleSelect: SimpleSelect
         ): ValidateGroupLimitableQuery.GroupLimitValidationResult =
           ValidateGroupLimitableQuery.GroupLimitValidationResult.Simple
@@ -256,7 +256,7 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
     "use runSelectWithGroupLimit if validator choose Groupable" in new TestScope {
       var calledWith: Seq[SimpleSelect] = Seq.empty
       val stubbedGroupLimitValidator = new ValidateGroupLimitableQuery {
-        override def groupLimitableQueryValidation(
+        override def validate(
             simpleSelect: SimpleSelect
         ): ValidateGroupLimitableQuery.GroupLimitValidationResult =
           ValidateGroupLimitableQuery.GroupLimitValidationResult.Groupable(Seq.empty)
@@ -280,7 +280,7 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
 
     "drop error if validator choose NotGroupable" in new TestScope {
       val stubbedGroupLimitValidator = new ValidateGroupLimitableQuery {
-        override def groupLimitableQueryValidation(
+        override def validate(
             simpleSelect: SimpleSelect
         ): ValidateGroupLimitableQuery.GroupLimitValidationResult =
           ValidateGroupLimitableQuery.GroupLimitValidationResult.NotGroupable

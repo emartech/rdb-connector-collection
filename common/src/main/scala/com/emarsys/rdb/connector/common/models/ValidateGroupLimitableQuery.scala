@@ -7,34 +7,34 @@ trait ValidateGroupLimitableQuery {
 
   import ValidateGroupLimitableQuery.GroupLimitValidationResult._
 
-  def groupLimitableQueryValidation(simpleSelect: SimpleSelect): GroupLimitValidationResult = {
-    def validateOr(list: Seq[WhereCondition]): GroupLimitValidationResult = {
-      val flatted = list.flatMap {
-        case And(l) => l
-        case x      => Seq(x)
-      }
-      val filtered = flatted.collect {
-        case x: EqualToValue => x
-      }
-      if (filtered.size != flatted.size) {
-        NotGroupable
-      } else {
-        val grouped: Map[String, Seq[EqualToValue]] = filtered.groupBy(_.field.f)
-        val sizes                                   = grouped.map(_._2.size)
-        sizes.headOption.fold[GroupLimitValidationResult](NotGroupable) { head =>
-          if (sizes.forall(_ == head) && head == list.size) {
-            Groupable(grouped.keys.toSeq)
-          } else {
-            NotGroupable
-          }
-        }
-      }
-    }
-
+  def validate(simpleSelect: SimpleSelect): GroupLimitValidationResult = {
     simpleSelect.where.fold[GroupLimitValidationResult](Simple) {
       case Or(list) if list.size < 2 => Simple
       case Or(list)                  => validateOr(list)
       case _                         => Simple
+    }
+  }
+
+  private def validateOr(conditions: Seq[WhereCondition]): GroupLimitValidationResult = {
+    val flattedConditions = conditions.flatMap {
+      case And(l) => l
+      case x      => Seq(x)
+    }
+    val equalTos = flattedConditions.collect {
+      case x: EqualToValue => x
+    }
+    if (equalTos.size != flattedConditions.size) {
+      NotGroupable
+    } else {
+      val groupedEqualTos: Map[String, Seq[EqualToValue]] = equalTos.groupBy(_.field.f)
+      val sizes                                           = groupedEqualTos.map(_._2.size)
+      sizes.headOption.fold[GroupLimitValidationResult](NotGroupable) { firstSize =>
+        if (sizes.forall(_ == firstSize) && firstSize == conditions.size) {
+          Groupable(groupedEqualTos.keys.toSeq)
+        } else {
+          NotGroupable
+        }
+      }
     }
   }
 

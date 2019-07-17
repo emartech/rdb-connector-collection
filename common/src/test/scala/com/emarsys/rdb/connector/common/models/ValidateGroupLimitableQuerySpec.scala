@@ -11,18 +11,18 @@ class ValidateGroupLimitableQuerySpec extends WordSpecLike with Matchers {
 
     "empty where cause => Simple" in {
       val select = SimpleSelect(AllField, TableName("table"))
-      ValidateGroupLimitableQuery.groupLimitableQueryValidation(select) shouldBe Simple
+      ValidateGroupLimitableQuery.validate(select) shouldBe Simple
     }
 
     "non OR where cause => Simple" in {
       val select =
         SimpleSelect(AllField, TableName("table"), Some(And(Seq(NotNull(FieldName("a")), NotNull(FieldName("b"))))))
-      ValidateGroupLimitableQuery.groupLimitableQueryValidation(select) shouldBe Simple
+      ValidateGroupLimitableQuery.validate(select) shouldBe Simple
     }
 
     "badly optimized OR where cause => Simple" in {
       val select = SimpleSelect(AllField, TableName("table"), Some(Or(Seq(NotNull(FieldName("a"))))))
-      ValidateGroupLimitableQuery.groupLimitableQueryValidation(select) shouldBe Simple
+      ValidateGroupLimitableQuery.validate(select) shouldBe Simple
     }
 
     "all OR has the same fields => Groupable" in {
@@ -38,7 +38,7 @@ class ValidateGroupLimitableQuerySpec extends WordSpecLike with Matchers {
           )
         )
       )
-      ValidateGroupLimitableQuery.groupLimitableQueryValidation(select) shouldBe Groupable(Seq("b", "a"))
+      ValidateGroupLimitableQuery.validate(select) shouldBe Groupable(Seq("b", "a"))
     }
 
     "OR has no inner And => Groupable" in {
@@ -54,7 +54,7 @@ class ValidateGroupLimitableQuerySpec extends WordSpecLike with Matchers {
           )
         )
       )
-      ValidateGroupLimitableQuery.groupLimitableQueryValidation(select) shouldBe Groupable(Seq("a"))
+      ValidateGroupLimitableQuery.validate(select) shouldBe Groupable(Seq("a"))
     }
 
     "not all OR has the same fields => NotGroupable" in {
@@ -70,7 +70,7 @@ class ValidateGroupLimitableQuerySpec extends WordSpecLike with Matchers {
           )
         )
       )
-      ValidateGroupLimitableQuery.groupLimitableQueryValidation(select) shouldBe NotGroupable
+      ValidateGroupLimitableQuery.validate(select) shouldBe NotGroupable
 
       val select2 = SimpleSelect(
         AllField,
@@ -86,7 +86,7 @@ class ValidateGroupLimitableQuerySpec extends WordSpecLike with Matchers {
         )
       )
 
-      ValidateGroupLimitableQuery.groupLimitableQueryValidation(select2) shouldBe NotGroupable
+      ValidateGroupLimitableQuery.validate(select2) shouldBe NotGroupable
     }
 
     "OR has non EqualToValue same fields => NotGroupable" in {
@@ -102,7 +102,7 @@ class ValidateGroupLimitableQuerySpec extends WordSpecLike with Matchers {
           )
         )
       )
-      ValidateGroupLimitableQuery.groupLimitableQueryValidation(select) shouldBe NotGroupable
+      ValidateGroupLimitableQuery.validate(select) shouldBe NotGroupable
     }
 
   }

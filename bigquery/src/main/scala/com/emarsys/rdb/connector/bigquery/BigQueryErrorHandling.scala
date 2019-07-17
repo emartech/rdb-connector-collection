@@ -1,7 +1,5 @@
 package com.emarsys.rdb.connector.bigquery
 
-import java.util.concurrent.RejectedExecutionException
-
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.defaults.ErrorConverter

@@ -34,6 +34,10 @@ trait MySqlErrorHandling {
       if (ex.getMessage == "Update statements should not return a ResultSet") {
         SqlSyntaxError("Wrong update statement: non update query given").withCause(ex)
       } else {
+        // TODO: [error-handling] vizsgaljuk meg, hogy ez miert kell, miert nem if guard-al van ez megcsinalva?
+        // tesztek vannak ehhez? a SlickException sehol mashol nincs hasznalva
+        // miert nem engedjuk ezt az agat tovabb?
+        // ugyanez itt is: PostgreSqlErrorHandling
         ErrorWithMessage(getErrorMessage(ex)).withCause(ex)
       }
     case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied") =>

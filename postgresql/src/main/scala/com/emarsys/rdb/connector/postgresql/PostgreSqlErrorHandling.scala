@@ -40,6 +40,8 @@ trait PostgreSqlErrorHandling {
       if (ex.getMessage == "Update statements should not return a ResultSet") {
         SqlSyntaxError("Wrong update statement: non update query given").withCause(ex)
       } else {
+        // TODO: [error-handling] miert nem if guard van? es akkor ez az ag nem kellene
+        // reszletek: MySqlErrorHandling
         ErrorWithMessage(getErrorMessage(ex)).withCause(ex)
       }
     case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out") =>

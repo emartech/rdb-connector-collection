@@ -81,6 +81,21 @@ trait MsSqlAzureConnectorTrait extends MsSqlConnectorHelper {
       }
   }
 
+  // TODO: [error-handling]: a MsSqlConnector-ban igy van:
+//  private def createMsSqlConnector(connectorConfig: MsSqlConnectorConfig, poolName: String, db: Database)(
+//      implicit ec: ExecutionContext
+//  ): ConnectorResponseET[MsSqlConnector] = {
+//    EitherT(
+//      checkConnection(db)
+//        .as(Right(new MsSqlConnector(db, connectorConfig, poolName)))
+//        .recover(eitherErrorHandler())
+//    ).leftMap { connectorError =>
+//      db.shutdown
+//      connectorError
+//    }
+//  }
+  // nem lenne igy jobb? hagyjuk az error kezelest az eitherErrorHandler-re
+
   private def createDbConfig(
       config: MsSqlAzureConnectionConfig,
       poolName: String,

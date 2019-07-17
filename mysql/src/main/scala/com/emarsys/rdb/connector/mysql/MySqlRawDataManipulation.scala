@@ -97,23 +97,23 @@ trait MySqlRawDataManipulation {
   }
 
   override def rawReplaceData(tableName: String, definitions: Seq[Record]): ConnectorResponse[Int] = {
-    val newTableName     = generateTempTableName(tableName)
-    val newTable         = TableName(newTableName).toSql
-    val table            = TableName(tableName).toSql
-    val createTableQuery = sqlu"CREATE TABLE #$newTable LIKE #$table"
-    val dropTableQuery   = sqlu"DROP TABLE IF EXISTS #$newTable"
+    val newTableName = generateTempTableName(tableName)
+    val newTable     = TableName(newTableName).toSql
+    val table        = TableName(tableName).toSql
 
-    db.run(createTableQuery)
-      .flatMap(
-        _ =>
-          rawInsertData(newTableName, definitions).flatMap(
-            insertedCount =>
-              swapTableNames(tableName, newTableName).flatMap(_ => db.run(dropTableQuery).map(_ => insertedCount))
-          )
-      )
-      .recover {
-        case ex => Left(ErrorWithMessage(ex.getMessage).withCause(ex))
-      }
+    // TODO: [error-handling]: ugyanezt itt is: PostgreSqlRawDataManipulation
+
+    val futureResult = for {
+      _             <- db.run(sqlu"CREATE TABLE #$newTable LIKE #$table")
+      insertedCount <- rawInsertData(newTableName, definitions)
+      _             <- swapTableNames(tableName, newTableName)
+      _             <- db.run(sqlu"DROP TABLE IF EXISTS #$newTable")
+    } yield insertedCount
+
+    futureResult.recover {
+      // TODO: [error-handling]: miert nem ez van hasznalva: eitherErrorHandler()?
+      case ex => Left(ErrorWithMessage(ex.getMessage).withCause(ex))
+    }
   }
 
   private def swapTableNames(tableName: String, newTableName: String): Future[Int] = {

@@ -1,16 +1,18 @@
 package com.emarsys.rdb.connector.test
 
+import akka.NotUsed
 import akka.stream.Materializer
-import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.{Sink, Source}
+import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, StringValue}
 import com.emarsys.rdb.connector.common.models.DataManipulation.Record
-import com.emarsys.rdb.connector.common.models.Errors.FailedValidation
+import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, FailedValidation}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.ValidationResult.NonExistingFields
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
 trait ReplaceItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
@@ -76,48 +78,41 @@ trait ReplaceItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach w
 
   val replaceNonExistingFieldFieldData: Seq[Record] = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
 
+  private def await[T](f: Future[T]): T = {
+    Await.result(f, awaitTimeout)
+  }
+
+  private def awaitStream(f: ConnectorResponse[Source[Seq[String], NotUsed]]): Either[ConnectorError, Int] = {
+    Await.result(f, awaitTimeout).map(stream => await(stream.runWith(Sink.seq)).size)
+  }
+
   s"ReplaceSpec $uuid" when {
 
     "#replace" should {
 
       "validation error" in {
-        Await.result(connector.replaceData(tableName, replaceNonExistingFieldFieldData), awaitTimeout) shouldBe Left(
+        await(connector.replaceData(tableName, replaceNonExistingFieldFieldData)) shouldBe Left(
           FailedValidation(NonExistingFields(Set("a")))
         )
       }
 
       "replace successfully with zero record" in {
-        Await.result(connector.replaceData(tableName, Seq.empty), awaitTimeout) shouldBe Right(0)
-        Await
-          .result(connector.simpleSelect(simpleSelectAllWithExpectedResultSize(0), queryTimeout), awaitTimeout)
-          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(0)
+        await(connector.replaceData(tableName, Seq.empty)) shouldBe Right(0)
+        awaitStream(connector.simpleSelect(simpleSelectAllWithExpectedResultSize(0), queryTimeout)) shouldBe Right(0)
       }
 
       "replace successfully with one record" in {
-        Await.result(connector.replaceData(tableName, replaceSingleData), awaitTimeout) shouldBe Right(1)
-        Await
-          .result(connector.simpleSelect(simpleSelectAllWithExpectedResultSize(2), queryTimeout), awaitTimeout)
-          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
-        Await
-          .result(connector.simpleSelect(simpleSelect, queryTimeout), awaitTimeout)
-          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
+        await(connector.replaceData(tableName, replaceSingleData)) shouldBe Right(1)
+        awaitStream(connector.simpleSelect(simpleSelectAllWithExpectedResultSize(2), queryTimeout)) shouldBe Right(2)
+        awaitStream(connector.simpleSelect(simpleSelect, queryTimeout)) shouldBe Right(2)
       }
 
       "replace successfully with more records" in {
-        Await.result(connector.replaceData(tableName, replaceMultipleData), awaitTimeout) shouldBe Right(3)
-        Await
-          .result(connector.simpleSelect(simpleSelectAllWithExpectedResultSize(4), queryTimeout), awaitTimeout)
-          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(4)
-        Await
-          .result(connector.simpleSelect(simpleSelectT, queryTimeout), awaitTimeout)
-          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
-        Await
-          .result(connector.simpleSelect(simpleSelectF, queryTimeout), awaitTimeout)
-          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
-        Await
-          .result(connector.simpleSelect(simpleSelectT2, queryTimeout), awaitTimeout)
-          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2)
-
+        await(connector.replaceData(tableName, replaceMultipleData)) shouldBe Right(3)
+        awaitStream(connector.simpleSelect(simpleSelectAllWithExpectedResultSize(4), queryTimeout)) shouldBe Right(4)
+        awaitStream(connector.simpleSelect(simpleSelectT, queryTimeout)) shouldBe Right(2)
+        awaitStream(connector.simpleSelect(simpleSelectF, queryTimeout)) shouldBe Right(2)
+        awaitStream(connector.simpleSelect(simpleSelectT2, queryTimeout)) shouldBe Right(2)
       }
     }
   }

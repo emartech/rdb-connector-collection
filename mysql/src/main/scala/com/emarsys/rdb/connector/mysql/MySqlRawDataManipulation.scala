@@ -101,8 +101,6 @@ trait MySqlRawDataManipulation {
     val newTable     = TableName(newTableName).toSql
     val table        = TableName(tableName).toSql
 
-    // TODO: [error-handling]: ugyanezt itt is: PostgreSqlRawDataManipulation
-
     val futureResult = for {
       _             <- db.run(sqlu"CREATE TABLE #$newTable LIKE #$table")
       insertedCount <- rawInsertData(newTableName, definitions)

@@ -70,18 +70,15 @@ trait PostgreSqlRawDataManipulation {
     val newTableName     = generateTempTableName(tableName)
     val newTable         = TableName(newTableName).toSql
     val table            = TableName(tableName).toSql
-    val createTableQuery = sqlu"CREATE TABLE #$newTable ( LIKE #$table INCLUDING DEFAULTS )"
-    val dropTableQuery   = sqlu"DROP TABLE IF EXISTS #$newTable"
 
-    db.run(createTableQuery)
-      .flatMap(
-        _ =>
-          rawInsertData(newTableName, definitions).flatMap(
-            insertedCount =>
-              swapTableNames(tableName, newTableName).flatMap(_ => db.run(dropTableQuery).map(_ => insertedCount))
-          )
-      )
-      .recover(eitherErrorHandler())
+    val futureResult = for {
+      _ <- db.run(sqlu"CREATE TABLE #$newTable ( LIKE #$table INCLUDING DEFAULTS )")
+      insertedCount <- rawInsertData(newTableName, definitions)
+      _ <- swapTableNames(tableName, newTableName)
+      _ <- db.run(sqlu"DROP TABLE IF EXISTS #$newTable")
+    } yield insertedCount
+
+    futureResult.recover(eitherErrorHandler())
   }
 
   private def swapTableNames(tableName: String, newTableName: String): Future[Seq[Int]] = {

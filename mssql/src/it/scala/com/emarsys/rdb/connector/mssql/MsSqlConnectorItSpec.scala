@@ -23,14 +23,16 @@ class MsSqlConnectorItSpec
   implicit val mat      = ActorMaterializer()
   override def afterAll = TestKit.shutdownActorSystem(system)
 
-  "MySqlConnectorItSpec" when {
+  private val timeout = 10.seconds
+
+  "MsSqlConnectorItSpec" when {
 
     val testConnection = TestHelper.TEST_CONNECTION_CONFIG
 
     "create connector" should {
 
       "connect success" in {
-        val connectorEither = Await.result(MsSqlConnector.create(testConnection), 5.seconds)
+        val connectorEither = Await.result(MsSqlConnector.create(testConnection), timeout)
 
         connectorEither shouldBe a[Right[_, _]]
 
@@ -39,7 +41,7 @@ class MsSqlConnectorItSpec
 
       "connect fail when wrong host" in {
         val conn            = testConnection.copy(host = "wrong")
-        val connectorEither = Await.result(MsSqlConnector.create(conn), 5.seconds)
+        val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
 
         connectorEither shouldBe a[Left[_, _]]
         connectorEither.left.get shouldBe a[ConnectionError]
@@ -47,7 +49,7 @@ class MsSqlConnectorItSpec
 
       "connect fail when wrong user" in {
         val conn            = testConnection.copy(dbUser = "")
-        val connectorEither = Await.result(MsSqlConnector.create(conn), 5.seconds)
+        val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
 
         connectorEither shouldBe a[Left[_, _]]
         connectorEither.left.get shouldBe an[ConnectionTimeout]
@@ -55,7 +57,7 @@ class MsSqlConnectorItSpec
 
       "connect fail when wrong password" in {
         val conn            = testConnection.copy(dbPassword = "")
-        val connectorEither = Await.result(MsSqlConnector.create(conn), 5.seconds)
+        val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
 
         connectorEither shouldBe a[Left[_, _]]
         connectorEither.left.get shouldBe an[ConnectionTimeout]
@@ -63,14 +65,14 @@ class MsSqlConnectorItSpec
 
       "connect fail when wrong certificate" in {
         val conn            = testConnection.copy(certificate = "")
-        val connectorEither = Await.result(MsSqlConnector.create(conn), 5.seconds)
+        val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
 
         connectorEither shouldBe Left(ConnectionConfigError("Wrong SSL cert format"))
       }
 
       "connect fail when ssl disabled" in {
         val conn            = testConnection.copy(connectionParams = "encrypt=false")
-        val connectorEither = Await.result(MsSqlConnector.create(conn), 5.seconds)
+        val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
 
         connectorEither shouldBe Left(ConnectionConfigError("SSL Error"))
       }
@@ -80,13 +82,13 @@ class MsSqlConnectorItSpec
     "test connection" should {
 
       "success" in {
-        val connectorEither = Await.result(MsSqlConnector.create(testConnection), 5.seconds)
+        val connectorEither = Await.result(MsSqlConnector.create(testConnection), timeout)
 
         connectorEither shouldBe a[Right[_, _]]
 
         val connector = connectorEither.right.get
 
-        val result = Await.result(connector.testConnection(), 5.seconds)
+        val result = Await.result(connector.testConnection(), timeout)
 
         result shouldBe a[Right[_, _]]
 

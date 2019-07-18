@@ -3,8 +3,8 @@ package com.emarsys.rdb.connector.mssql
 import java.util.UUID
 
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectionConfigError, ConnectionError}
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig}
+import com.emarsys.rdb.connector.common.models.Errors.ConnectionConfigError
 import com.emarsys.rdb.connector.mssql.MsSqlAzureConnector.{
   AzureMsSqlPort,
   MsSqlAzureConnectionConfig,
@@ -41,7 +41,7 @@ object MsSqlAzureConnector extends MsSqlAzureConnectorTrait {
   }
 }
 
-trait MsSqlAzureConnectorTrait extends MsSqlConnectorHelper {
+trait MsSqlAzureConnectorTrait extends MsSqlErrorHandling with MsSqlConnectorHelper {
   import cats.instances.future._
   import cats.syntax.functor._
 
@@ -77,24 +77,9 @@ trait MsSqlAzureConnectorTrait extends MsSqlConnectorHelper {
       .recover {
         case ex =>
           db.shutdown
-          Left(ConnectionError(ex).withCause(ex))
+          eitherErrorHandler().apply(ex)
       }
   }
-
-  // TODO: [error-handling]: a MsSqlConnector-ban igy van:
-//  private def createMsSqlConnector(connectorConfig: MsSqlConnectorConfig, poolName: String, db: Database)(
-//      implicit ec: ExecutionContext
-//  ): ConnectorResponseET[MsSqlConnector] = {
-//    EitherT(
-//      checkConnection(db)
-//        .as(Right(new MsSqlConnector(db, connectorConfig, poolName)))
-//        .recover(eitherErrorHandler())
-//    ).leftMap { connectorError =>
-//      db.shutdown
-//      connectorError
-//    }
-//  }
-  // nem lenne igy jobb? hagyjuk az error kezelest az eitherErrorHandler-re
 
   private def createDbConfig(
       config: MsSqlAzureConnectionConfig,

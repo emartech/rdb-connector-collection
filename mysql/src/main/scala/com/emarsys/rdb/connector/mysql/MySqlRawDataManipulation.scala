@@ -4,7 +4,6 @@ import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, FieldValueWrapper, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.NullValue
-import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.mysql.MySqlWriters._
 import slick.jdbc.MySQLProfile.api._
@@ -108,10 +107,7 @@ trait MySqlRawDataManipulation {
       _             <- db.run(sqlu"DROP TABLE IF EXISTS #$newTable")
     } yield insertedCount
 
-    futureResult.recover {
-      // TODO: [error-handling]: miert nem ez van hasznalva: eitherErrorHandler()?
-      case ex => Left(ErrorWithMessage(ex.getMessage).withCause(ex))
-    }
+    futureResult.recover(eitherErrorHandler())
   }
 
   private def swapTableNames(tableName: String, newTableName: String): Future[Int] = {

@@ -67,15 +67,15 @@ trait PostgreSqlRawDataManipulation {
   }
 
   override def rawReplaceData(tableName: String, definitions: Seq[Record]): ConnectorResponse[Int] = {
-    val newTableName     = generateTempTableName(tableName)
-    val newTable         = TableName(newTableName).toSql
-    val table            = TableName(tableName).toSql
+    val newTableName = generateTempTableName(tableName)
+    val newTable     = TableName(newTableName).toSql
+    val table        = TableName(tableName).toSql
 
     val futureResult = for {
-      _ <- db.run(sqlu"CREATE TABLE #$newTable ( LIKE #$table INCLUDING DEFAULTS )")
+      _             <- db.run(sqlu"CREATE TABLE #$newTable ( LIKE #$table INCLUDING DEFAULTS )")
       insertedCount <- rawInsertData(newTableName, definitions)
-      _ <- swapTableNames(tableName, newTableName)
-      _ <- db.run(sqlu"DROP TABLE IF EXISTS #$newTable")
+      _             <- swapTableNames(tableName, newTableName)
+      _             <- db.run(sqlu"DROP TABLE IF EXISTS #$newTable")
     } yield insertedCount
 
     futureResult.recover(eitherErrorHandler())

@@ -36,14 +36,8 @@ trait PostgreSqlErrorHandling {
   )
 
   private def errorHandler(): PartialFunction[Throwable, ConnectorError] = {
-    case ex: slick.SlickException =>
-      if (ex.getMessage == "Update statements should not return a ResultSet") {
-        SqlSyntaxError("Wrong update statement: non update query given").withCause(ex)
-      } else {
-        // TODO: [error-handling] miert nem if guard van? es akkor ez az ag nem kellene
-        // reszletek: MySqlErrorHandling
-        ErrorWithMessage(getErrorMessage(ex)).withCause(ex)
-      }
+    case ex: slick.SlickException if ex.getMessage == "Update statements should not return a ResultSet" =>
+      SqlSyntaxError("Wrong update statement: non update query given").withCause(ex)
     case ex: SQLTransientConnectionException if ex.getMessage.contains("timed out") =>
       ConnectionTimeout(ex.getMessage).withCause(ex)
     case ex: SQLException if ex.getSQLState == PSQL_STATE_QUERY_CANCELLED =>

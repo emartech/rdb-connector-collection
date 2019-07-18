@@ -6,9 +6,12 @@ import com.emarsys.rdb.connector.common.models.Errors._
 import org.postgresql.util.{PSQLException, PSQLState}
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.{Matchers, WordSpec}
+import slick.SlickException
 
 class PostgreSqlErrorHandlingSpec extends WordSpec with Matchers with TableDrivenPropertyChecks {
 
+  private val slickExceptionWrongUpdate          = new SlickException("Update statements should not return a ResultSet")
+  private val slickExceptionUnknown              = new SlickException("Unknown")
   private val queryTimeoutException              = new SQLException("msg", "57014")
   private val syntaxErrorException               = new PSQLException("msg", PSQLState.SYNTAX_ERROR)
   private val columnNotFoundException            = new SQLException("msg", "42703")
@@ -24,6 +27,12 @@ class PostgreSqlErrorHandlingSpec extends WordSpec with Matchers with TableDrive
 
   private val testCases = Table(
     ("database error", "sqlException", "clientError"),
+    (
+      "SlickException with wrong update statement",
+      slickExceptionWrongUpdate,
+      SqlSyntaxError("Wrong update statement: non update query given")
+    ),
+    ("unknown SlickExceptions", slickExceptionUnknown, ErrorWithMessage(slickExceptionUnknown.getMessage)),
     ("query timeout", queryTimeoutException, QueryTimeout(queryTimeoutException.getMessage)),
     ("syntax error", syntaxErrorException, SqlSyntaxError(syntaxErrorException.getMessage)),
     ("column not found error", columnNotFoundException, SqlSyntaxError(columnNotFoundException.getMessage)),

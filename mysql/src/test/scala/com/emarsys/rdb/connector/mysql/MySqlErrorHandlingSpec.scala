@@ -6,6 +6,7 @@ import com.emarsys.rdb.connector.common.models.Errors._
 import com.mysql.cj.exceptions.MysqlErrorNumbers
 import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
 import org.scalatest.{Matchers, WordSpecLike}
+import slick.SlickException
 
 class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
 
@@ -19,6 +20,22 @@ class MySqlErrorHandlingSpec extends WordSpecLike with Matchers {
   }
 
   "MySqlErrorHandling" should {
+    "convert SlickException with wrong update statement to syntax error" in new MySqlErrorHandling {
+      val msg = "Update statements should not return a ResultSet"
+      val e   = new SlickException(msg)
+      shouldBeWithCause(
+        eitherErrorHandler().apply(e),
+        SqlSyntaxError("Wrong update statement: non update query given"),
+        e
+      )
+    }
+
+    "convert unknown SlickExceptions to ErrorWithMessage" in new MySqlErrorHandling {
+      val msg = "Unknown"
+      val e   = new SlickException(msg)
+      shouldBeWithCause(eitherErrorHandler().apply(e), ErrorWithMessage(msg), e)
+    }
+
     "convert timeout transient sql error to connection timeout error" in new MySqlErrorHandling {
       val msg = "Connection is not available, request timed out after"
       val e   = new SQLTransientConnectionException(msg)

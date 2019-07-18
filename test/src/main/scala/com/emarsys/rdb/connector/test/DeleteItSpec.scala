@@ -24,8 +24,8 @@ trait DeleteItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach wi
   val uuid      = uuidGenerate
   val tableName = s"delete_tables_table_$uuid"
 
-  val awaitTimeout = 5.seconds
-  val queryTimeout = 5.seconds
+  val awaitTimeout = 10.seconds
+  val queryTimeout = 10.seconds
 
   val simpleDeleteCiterion = Seq(Map("A2" -> StringValue("2")))
 

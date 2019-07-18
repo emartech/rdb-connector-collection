@@ -3,10 +3,11 @@ package com.emarsys.rdb.connector.mssql
 import java.util.UUID
 
 import cats.data.EitherT
-import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectionConfigError, ConnectorError}
+import cats.syntax.applicativeError._
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
+import com.emarsys.rdb.connector.common.models.Errors.ConnectionConfigError
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
+import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.mssql.CertificateUtil.createTrustStoreTempFile
 import com.emarsys.rdb.connector.mssql.MsSqlConnector.{MsSqlConnectionConfig, MsSqlConnectorConfig}
 import com.typesafe.config.ConfigValueFactory.fromAnyRef
@@ -123,9 +124,13 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
       checkConnection(db)
         .as(Right(new MsSqlConnector(db, connectorConfig, poolName)))
         .recover(eitherErrorHandler())
-    ).leftMap { connectorError =>
-      db.shutdown
-      connectorError
+    ).onError {
+      case _ =>
+        EitherT.liftF(db.shutdown.recover {
+          case _ =>
+            // we don't have logging here to log the shutdownError
+            ()
+        })
     }
   }
 

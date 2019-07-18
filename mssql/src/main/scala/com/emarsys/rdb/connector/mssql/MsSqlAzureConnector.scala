@@ -2,7 +2,9 @@ package com.emarsys.rdb.connector.mssql
 
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.ConnectorResponse
+import cats.data.EitherT
+import cats.syntax.applicativeError._
+import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig}
 import com.emarsys.rdb.connector.common.models.Errors.ConnectionConfigError
 import com.emarsys.rdb.connector.mssql.MsSqlAzureConnector.{
@@ -61,7 +63,7 @@ trait MsSqlAzureConnectorTrait extends MsSqlErrorHandling with MsSqlConnectorHel
       val poolName = UUID.randomUUID.toString
       val dbConfig = createDbConfig(config, poolName, connectorConfig)
       val database = Database.forConfig("", dbConfig)
-      createMsSqlConnector(connectorConfig, poolName, database)
+      createMsSqlConnector(connectorConfig, poolName, database).value
     }
   }
 
@@ -71,14 +73,19 @@ trait MsSqlAzureConnectorTrait extends MsSqlErrorHandling with MsSqlConnectorHel
 
   private def createMsSqlConnector(connectorConfig: MsSqlAzureConnectorConfig, poolName: String, db: Database)(
       implicit ec: ExecutionContext
-  ): ConnectorResponse[MsSqlConnector] = {
-    checkConnection(db)
-      .as(Right(new MsSqlConnector(db, connectorConfig.toMsSqlConnectorConfig, poolName)))
-      .recover {
-        case ex =>
-          db.shutdown
-          eitherErrorHandler().apply(ex)
-      }
+  ): ConnectorResponseET[MsSqlConnector] = {
+    EitherT(
+      checkConnection(db)
+        .as(Right(new MsSqlConnector(db, connectorConfig.toMsSqlConnectorConfig, poolName)))
+        .recover(eitherErrorHandler())
+    ).onError {
+      case _ =>
+        EitherT.liftF(db.shutdown.recover {
+          case _ =>
+            // we don't have logging here to log the shutdownError
+            ()
+        })
+    }
   }
 
   private def createDbConfig(

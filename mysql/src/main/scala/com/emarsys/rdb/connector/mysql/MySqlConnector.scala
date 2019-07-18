@@ -4,10 +4,11 @@ import java.sql.SQLTransientException
 import java.util.UUID
 
 import cats.data.EitherT
+import cats.syntax.applicativeError._
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
+import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
-import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.mysql.CertificateUtil.createTrustStoreTempUrl
 import com.emarsys.rdb.connector.mysql.MySqlConnector.{MySqlConnectionConfig, MySqlConnectorConfig}
 import com.typesafe.config.ConfigValueFactory.fromAnyRef
@@ -133,9 +134,13 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
           Future.successful(Left(ConnectionConfigError("SSL Error")))
         )
         .recover(eitherErrorHandler())
-    ).leftMap { connectorError =>
-      db.shutdown
-      connectorError
+    ).onError {
+      case _ =>
+        EitherT.liftF(db.shutdown.recover {
+          case _ =>
+            // we don't have logging here to log the shutdownError
+            ()
+        })
     }
   }
 

@@ -36,7 +36,8 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion % Test,
       "org.scalatest"     %% "scalatest"            % "3.0.1" % Test,
       "org.mockito"       % "mockito-core"          % "2.28.2" % Test,
-      "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.7" % Test
+      "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.7" % Test,
+      "com.beachape"      %% "enumeratum"           % "1.5.13"
     )
   )
 

@@ -1,5 +1,9 @@
 package com.emarsys.rdb.connector.common.models
 
+import enumeratum._
+
+import scala.collection.immutable
+
 object Errors {
 
   sealed abstract class ConnectorError(message: String = "") extends Exception(message) {
@@ -26,4 +30,26 @@ object Errors {
   case class TransientDbError(message: String)                 extends ConnectorError(message)
   case class FailedValidation(validationResult: ValidationResult)
       extends ConnectorError(s"Validation failed: $validationResult")
+
+  sealed trait ErrorCategory extends EnumEntry
+  object ErrorCategory extends Enum[ErrorCategory] {
+    case object Timeout extends ErrorCategory
+
+    override def values: immutable.IndexedSeq[ErrorCategory] = findValues
+  }
+
+  sealed trait ErrorName extends EnumEntry {
+    def unapply(payload: ErrorPayload): Boolean = ErrorName.withNameOption(payload.error).isDefined
+  }
+  object ErrorName extends Enum[ErrorName] {
+    case object QueryTimeout extends ErrorName
+
+    override def values: immutable.IndexedSeq[ErrorName] = findValues
+  }
+
+  case class ErrorPayload(errorCategory: ErrorCategory, error: String, message: String) extends ConnectorError(message)
+  object ErrorPayload {
+    def apply(errorCategory: ErrorCategory, error: ErrorName, message: String): ErrorPayload =
+      new ErrorPayload(errorCategory, error.entryName, message)
+  }
 }

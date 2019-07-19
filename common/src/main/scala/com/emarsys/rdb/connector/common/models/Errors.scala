@@ -47,9 +47,10 @@ object Errors {
     override def values: immutable.IndexedSeq[ErrorName] = findValues
   }
 
-  case class ErrorPayload(errorCategory: ErrorCategory, error: String, message: String) extends ConnectorError(message)
+  case class Cause(message: String)
+  case class ErrorPayload(errorCategory: ErrorCategory, error: String, message: String, causes: List[Cause]) extends ConnectorError(message)
   object ErrorPayload {
-    def apply(errorCategory: ErrorCategory, error: ErrorName, message: String): ErrorPayload =
-      new ErrorPayload(errorCategory, error.entryName, message)
+    def apply(errorCategory: ErrorCategory, error: ErrorName, message: String, causes: List[Cause]): ErrorPayload =
+      new ErrorPayload(errorCategory, error.entryName, message, causes)
   }
 }

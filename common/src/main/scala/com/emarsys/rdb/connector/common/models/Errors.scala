@@ -36,6 +36,11 @@ object Errors {
   object ErrorCategory extends Enum[ErrorCategory] {
     case object Validation extends ErrorCategory
     case object Timeout extends ErrorCategory
+    case object RateLimit extends ErrorCategory
+    case object FatalQueryExecution extends ErrorCategory
+    case object Transient extends ErrorCategory
+    case object Internal extends ErrorCategory
+    case object Unknown extends ErrorCategory
 
     override def values: immutable.IndexedSeq[ErrorCategory] = findValues
   }
@@ -44,8 +49,51 @@ object Errors {
     def unapply(payload: ErrorPayload): Boolean = ErrorName.withNameOption(payload.error).isDefined
   }
   object ErrorName extends Enum[ErrorName] {
-    case object QueryTimeout extends ErrorName
+    // ======================================
+    //              Validation
+    // ======================================
     case object MissingFields extends ErrorName
+    case object DifferentFields extends ErrorName
+    case object EmptyData extends ErrorName
+    case object TooManyRows extends ErrorName
+    case object NonExistingTable extends ErrorName
+    case object NoIndexOnFields extends ErrorName
+    case object EmptyCriteria extends ErrorName
+    case object InvalidOperationOnView extends ErrorName
+    case object ValidationFailed extends ErrorName
+    // ======================================
+    //              Timeout
+    // ======================================
+    case object ConnectionTimeout extends ErrorName
+    case object CompletionTimeout extends ErrorName
+    case object QueryTimeout extends ErrorName
+    // ======================================
+    //              RateLimit
+    // ======================================
+    case object TooManyQueries extends ErrorName
+    case object StuckPool extends ErrorName
+    // ======================================
+    //              FatalQueryExecution
+    // ======================================
+    case object TableNotFound extends ErrorName
+    case object SqlSyntaxError extends ErrorName
+    case object AccessDeniedError extends ErrorName
+    case object NotImplementedOperation extends ErrorName
+    case object SSLError extends ErrorName
+    // ======================================
+    //              Transient
+    // ======================================
+    case object CommunicationsLinkFailure extends ErrorName
+    case object TransientDbError extends ErrorName
+    // ======================================
+    //              Internal
+    // ======================================
+    case object ConnectionConfigError extends ErrorName
+    case object SimpleSelectIsNotGroupableFormat extends ErrorName
+    // ======================================
+    //              Unknown
+    // ======================================
+    case object Unknown extends ErrorName
 
     override def values: immutable.IndexedSeq[ErrorName] = findValues
   }

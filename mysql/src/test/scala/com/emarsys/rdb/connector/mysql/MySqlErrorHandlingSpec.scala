@@ -4,7 +4,7 @@ import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionEx
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors._
-import com.mysql.cj.exceptions.MysqlErrorNumbers.{ER_LOCK_WAIT_TIMEOUT, SQL_STATE_ROLLBACK_SERIALIZATION_FAILURE}
+import com.mysql.cj.exceptions.MysqlErrorNumbers._
 import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.{EitherValues, Matchers, PartialFunctionValues, WordSpecLike}
@@ -71,7 +71,17 @@ class MySqlErrorHandlingSpec
     ("db is in read-only mode exception", dbReadOnlyException, TransientDbError(dbIsReadOnlyMsg)),
     ("illegal mix of collation exception", illegalMixOfCollationException, SqlSyntaxError(illegalMixOfCollation)),
     ("host connection error", hostConnectionException, ConnectionTimeout(hostConnectionErrorMsg)),
-    ("invalid view exception", invalidViewException, SqlSyntaxError(invalidViewMsg))
+    ("invalid view exception", invalidViewException, SqlSyntaxError(invalidViewMsg)),
+    (
+      "wrong value count on row",
+      new SQLException("whatever", SQL_STATE_INSERT_VALUE_LIST_NO_MATCH_COL_LIST, ER_WRONG_VALUE_COUNT_ON_ROW),
+      SqlSyntaxError("whatever")
+    ),
+    (
+      "wrong value count",
+      new SQLException("whatever", SQL_STATE_INSERT_VALUE_LIST_NO_MATCH_COL_LIST, ER_WRONG_VALUE_COUNT),
+      SqlSyntaxError("whatever")
+    )
   )
 
   val sqlErrorCases = Table(

@@ -6,6 +6,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.models.Errors._
+import com.mysql.cj.exceptions.MysqlErrorNumbers.SQL_STATE_INSERT_VALUE_LIST_NO_MATCH_COL_LIST
 import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
 
 trait MySqlErrorHandling {
@@ -43,6 +44,8 @@ trait MySqlErrorHandling {
     case ex: SQLException if isTransientDbError(ex.getMessage) =>
       TransientDbError(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if isSyntaxError(ex.getMessage) =>
+      SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
+    case ex: SQLException if ex.getSQLState == SQL_STATE_INSERT_VALUE_LIST_NO_MATCH_COL_LIST =>
       SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
     case ex: SQLException if ex.getMessage.contains(MYSQL_CONNECTION_HOST_ERROR) =>
       ConnectionTimeout(getErrorMessage(ex)).withCause(ex)

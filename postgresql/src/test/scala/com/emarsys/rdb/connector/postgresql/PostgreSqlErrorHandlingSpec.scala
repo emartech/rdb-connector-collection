@@ -5,10 +5,15 @@ import java.sql.{SQLException, SQLTransientConnectionException}
 import com.emarsys.rdb.connector.common.models.Errors._
 import org.postgresql.util.{PSQLException, PSQLState}
 import org.scalatest.prop.TableDrivenPropertyChecks
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{EitherValues, Matchers, PartialFunctionValues, WordSpec}
 import slick.SlickException
 
-class PostgreSqlErrorHandlingSpec extends WordSpec with Matchers with TableDrivenPropertyChecks {
+class PostgreSqlErrorHandlingSpec
+    extends WordSpec
+    with Matchers
+    with TableDrivenPropertyChecks
+    with EitherValues
+    with PartialFunctionValues {
 
   private val slickExceptionWrongUpdate          = new SlickException("Update statements should not return a ResultSet")
   private val slickExceptionUnknown              = new SlickException("Unknown")
@@ -50,22 +55,15 @@ class PostgreSqlErrorHandlingSpec extends WordSpec with Matchers with TableDrive
     ("connection times out", connectionTimeoutException, ConnectionTimeout(timeoutMessage))
   )
 
-  private def shouldBeWithCause[T](
-      result: Either[ConnectorError, T],
-      expected: ConnectorError,
-      expectedCause: Throwable
-  ): Unit = {
-    result shouldBe Left(expected)
-    result.left.get.getCause shouldBe expectedCause
-  }
-
   "PostgreSqlErrorHandling" should {
 
     forAll(testCases) {
-      case (errorType, sqlException, clientError) =>
-        s"convert $errorType to ${clientError.getClass.getSimpleName}" in new PostgreSqlErrorHandling {
-          eitherErrorHandler().apply(sqlException) shouldEqual Left(clientError)
-          shouldBeWithCause(eitherErrorHandler().apply(sqlException), clientError, sqlException)
+      case (errorType, sqlException, connectorError) =>
+        s"convert $errorType to ${connectorError.getClass.getSimpleName}" in new PostgreSqlErrorHandling {
+          val actualError = eitherErrorHandler().valueAt(sqlException)
+
+          actualError.left.value shouldBe connectorError
+          actualError.left.value.getCause shouldBe sqlException
         }
     }
   }

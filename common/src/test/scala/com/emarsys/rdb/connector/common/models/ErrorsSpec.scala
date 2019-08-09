@@ -1,7 +1,8 @@
 package com.emarsys.rdb.connector.common.models
 
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectionError, TableNotFound}
+import com.emarsys.rdb.connector.common.models.Errors._
 import org.scalatest.{Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.common.models.Errors.ErrorCategory.Timeout
 
 class ErrorsSpec extends WordSpecLike with Matchers {
 
@@ -29,4 +30,16 @@ class ErrorsSpec extends WordSpecLike with Matchers {
     }
   }
 
+  "ErrorNames" should {
+    "have a nice unapply for ErrorPayloads" in {
+      val results = for {
+        error <- ErrorName.values
+        payload = ErrorPayload(Timeout, error, "", Nil, None)
+        selfIsMatched = error.unapply(payload) == true
+        othersAreNot = ErrorName.values.filterNot(_ == error).forall(_.unapply(payload) == false)
+      } yield selfIsMatched && othersAreNot
+
+      results should contain only(true)
+    }
+  }
 }

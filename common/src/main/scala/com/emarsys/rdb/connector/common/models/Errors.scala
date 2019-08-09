@@ -46,7 +46,7 @@ object Errors {
   }
 
   sealed trait ErrorName extends EnumEntry {
-    def unapply(payload: ErrorPayload): Boolean = ErrorName.withNameOption(payload.error).isDefined
+    def unapply(payload: ErrorPayload): Boolean = ErrorName.withNameOption(payload.error).contains(this)
   }
   object ErrorName extends Enum[ErrorName] {
     // ======================================

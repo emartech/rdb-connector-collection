@@ -1,4 +1,4 @@
-FROM hseeberger/scala-sbt:8u181_2.12.6_1.2.3
+FROM hseeberger/scala-sbt:8u212_1.2.8_2.12.8
 
 RUN apt-get update && apt-get install -y mysql-client
 

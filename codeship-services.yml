@@ -106,7 +106,7 @@ services:
       - ./mysql/mysql/my.cnf:/etc/my.cnf
 
   mysql-db-8:
-    image: mysql/mysql-server:8.0
+    image: mysql/mysql-server:8.0.14
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"

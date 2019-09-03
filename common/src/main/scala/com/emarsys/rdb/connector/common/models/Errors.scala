@@ -122,7 +122,7 @@ object Errors {
       ErrorPayload(errorCategory, error.entryName, message, causes, context)
 
     def fromDatabaseError(databaseError: DatabaseError): ErrorPayload = {
-      val causes = ErrorConverter.getCauseMessages(databaseError.cause).map(Cause)
+      val causes = databaseError.cause.map(ErrorConverter.getCauseMessages).getOrElse(List.empty).map(Cause)
       ErrorPayload(
         databaseError.errorCategory,
         databaseError.error,
@@ -137,7 +137,7 @@ object Errors {
       errorCategory: ErrorCategory,
       error: ErrorName,
       message: String,
-      cause: Throwable,
+      cause: Option[Throwable],
       context: Option[Context]
   ) extends ConnectorError(message)
 

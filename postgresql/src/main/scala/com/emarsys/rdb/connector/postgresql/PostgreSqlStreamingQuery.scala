@@ -23,14 +23,12 @@ trait PostgreSqlStreamingQuery {
       .transactionally
       .withStatementParameters(
         fetchSize = connectorConfig.streamChunkSize,
-        statementInit = _.setQueryTimeout(queryTimeout(timeout).toSeconds.toInt)
+        statementInit = _.setQueryTimeout(timeout.toSeconds.toInt)
       )
 
     val publisher = db.stream(sql)
     val dbSource = Source
       .fromPublisher(publisher)
-      .completionTimeout(completionTimeout(timeout))
-      .idleTimeout(idleTimeout(timeout))
       .statefulMapConcat { () =>
         var first = true
         (data: (Seq[String], Seq[String])) =>

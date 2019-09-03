@@ -34,12 +34,12 @@ class ErrorsSpec extends WordSpecLike with Matchers {
     "have a nice unapply for ErrorPayloads" in {
       val results = for {
         error <- ErrorName.values
-        payload = ErrorPayload(Timeout, error, "", Nil, None)
+        payload       = ErrorPayload(Timeout, error, "", Nil, None)
         selfIsMatched = error.unapply(payload) == true
-        othersAreNot = ErrorName.values.filterNot(_ == error).forall(_.unapply(payload) == false)
+        othersAreNot  = ErrorName.values.filterNot(_ == error).forall(_.unapply(payload) == false)
       } yield selfIsMatched && othersAreNot
 
-      results should contain only(true)
+      results should contain only (true)
     }
   }
 }

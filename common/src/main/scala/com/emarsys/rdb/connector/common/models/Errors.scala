@@ -1,5 +1,6 @@
 package com.emarsys.rdb.connector.common.models
 
+import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import enumeratum._
 
 import scala.collection.immutable
@@ -119,7 +120,26 @@ object Errors {
         context: Option[Context]
     ): ErrorPayload =
       ErrorPayload(errorCategory, error.entryName, message, causes, context)
+
+    def fromDatabaseError(databaseError: DatabaseError): ErrorPayload = {
+      val causes = ErrorConverter.getCauseMessages(databaseError.cause).map(Cause)
+      ErrorPayload(
+        databaseError.errorCategory,
+        databaseError.error,
+        databaseError.message,
+        causes,
+        databaseError.context
+      )
+    }
   }
+
+  case class DatabaseError(
+      errorCategory: ErrorCategory,
+      error: ErrorName,
+      message: String,
+      cause: Throwable,
+      context: Option[Context]
+  ) extends ConnectorError(message)
 
   sealed trait Context
   case class Fields(fields: List[String]) extends Context

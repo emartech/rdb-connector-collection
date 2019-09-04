@@ -3,7 +3,8 @@ package com.emarsys.rdb.connector.mysql
 import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionException}
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
-import com.emarsys.rdb.connector.common.models.Errors._
+import com.emarsys.rdb.connector.common.models.Errors.DatabaseError
+import com.emarsys.rdb.connector.common.models.Errors.{ErrorCategory => C, ErrorName => N}
 import com.mysql.cj.exceptions.MysqlErrorNumbers._
 import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
 import org.scalatest.prop.TableDrivenPropertyChecks
@@ -45,103 +46,75 @@ class MySqlErrorHandlingSpec
   private val illegalMixOfCollationException = new SQLException(illegalMixOfCollation)
   private val hostConnectionException        = new SQLException(hostConnectionErrorMsg)
   private val invalidViewException           = new SQLException(invalidViewMsg)
+  private val wrongRowCountException =
+    new SQLException("whatever", SQL_STATE_INSERT_VALUE_LIST_NO_MATCH_COL_LIST, ER_WRONG_VALUE_COUNT_ON_ROW)
+  private val wrongValueCountException =
+    new SQLException("whatever", SQL_STATE_INSERT_VALUE_LIST_NO_MATCH_COL_LIST, ER_WRONG_VALUE_COUNT)
 
   private val mySqlErrorCases = Table(
-    ("errorType", "errorType", "connectorError"),
-    (
-      "SlickException with wrong update statement",
-      slickExceptionWrongUpdate,
-      SqlSyntaxError("Wrong update statement: non update query given")
-    ),
-    ("access denied exception", accessDeniedException, AccessDeniedError(accessDeniedMsg)),
-    ("query timeout exception", queryTimeoutException, QueryTimeout(queryTimeoutMsg)),
-    (
-      "connection time out exception",
-      connectionTimeoutException,
-      ConnectionTimeout(connectionTimeoutException.getMessage)
-    ),
-    (
-      "no permission for EXPLAIN/SHOW",
-      noPermissionForExplainShowException,
-      AccessDeniedError(noPermissionForExplainShowMsg)
-    ),
-    ("statement closed exception", statementClosedException, TransientDbError(statementClosedMsg)),
-    ("lock wait timeout exception", lockWaitTimeoutException, TransientDbError(lockWaitTimeoutMsg)),
-    ("connection closed exception", connectionClosedException, TransientDbError(connectionClosedMsg)),
-    ("db is in read-only mode exception", dbReadOnlyException, TransientDbError(dbIsReadOnlyMsg)),
-    ("illegal mix of collation exception", illegalMixOfCollationException, SqlSyntaxError(illegalMixOfCollation)),
-    ("host connection error", hostConnectionException, ConnectionTimeout(hostConnectionErrorMsg)),
-    ("invalid view exception", invalidViewException, SqlSyntaxError(invalidViewMsg)),
-    (
-      "wrong value count on row",
-      new SQLException("whatever", SQL_STATE_INSERT_VALUE_LIST_NO_MATCH_COL_LIST, ER_WRONG_VALUE_COUNT_ON_ROW),
-      SqlSyntaxError("whatever")
-    ),
-    (
-      "wrong value count",
-      new SQLException("whatever", SQL_STATE_INSERT_VALUE_LIST_NO_MATCH_COL_LIST, ER_WRONG_VALUE_COUNT),
-      SqlSyntaxError("whatever")
-    )
+    ("errorMessage", "exception", "errorCategory", "errorName"),
+    ("SlickException with wrong update statement", slickExceptionWrongUpdate, C.FatalQueryExecution, N.SqlSyntaxError),
+    ("access denied exception", accessDeniedException, C.FatalQueryExecution, N.AccessDeniedError),
+    ("query timeout exception", queryTimeoutException, C.Timeout, N.QueryTimeout),
+    ("connection time out exception", connectionTimeoutException, C.Timeout, N.ConnectionTimeout),
+    ("no permission for EXPLAIN/SHOW", noPermissionForExplainShowException, C.FatalQueryExecution, N.AccessDeniedError),
+    ("statement closed exception", statementClosedException, C.Transient, N.TransientDbError),
+    ("lock wait timeout exception", lockWaitTimeoutException, C.Transient, N.TransientDbError),
+    ("connection closed exception", connectionClosedException, C.Transient, N.TransientDbError),
+    ("db is in read-only mode exception", dbReadOnlyException, C.Transient, N.TransientDbError),
+    ("illegal mix of collation exception", illegalMixOfCollationException, C.FatalQueryExecution, N.SqlSyntaxError),
+    ("host connection error", hostConnectionException, C.Timeout, N.ConnectionTimeout),
+    ("invalid view exception", invalidViewException, C.FatalQueryExecution, N.SqlSyntaxError),
+    ("wrong value count on row", wrongRowCountException, C.FatalQueryExecution, N.SqlSyntaxError),
+    ("wrong value count", wrongValueCountException, C.FatalQueryExecution, N.SqlSyntaxError)
   )
 
   val sqlErrorCases = Table(
-    ("errorType", "errorType", "connectorError"),
-    (
-      "rejected execution with active threads = 0",
-      new RejectedExecutionException("active threads = 0"),
-      StuckPool("active threads = 0")
-    ),
-    ("any sql syntax error", new SQLSyntaxErrorException("nope"), SqlSyntaxError("nope")),
-    (
-      "comm link failure",
-      new SQLException("Communications link failure"),
-      CommunicationsLinkFailure("Communications link failure")
-    ),
-    (
-      "transient connection times out",
-      new SQLTransientConnectionException("timed out"),
-      ConnectionTimeout("timed out")
-    ),
-    (
-      "any other sql error",
-      new SQLException("We have no idea", "random-sql-state", 999),
-      ErrorWithMessage(s"[random-sql-state] - [999] - We have no idea")
-    )
+    ("errorMessage", "exception", "errorCategory", "errorName"),
+    ("rejected with no active threads", new RejectedExecutionException("active threads = 0"), C.RateLimit, N.StuckPool),
+    ("any sql syntax error", new SQLSyntaxErrorException("nope"), C.FatalQueryExecution, N.SqlSyntaxError),
+    ("comm link failure", new SQLException("Communications link failure"), C.Transient, N.CommunicationsLinkFailure),
+    ("transient connection times out", new SQLTransientConnectionException("timed out"), C.Timeout, N.ConnectionTimeout)
   )
 
   val commonErrorCases = Table(
-    ("errorType", "incomingException", "connectorError"),
-    (
-      "RejectedExecutionException",
-      new RejectedExecutionException("this one is not stucked"),
-      TooManyQueries("this one is not stucked")
-    ),
-    ("time out exception", new TimeoutException("Something timed out."), CompletionTimeout("Something timed out.")),
-    ("every other exception", new RuntimeException("Explosion"), ErrorWithMessage("Explosion"))
+    ("errorMessage", "exception", "errorCategory", "errorName"),
+    ("RejectedExecution", new RejectedExecutionException("this one is not stucked"), C.RateLimit, N.TooManyQueries),
+    ("timeout exception", new TimeoutException("Something timed out."), C.Timeout, N.CompletionTimeout),
+    ("every other exception", new RuntimeException("Explosion"), C.Unknown, N.Unknown)
   )
 
   "MySqlErrorHandling" should {
 
     "handleNotExistingTable" in new MySqlErrorHandling {
-      val table = "tableName"
+      val table                 = "tableName"
+      val e                     = new Exception("doesn't exist")
+      val expectedDatabaseError = DatabaseError(C.FatalQueryExecution, N.TableNotFound, e)
 
-      handleNotExistingTable(table).valueAt(new Exception("doesn't exist")).left.value shouldBe TableNotFound(table)
+      handleNotExistingTable(table).valueAt(e).left.value shouldBe expectedDatabaseError
     }
 
     forAll(mySqlErrorCases ++ sqlErrorCases ++ commonErrorCases) {
-      case (errorType, incomingException, connectorError) =>
-        s"convert $errorType to ${connectorError.getClass.getSimpleName}" in new MySqlErrorHandling {
+      case (errorType, incomingException, errorCategory, errorName) =>
+        s"convert $errorType to ${errorCategory}#$errorName" in new MySqlErrorHandling {
           val actualError = eitherErrorHandler().valueAt(incomingException)
 
-          actualError.left.value shouldBe connectorError
-          actualError.left.value.getCause shouldBe incomingException
+          actualError.left.value shouldBe DatabaseError(errorCategory, errorName, incomingException)
         }
     }
 
-    "pass through ConnectorError in common error handling" in new MySqlErrorHandling {
-      val connectorError = ConnectionConfigError("config error")
+    "compose a meaningful error message of unknown SQLExceptions" in new MySqlErrorHandling {
+      val e = new SQLException("We have no idea", "random-sql-state", 999)
+      val expectedDatabaseError =
+        DatabaseError(C.Unknown, N.Unknown, "[random-sql-state] - [999] - We have no idea", Some(e), None)
 
-      eitherErrorHandler().valueAt(connectorError).left.value shouldBe connectorError
+      eitherErrorHandler().valueAt(e).left.value shouldBe expectedDatabaseError
+    }
+
+    "not convert DatabaseErrors" in new MySqlErrorHandling {
+      val databaseError = DatabaseError(C.Unknown, N.Unknown, "whatever", None, None)
+
+      eitherErrorHandler().valueAt(databaseError).left.value shouldBe databaseError
     }
   }
 }

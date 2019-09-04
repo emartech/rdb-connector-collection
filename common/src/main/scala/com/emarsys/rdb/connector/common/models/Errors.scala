@@ -140,6 +140,15 @@ object Errors {
       cause: Option[Throwable],
       context: Option[Context]
   ) extends ConnectorError(message)
+  object DatabaseError {
+    def apply(errorCategory: ErrorCategory, errorName: ErrorName, cause: Throwable): DatabaseError = DatabaseError(
+      errorCategory,
+      errorName,
+      cause.getMessage,
+      Some(cause),
+      None
+    )
+  }
 
   sealed trait Context
   case class Fields(fields: List[String]) extends Context

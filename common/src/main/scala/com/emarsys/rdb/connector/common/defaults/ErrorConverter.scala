@@ -15,6 +15,12 @@ object ErrorConverter {
     case e: TimeoutException           => CompletionTimeout(getErrorMessage(e)).withCause(e)
     case e                             => ErrorWithMessage(getErrorMessage(e)).withCause(e)
   }
+  val commonDBError: PartialFunction[Throwable, DatabaseError] = {
+    case e: DatabaseError              => e
+    case e: RejectedExecutionException => DatabaseError(ErrorCategory.RateLimit, ErrorName.TooManyQueries, e)
+    case e: TimeoutException           => DatabaseError(ErrorCategory.Timeout, ErrorName.CompletionTimeout, e)
+    case e                             => DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, e)
+  }
 
   val sql: PartialFunction[Throwable, ConnectorError] = {
     case e: RejectedExecutionException if e.getMessage.contains("active threads = 0") =>
@@ -28,8 +34,27 @@ object ErrorConverter {
     case e: SQLException =>
       ErrorWithMessage(s"[${e.getSQLState}] - [${e.getErrorCode}] - ${getErrorMessage(e)}").withCause(e)
   }
+  val sqlDBError: PartialFunction[Throwable, DatabaseError] = {
+    case e: RejectedExecutionException if e.getMessage.contains("active threads = 0") =>
+      DatabaseError(ErrorCategory.RateLimit, ErrorName.StuckPool, e)
+    case e: SQLSyntaxErrorException =>
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, e)
+    case e: SQLException if e.getMessage.contains("Communications link failure") =>
+      DatabaseError(ErrorCategory.Transient, ErrorName.CommunicationsLinkFailure, e)
+    case e: SQLTransientConnectionException if e.getMessage.contains("timed out") =>
+      DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, e)
+    case e: SQLException =>
+      DatabaseError(
+        ErrorCategory.Unknown,
+        ErrorName.Unknown,
+        s"[${e.getSQLState}] - [${e.getErrorCode}] - ${e.getMessage}",
+        Some(e),
+        None
+      )
+  }
 
-  val default = sql orElse common
+  val default        = sql orElse common
+  val defaultDBError = sqlDBError orElse commonDBError
 
   def getErrorMessage(ex: Throwable): String = {
     val message       = ex.getMessage

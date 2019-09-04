@@ -23,33 +23,37 @@ trait MySqlErrorHandling {
   val MYSQL_LOCK_WAIT_TIMEOUT     = "Lock wait timeout exceeded; try restarting transaction"
   val MYSQL_READONLY              = "The MySQL server is running with the --read-only option"
 
+  // TODO undo this one
   protected def handleNotExistingTable[T](
       table: String
   ): PartialFunction[Throwable, Either[ConnectorError, T]] = {
     case e: Exception if e.getMessage.contains("doesn't exist") =>
-      Left(TableNotFound(table).withCause(e))
+      Left(DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, e))
   }
 
   private def errorHandler: PartialFunction[Throwable, ConnectorError] = {
-    case ex: slick.SlickException if ex.getMessage == "Update statements should not return a ResultSet" =>
-      SqlSyntaxError("Wrong update statement: non update query given").withCause(ex)
+    case ex: slick.SlickException if selectQueryWasGivenAsUpdate(ex.getMessage) =>
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
     case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied") =>
-      AccessDeniedError(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, ex)
     case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled") =>
-      QueryTimeout(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, ex)
     case ex: MySQLTimeoutException =>
-      ConnectionTimeout(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, ex)
     case ex: SQLException if ex.getMessage.contains(MYSQL_EXPLAIN_PERMISSION_DENIED) =>
-      AccessDeniedError(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, ex)
     case ex: SQLException if isTransientDbError(ex.getMessage) =>
-      TransientDbError(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, ex)
     case ex: SQLException if isSyntaxError(ex.getMessage) =>
-      SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
     case ex: SQLException if ex.getSQLState == SQL_STATE_INSERT_VALUE_LIST_NO_MATCH_COL_LIST =>
-      SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
     case ex: SQLException if ex.getMessage.contains(MYSQL_CONNECTION_HOST_ERROR) =>
-      ConnectionTimeout(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, ex)
   }
+
+  private def selectQueryWasGivenAsUpdate(message: String) =
+    "Update statements should not return a ResultSet" == message
 
   private def isTransientDbError(message: String): Boolean =
     List(MYSQL_STATEMENT_CLOSED, MYSQL_LOCK_WAIT_TIMEOUT, MYSQL_CONNECTION_CLOSED, MYSQL_READONLY).exists(
@@ -62,9 +66,9 @@ trait MySqlErrorHandling {
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
-    (errorHandler orElse default) andThen Left.apply
+    (errorHandler orElse defaultDBError) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    (errorHandler orElse default) andThen Source.failed
+    (errorHandler orElse defaultDBError) andThen Source.failed
 
 }

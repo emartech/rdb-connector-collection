@@ -52,7 +52,7 @@ class MySqlErrorHandlingSpec
     new SQLException("whatever", SQL_STATE_INSERT_VALUE_LIST_NO_MATCH_COL_LIST, ER_WRONG_VALUE_COUNT)
 
   private val mySqlErrorCases = Table(
-    ("errorMessage", "exception", "errorCategory", "errorName"),
+    ("error", "exception", "errorCategory", "errorName"),
     ("SlickException with wrong update statement", slickExceptionWrongUpdate, C.FatalQueryExecution, N.SqlSyntaxError),
     ("access denied exception", accessDeniedException, C.FatalQueryExecution, N.AccessDeniedError),
     ("query timeout exception", queryTimeoutException, C.Timeout, N.QueryTimeout),
@@ -70,7 +70,7 @@ class MySqlErrorHandlingSpec
   )
 
   val sqlErrorCases = Table(
-    ("errorMessage", "exception", "errorCategory", "errorName"),
+    ("error", "exception", "errorCategory", "errorName"),
     ("rejected with no active threads", new RejectedExecutionException("active threads = 0"), C.RateLimit, N.StuckPool),
     ("any sql syntax error", new SQLSyntaxErrorException("nope"), C.FatalQueryExecution, N.SqlSyntaxError),
     ("comm link failure", new SQLException("Communications link failure"), C.Transient, N.CommunicationsLinkFailure),
@@ -78,8 +78,8 @@ class MySqlErrorHandlingSpec
   )
 
   val commonErrorCases = Table(
-    ("errorMessage", "exception", "errorCategory", "errorName"),
-    ("RejectedExecution", new RejectedExecutionException("this one is not stucked"), C.RateLimit, N.TooManyQueries),
+    ("error", "exception", "errorCategory", "errorName"),
+    ("RejectedExecution", new RejectedExecutionException("this one is not stuck"), C.RateLimit, N.TooManyQueries),
     ("timeout exception", new TimeoutException("Something timed out."), C.Timeout, N.CompletionTimeout),
     ("every other exception", new RuntimeException("Explosion"), C.Unknown, N.Unknown)
   )
@@ -95,11 +95,11 @@ class MySqlErrorHandlingSpec
     }
 
     forAll(mySqlErrorCases ++ sqlErrorCases ++ commonErrorCases) {
-      case (errorType, incomingException, errorCategory, errorName) =>
-        s"convert $errorType to ${errorCategory}#$errorName" in new MySqlErrorHandling {
-          val actualError = eitherErrorHandler().valueAt(incomingException)
+      case (error, exception, errorCategory, errorName) =>
+        s"convert $error to ${errorCategory}#$errorName" in new MySqlErrorHandling {
+          val expectedDatabaseError = DatabaseError(errorCategory, errorName, exception)
 
-          actualError.left.value shouldBe DatabaseError(errorCategory, errorName, incomingException)
+          eitherErrorHandler().valueAt(exception).left.value shouldBe expectedDatabaseError
         }
     }
 

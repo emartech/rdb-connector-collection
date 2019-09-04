@@ -4,11 +4,11 @@ import java.sql.{SQLException, SQLSyntaxErrorException}
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors._
-import org.scalatest.concurrent.{Signaler, ThreadSignaler}
+import org.scalatest.concurrent.{Signaler, ThreadSignaler, TimeLimits}
 import org.scalatest.time.{Milliseconds, Span}
 import org.scalatest.{Matchers, WordSpecLike}
 
-class ErrorConverterSpec extends WordSpecLike with Matchers with org.scalatest.concurrent.TimeLimits {
+class ErrorConverterSpec extends WordSpecLike with Matchers with TimeLimits {
 
   private def shouldBeWithCause(result: ConnectorError, expected: ConnectorError, expectedCause: Throwable): Unit = {
     result shouldBe expected
@@ -43,7 +43,7 @@ class ErrorConverterSpec extends WordSpecLike with Matchers with org.scalatest.c
       shouldBeWithCause(ErrorConverter.sql(exception), SqlSyntaxError("msg"), exception)
     }
 
-    "recognize comms. link failres" in {
+    "recognize comms. link failures" in {
       val message   = "Communications link failure - the last packet..."
       val exception = new SQLException(message, "08S01")
       shouldBeWithCause(ErrorConverter.sql(exception), CommunicationsLinkFailure(message), exception)
@@ -54,7 +54,7 @@ class ErrorConverterSpec extends WordSpecLike with Matchers with org.scalatest.c
       shouldBeWithCause(ErrorConverter.sql(exception), ErrorWithMessage("[state] - [999] - msg"), exception)
     }
 
-    "recognize stucked pools" in {
+    "recognize stuck pools" in {
       val msg       = "Task ... rejected from slick.util.AsyncExecutor...[Running, .... active threads = 0, ...]"
       val exception = new RejectedExecutionException(msg)
       shouldBeWithCause(ErrorConverter.sql(exception), StuckPool(msg), exception)
@@ -63,10 +63,10 @@ class ErrorConverterSpec extends WordSpecLike with Matchers with org.scalatest.c
 
   "generate composite message from exception with causes" in {
     val cause     = new RuntimeException("Serious error")
-    val exception = new Exception("Greivous error", cause)
+    val exception = new Exception("Grievous error", cause)
     shouldBeWithCause(
       ErrorConverter.default(exception),
-      ErrorWithMessage(s"Greivous error\nCaused by: Serious error"),
+      ErrorWithMessage(s"Grievous error\nCaused by: Serious error"),
       exception
     )
   }
@@ -74,12 +74,12 @@ class ErrorConverterSpec extends WordSpecLike with Matchers with org.scalatest.c
   "avoid infinite loop when exception cause is cyclic" in {
     implicit val signaler: Signaler = ThreadSignaler
     val cause                       = new RuntimeException("Serious error")
-    val exception                   = new Exception("Greivous error", cause)
+    val exception                   = new Exception("Grievous error", cause)
     cause.initCause(exception)
     failAfter(Span(10, Milliseconds)) {
       shouldBeWithCause(
         ErrorConverter.default(exception),
-        ErrorWithMessage(s"Greivous error\nCaused by: Serious error"),
+        ErrorWithMessage(s"Grievous error\nCaused by: Serious error"),
         exception
       )
     }

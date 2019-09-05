@@ -14,7 +14,7 @@ trait SelectDbInitHelper {
   val aTableName: String
   val bTableName: String
 
-  val connector: Connector =
+  lazy val connector: Connector =
     Await
       .result(
         MySqlConnector.create(

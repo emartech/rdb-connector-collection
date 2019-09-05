@@ -3,16 +3,17 @@ package com.emarsys.rdb.connector.mysql
 import java.util.UUID
 
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
-import com.emarsys.rdb.connector.mysql.utils.TestHelper
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.mysql.utils.TestHelper
+import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
+import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
+class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
 
   val uuid = UUID.randomUUID().toString
 
@@ -141,8 +142,13 @@ class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
     "table not exists" should {
 
       "fail" in {
-        val result = Await.result(connector.isOptimized("TABLENAME", Seq("A0")), 5.seconds)
-        result shouldEqual Left(TableNotFound("TABLENAME"))
+        val table   = "TABLENAME"
+        val result  = Await.result(connector.isOptimized(table, Seq("A0")), 5.seconds)
+        val message = s"Table 'it-test-db.$table' doesn't exist"
+        val expectedError =
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, message, None, None)
+
+        result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
       }
     }
   }

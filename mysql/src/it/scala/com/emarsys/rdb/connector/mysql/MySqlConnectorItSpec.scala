@@ -8,85 +8,94 @@ import akka.testkit.TestKit
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
-import com.emarsys.rdb.connector.mysql.utils.TestHelper
 import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.mysql.utils.TestHelper
+import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
+import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}
 
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class MySqlConnectorItSpec
     extends TestKit(ActorSystem("mysql-connector-it-test"))
-    with WordSpecLike
+    with AsyncWordSpecLike
     with Matchers
-    with BeforeAndAfterAll {
+    with BeforeAndAfterAll
+    with EitherValues {
 
   implicit val mat: ActorMaterializer = ActorMaterializer()
-  override def afterAll: Unit         = shutdown()
+  override def afterAll: Unit = {
+    shutdown()
+  }
+
+  val timeoutMessage = "Connection is not available, request timed out after"
 
   "MySqlConnectorItSpec" when {
 
     val testConnection = TestHelper.TEST_CONNECTION_CONFIG
 
+    val config = MySqlConnectorConfig(configPath = "mysqldb", verifyServerCertificate = false)
+
     "create connector" should {
 
       "connect success" in {
-        val connectorEither =
-          Await.result(MySqlConnector.create(testConnection, MySqlConnectorConfig("mysqldb", false)), 5.seconds)
-
-        connectorEither shouldBe a[Right[_, _]]
-
-        connectorEither.right.get.close()
+        withClue("We should have received back a connector") {
+          MySqlConnector.create(testConnection, config).map { connector =>
+            connector.right.value.close()
+            succeed
+          }
+        }
       }
 
       "connect fail when ssl disabled" ignore {
         val conn = testConnection.copy(
           connectionParams = "useSSL=false"
         )
-        val connectorEither = Await.result(
-          MySqlConnector.create(
-            conn,
-            MySqlConnectorConfig(
-              configPath = "mysqldb",
-              verifyServerCertificate = false
-            )
-          ),
-          5.seconds
-        )
+        val expectedError =
+          DatabaseError(ErrorCategory.Internal, ErrorName.ConnectionConfigError, "SSL Error", None, None)
 
-        connectorEither shouldBe Left(ConnectionConfigError("SSL Error"))
+        MySqlConnector.create(conn, config).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+        }
       }
 
       "connect fail when wrong certificate" in {
-        val conn            = testConnection.copy(certificate = "")
-        val connectorEither = Await.result(MySqlConnector.create(conn), 5.seconds)
+        val conn = testConnection.copy(certificate = "")
+        val expectedError =
+          DatabaseError(ErrorCategory.Internal, ErrorName.ConnectionConfigError, "Wrong SSL cert format", None, None)
 
-        connectorEither shouldBe Left(ConnectionConfigError("Wrong SSL cert format"))
+        MySqlConnector.create(conn).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+        }
       }
 
       "connect fail when wrong host" in {
-        val conn            = testConnection.copy(host = "wrong")
-        val connectorEither = Await.result(MySqlConnector.create(conn), 5.seconds)
+        val conn = testConnection.copy(host = "wrong")
+        val expectedError =
+          DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, timeoutMessage, None, None)
 
-        connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe an[ConnectionTimeout]
+        MySqlConnector.create(conn).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+        }
       }
 
       "connect fail when wrong user" in {
-        val conn            = testConnection.copy(dbUser = "")
-        val connectorEither = Await.result(MySqlConnector.create(conn), 5.seconds)
+        val conn = testConnection.copy(dbUser = "")
+        val expectedError =
+          DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, timeoutMessage, None, None)
 
-        connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe an[ConnectionTimeout]
+        MySqlConnector.create(conn).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+        }
       }
 
       "connect fail when wrong password" in {
-        val conn            = testConnection.copy(dbPassword = "")
-        val connectorEither = Await.result(MySqlConnector.create(conn), 5.seconds)
+        val conn = testConnection.copy(dbPassword = "")
+        val expectedError =
+          DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, timeoutMessage, None, None)
 
-        connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe an[ConnectionTimeout]
+        MySqlConnector.create(conn).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+        }
       }
 
     }
@@ -94,99 +103,86 @@ class MySqlConnectorItSpec
     "test connection" should {
 
       "return success" in {
-        val connectorEither = Await.result(
-          MySqlConnector.create(
-            testConnection,
-            MySqlConnectorConfig(
-              configPath = "mysqldb",
-              verifyServerCertificate = false
-            )
-          ),
-          5.seconds
-        )
-
-        connectorEither shouldBe a[Right[_, _]]
-
-        val connector = connectorEither.right.get
-
-        val result = Await.result(connector.testConnection(), 5.seconds)
-
-        result shouldBe a[Right[_, _]]
-
-        connector.close()
+        for {
+          result <- MySqlConnector.create(testConnection, config)
+          connector = result.right.value
+          _ <- connector.testConnection()
+          _ <- connector.close()
+        } yield succeed
       }
 
-    }
+      "custom error handling" should {
+        import cats.instances.future._
+        def runSelect(q: String): ConnectorResponse[Unit] =
+          (for {
+            connector <- EitherT(MySqlConnector.create(testConnection, config))
+            source    <- EitherT(connector.rawSelect(q, limit = None, timeout = 1.second))
+            res       <- EitherT(sinkOrLeft(source))
+            _ = connector.close()
+          } yield res).value
 
-    "custom error handling" should {
-      import cats.instances.future._
-      def runQuery(q: String): ConnectorResponse[Unit] =
-        (for {
-          connector <- EitherT(
-            MySqlConnector.create(
-              testConnection,
-              MySqlConnectorConfig(
-                configPath = "mysqldb",
-                verifyServerCertificate = false
-              )
-            )
-          )
-          source <- EitherT(connector.rawSelect(q, limit = None, timeout = 1.second))
-          res    <- EitherT(sinkOrLeft(source))
-          _ = connector.close()
-        } yield res).value
+        def runQuery(q: String): ConnectorResponse[Int] =
+          (for {
+            connector <- EitherT(MySqlConnector.create(testConnection, config))
+            source    <- EitherT(connector.rawQuery(q, timeout = 1.second))
+            _ = connector.close()
+          } yield source).value
 
-      def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =
-        source
-          .runWith(Sink.ignore)
-          .map[Either[ConnectorError, Unit]](_ => Right(()))
-          .recover {
-            case e: ConnectorError => Left[ConnectorError, Unit](e)
+        def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =
+          source
+            .runWith(Sink.ignore)
+            .map[Either[ConnectorError, Unit]](_ => Right(()))
+            .recover {
+              case e: ConnectorError => Left[ConnectorError, Unit](e)
+            }
+
+        "recognize syntax errors" in {
+          val message =
+            "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'from table' at line 1"
+          val expectedError =
+            DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, message, None, None)
+
+          runSelect("select from table").map { result =>
+            result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
           }
+        }
 
-      "recognize syntax errors" in {
-        val result = Await.result(runQuery("select from table"), 10.second)
+        "recognize access denied errors" in {
+          val message =
+            "Access denied; you need (at least one of) the PROCESS privilege(s) for this operation"
+          val expectedError =
+            DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, message, None, None)
 
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe an[SqlSyntaxError]
-      }
+          runSelect("select * from information_schema.innodb_metrics").map { result =>
+            result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+          }
+        }
 
-      "recognize access denied errors" in {
-        val result = Await.result(runQuery("select * from information_schema.innodb_metrics"), 10.second)
-
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe an[AccessDeniedError]
-      }
-
-      "return SqlSyntaxError when conflicting collation tables joined" in {
-        val cTableName1 = "c1"
-        val cTableName2 = "c2"
-
-        val createConflictingCollationTable1 =
-          s"""CREATE TABLE `$cTableName1` (
-              |    c VARCHAR(255)
-              |        COLLATE utf8mb4_unicode_ci
-              |);""".stripMargin
-
-        val createConflictingCollationTable2 =
-          s"""CREATE TABLE `$cTableName2` (
-              |    c VARCHAR(255)
-              |        COLLATE utf8mb4_hungarian_ci
-              |);""".stripMargin
-
-        Await.result(runQuery(createConflictingCollationTable1), 10.seconds)
-        Await.result(runQuery(createConflictingCollationTable2), 10.seconds)
-
-        val result =
-          Await.result(runQuery(s"SELECT * FROM `$cTableName1` c1 JOIN `$cTableName2` c2 ON (c1.c = c2.c)"), 10.seconds)
-
-        result shouldBe Left(
-          SqlSyntaxError(
+        "return SqlSyntaxError when conflicting collation tables joined" in {
+          val message =
             "Illegal mix of collations (utf8mb4_unicode_ci,IMPLICIT) and (utf8mb4_hungarian_ci,IMPLICIT) for operation '='"
-          )
-        )
+          val expectedError =
+            DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, message, None, None)
+
+          val createConflictingCollationTable1 =
+            s"""CREATE TABLE c1 (
+               |    c VARCHAR(255)
+               |        COLLATE utf8mb4_unicode_ci
+               |);""".stripMargin
+
+          val createConflictingCollationTable2 =
+            s"""CREATE TABLE c2 (
+               |    c VARCHAR(255)
+               |        COLLATE utf8mb4_hungarian_ci
+               |);""".stripMargin
+
+          for {
+            _      <- runQuery(createConflictingCollationTable1)
+            _      <- runQuery(createConflictingCollationTable2)
+            result <- runSelect(s"SELECT * FROM c1 JOIN c2 ON (c1.c = c2.c)")
+          } yield result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+        }
       }
     }
   }
-
 }

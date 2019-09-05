@@ -121,7 +121,16 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
   )(implicit e: ExecutionContext): ConnectorResponseET[String] = {
     EitherT
       .fromEither[Future](createTrustStoreTempUrl(cert).toEither)
-      .leftMap(ex => ConnectionConfigError("Wrong SSL cert format").withCause(ex))
+      .leftMap(
+        ex =>
+          DatabaseError(
+            ErrorCategory.Internal,
+            ErrorName.ConnectionConfigError,
+            "Wrong SSL cert format",
+            Some(ex),
+            None
+          )
+      )
   }
 
   private def createMySqlConnector(connectorConfig: MySqlConnectorConfig, poolName: String, db: Database)(
@@ -131,7 +140,9 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
       isSslUsedForConnection(db)
         .ifM(
           Future.successful(Right(new MySqlConnector(db, connectorConfig, poolName))),
-          Future.successful(Left(ConnectionConfigError("SSL Error")))
+          Future.successful(
+            Left(DatabaseError(ErrorCategory.Internal, ErrorName.ConnectionConfigError, "SSL Error", None, None))
+          )
         )
         .recover(eitherErrorHandler())
     ).onError {

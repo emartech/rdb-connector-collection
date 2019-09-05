@@ -1,19 +1,20 @@
 package com.emarsys.rdb.connector.test
 
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
+import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 /*
 For positive test results you need to implement an initDb function which creates a table and a view with the given names.
 The table must have "PersonID", "LastName", "FirstName", "Address", "City" columns.
 The view must have "PersonID", "LastName", "FirstName" columns.
  */
-trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
+trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
   val uuid      = uuidGenerate
   val tableName = s"metadata_list_tables_table_$uuid"
   val viewName  = s"metadata_list_tables_view_$uuid"
@@ -62,8 +63,13 @@ trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
       }
 
       "failed if table not found" in {
-        val result = Await.result(connector.listFields("TABLENAME"), awaitTimeout)
-        result shouldBe Left(TableNotFound("TABLENAME"))
+        val table   = "TABLENAME"
+        val result  = Await.result(connector.listFields(table), awaitTimeout)
+        val message = s"Table 'it-test-db.$table' doesn't exist"
+        val expectedError =
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, message, None, None)
+
+        result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
       }
     }
 

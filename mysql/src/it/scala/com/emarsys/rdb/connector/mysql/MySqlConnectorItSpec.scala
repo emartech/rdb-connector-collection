@@ -46,18 +46,6 @@ class MySqlConnectorItSpec
         }
       }
 
-      "connect fail when ssl disabled" ignore {
-        val conn = testConnection.copy(
-          connectionParams = "useSSL=false"
-        )
-        val expectedError =
-          DatabaseError(ErrorCategory.Internal, ErrorName.ConnectionConfigError, "SSL Error", None, None)
-
-        MySqlConnector.create(conn, config).map { result =>
-          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
-        }
-      }
-
       "connect fail when wrong certificate" in {
         val conn = testConnection.copy(certificate = "")
         val expectedError =

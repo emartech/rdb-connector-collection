@@ -17,7 +17,7 @@ import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.bigquery.stream.parser.PagingInfo
 import com.emarsys.rdb.connector.bigquery.stream.sendrequest.SendRequestWithOauthHandling
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName, TableNotFound}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, TableModel}
 import spray.json._
 
@@ -48,8 +48,17 @@ class BigQueryClient(val googleSession: GoogleSession, projectId: String, datase
 
   def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
     runMetaQuery(fieldListUrl(projectId, dataset, tableName), parseFieldResults).map {
-      case Left(TableNotFound(_)) => Left(TableNotFound(tableName))
-      case other                  => other
+      case Left(TableNotFound(_)) =>
+        Left(
+          DatabaseError(
+            ErrorCategory.FatalQueryExecution,
+            ErrorName.TableNotFound,
+            s"Table not found: $tableName",
+            None,
+            None
+          )
+        )
+      case other => other
     }
   }
 

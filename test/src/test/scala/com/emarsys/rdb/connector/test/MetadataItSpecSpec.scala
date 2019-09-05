@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.test
 
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
 import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
@@ -21,6 +21,10 @@ class MetadataItSpecSpec extends MetadataItSpec with MockitoSugar {
   override def initDb(): Unit = ()
 
   override def cleanUpDb(): Unit = ()
+
+  val tableMissingMessage = s"Table 'it-test-db.TABLENAME' doesn't exist"
+  val tableNotFoundError =
+    DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, tableMissingMessage, None, None)
 
   when(connector.listTables()).thenReturn(
     Future(
@@ -47,7 +51,7 @@ class MetadataItSpecSpec extends MetadataItSpec with MockitoSugar {
       )
     )
   )
-  when(connector.listFields("TABLENAME")).thenReturn(Future(Left(TableNotFound("TABLENAME"))))
+  when(connector.listFields("TABLENAME")).thenReturn(Future(Left(tableNotFoundError)))
   when(connector.listTablesWithFields()).thenReturn(
     Future(
       Right(

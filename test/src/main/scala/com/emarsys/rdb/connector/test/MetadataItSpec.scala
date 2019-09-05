@@ -63,11 +63,10 @@ trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll w
       }
 
       "failed if table not found" in {
-        val table   = "TABLENAME"
-        val result  = Await.result(connector.listFields(table), awaitTimeout)
-        val message = s"Table 'it-test-db.$table' doesn't exist"
+        val table  = "TABLENAME"
+        val result = Await.result(connector.listFields(table), awaitTimeout)
         val expectedError =
-          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, message, None, None)
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, table, None, None)
 
         result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
       }

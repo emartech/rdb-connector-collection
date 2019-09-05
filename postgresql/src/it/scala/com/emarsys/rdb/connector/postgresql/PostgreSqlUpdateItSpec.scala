@@ -7,7 +7,10 @@ import com.emarsys.rdb.connector.postgresql.utils.SelectDbInitHelper
 import com.emarsys.rdb.connector.test.UpdateItSpec
 import concurrent.duration._
 
-class PostgreSqlUpdateItSpec extends TestKit(ActorSystem()) with UpdateItSpec with SelectDbInitHelper {
+class PostgreSqlUpdateItSpec
+    extends TestKit(ActorSystem("PostgreSqlUpdateItSpec"))
+    with UpdateItSpec
+    with SelectDbInitHelper {
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
 
@@ -16,7 +19,7 @@ class PostgreSqlUpdateItSpec extends TestKit(ActorSystem()) with UpdateItSpec wi
   override implicit val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 }

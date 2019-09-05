@@ -3,8 +3,9 @@ package com.emarsys.rdb.connector.postgresql
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.Errors.QueryTimeout
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.postgresql.utils.SelectDbInitHelper
+import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
 import com.emarsys.rdb.connector.test._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
@@ -12,7 +13,7 @@ import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
 
 class PostgreSqlRawSelectItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("PostgreSqlRawSelectItSpec"))
     with RawSelectItSpec
     with SelectDbInitHelper
     with WordSpecLike
@@ -51,21 +52,23 @@ class PostgreSqlRawSelectItSpec
   }
   "#rawSelect" should {
     "return QueryTimeout when query takes more time than the timeout" in {
-      val result = connector.rawSelect("SELECT PG_SLEEP(6)", None, 5.second)
+      val message  = "ERROR: canceling statement due to user request"
+      val expected = DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, message, None, None)
+      val result   = connector.rawSelect("SELECT PG_SLEEP(6)", None, 5.second)
+      val error    = the[DatabaseError] thrownBy getConnectorResult(result, awaitTimeout)
 
-      a[QueryTimeout] should be thrownBy {
-        getConnectorResult(result, awaitTimeout)
-      }
+      error should beDatabaseErrorEqualWithoutCause(expected)
     }
   }
 
   "#projectedRawSelect" should {
     "return QueryTimeout when query takes more time than the timeout" in {
-      val result = connector.projectedRawSelect("SELECT PG_SLEEP(6) as sleep", Seq("sleep"), None, 5.second)
+      val message  = "ERROR: canceling statement due to user request"
+      val expected = DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, message, None, None)
+      val result   = connector.projectedRawSelect("SELECT PG_SLEEP(6) as sleep", Seq("sleep"), None, 5.second)
+      val error    = the[DatabaseError] thrownBy getConnectorResult(result, awaitTimeout)
 
-      a[QueryTimeout] should be thrownBy {
-        getConnectorResult(result, awaitTimeout)
-      }
+      error should beDatabaseErrorEqualWithoutCause(expected)
     }
   }
 

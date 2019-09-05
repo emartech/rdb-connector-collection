@@ -10,16 +10,18 @@ import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PostgreSqlSelectWithGroupLimitItSpec extends TestKit(ActorSystem()) with SelectWithGroupLimitItSpec {
+class PostgreSqlSelectWithGroupLimitItSpec
+    extends TestKit(ActorSystem("PostgreSqlSelectWithGroupLimitItSpec"))
+    with SelectWithGroupLimitItSpec {
 
   implicit val executionContext                    = system.dispatcher
   override implicit val materializer: Materializer = ActorMaterializer()
 
-  val connector: Connector =
+  override val connector: Connector =
     Await.result(PostgreSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

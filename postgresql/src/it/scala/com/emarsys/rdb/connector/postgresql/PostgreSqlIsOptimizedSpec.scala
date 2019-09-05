@@ -3,14 +3,15 @@ package com.emarsys.rdb.connector.postgresql
 import java.util.UUID
 
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.postgresql.utils.TestHelper
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
+import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PostgreSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
+class PostgreSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
   implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
   val awaitTimeout              = 5.seconds
   val awaitTimeoutLong          = 15.seconds
@@ -128,8 +129,13 @@ class PostgreSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAn
       "table not exists" should {
 
         "fail" in {
-          val result = Await.result(connector.isOptimized("TABLENAME", Seq("a0")), awaitTimeout)
-          result shouldEqual Left(TableNotFound("TABLENAME"))
+          val table   = "TABLENAME"
+          val result  = Await.result(connector.isOptimized(table, Seq("A0")), 5.seconds)
+          val message = s"Table not found: $table"
+          val expectedError =
+            DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, message, None, None)
+
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
         }
       }
     }

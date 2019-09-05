@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.postgresql
 
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import slick.jdbc.PostgresProfile.api._
 import slick.jdbc.SQLActionBuilder
 
@@ -34,7 +34,16 @@ trait PostgreSqlIsOptimized {
 
     db.run(query.as[(String, String, String)])
       .map(_.toList match {
-        case Nil => Left(TableNotFound(table))
+        case Nil =>
+          Left(
+            DatabaseError(
+              ErrorCategory.FatalQueryExecution,
+              ErrorName.TableNotFound,
+              s"Table not found: $table",
+              None,
+              None
+            )
+          )
         case resultList =>
           Right(
             resultList.map(result => isOptimizedHelper(fields.map(_.toLowerCase), result._3.split(", "))).reduce(_ || _)

@@ -8,7 +8,10 @@ import com.emarsys.rdb.connector.test.ReplaceItSpec
 
 import concurrent.duration._
 
-class PostgreSqlReplaceItSpec extends TestKit(ActorSystem()) with ReplaceItSpec with SelectDbInitHelper {
+class PostgreSqlReplaceItSpec
+    extends TestKit(ActorSystem("PostgreSqlReplaceItSpec"))
+    with ReplaceItSpec
+    with SelectDbInitHelper {
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
 
@@ -17,7 +20,7 @@ class PostgreSqlReplaceItSpec extends TestKit(ActorSystem()) with ReplaceItSpec 
   override implicit val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

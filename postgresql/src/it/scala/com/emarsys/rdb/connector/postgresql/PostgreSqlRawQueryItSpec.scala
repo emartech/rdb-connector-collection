@@ -6,22 +6,23 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.Sink
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.Errors.{QueryTimeout, SqlSyntaxError}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.common.models.{Errors, SimpleSelect}
 import com.emarsys.rdb.connector.postgresql.utils.SelectDbInitHelper
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
+import org.scalatest._
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class PostgreSqlRawQueryItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("PostgreSqlRawQueryItSpec"))
     with SelectDbInitHelper
-    with WordSpecLike
+    with AsyncWordSpecLike
     with Matchers
     with BeforeAndAfterEach
-    with BeforeAndAfterAll {
+    with BeforeAndAfterAll
+    with EitherValues {
 
   val uuid = UUID.randomUUID().toString.replace("-", "")
 
@@ -34,7 +35,7 @@ class PostgreSqlRawQueryItSpec
   val queryTimeout = 5.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     connector.close()
   }
 
@@ -51,37 +52,49 @@ class PostgreSqlRawQueryItSpec
     "#rawQuery" should {
 
       "validation error" in {
+        val message    = """ERROR: syntax error at or near "invalid""""
+        val expected   = DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, message, None, None)
         val invalidSql = "invalid sql"
-        val result     = Await.result(connector.rawQuery(invalidSql, queryTimeout), awaitTimeout)
 
-        result.left.get shouldBe a[SqlSyntaxError]
+        connector.rawQuery(invalidSql, queryTimeout).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expected)
+        }
       }
 
       "run a delete query" in {
-        Await.result(connector.rawQuery(s"DELETE FROM $aTableName WHERE A1!='v1'", queryTimeout), awaitTimeout)
-        selectAll(aTableName) shouldEqual Right(Vector(Vector("v1", "1", "1")))
+        for {
+          _      <- connector.rawQuery(s"DELETE FROM $aTableName WHERE A1!='v1'", queryTimeout)
+          result <- selectAll(aTableName)
+        } yield result shouldEqual Vector(Vector("v1", "1", "1"))
       }
 
       "return SqlSyntaxError when select query given" in {
-        val result: Either[Errors.ConnectorError, Int] =
-          Await.result(connector.rawQuery(s"SELECT 1;", queryTimeout), awaitTimeout)
-        result should be('left)
-        result.left.get shouldBe SqlSyntaxError("Wrong update statement: non update query given")
+        val message  = "Update statements should not return a ResultSet"
+        val expected = DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, message, None, None)
+
+        connector.rawQuery(s"SELECT 1;", queryTimeout).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expected)
+        }
       }
 
       "return QueryTimeout when query takes more time than the timeout" in {
-        val query  = s"DELETE FROM $aTableName WHERE A1 = pg_sleep(12)::text"
-        val result = Await.result(connector.rawQuery(query, 1.second), awaitTimeout)
+        val query          = s"DELETE FROM $aTableName WHERE A1 = pg_sleep(12)::text"
+        val timeoutMessage = "ERROR: canceling statement due to user request"
+        val expectedError =
+          DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, timeoutMessage, None, None)
 
-        result.left.get shouldBe a[QueryTimeout]
+        connector.rawQuery(query, 1.second).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+        }
       }
 
     }
   }
 
   private def selectAll(tableName: String) = {
-    Await
-      .result(connector.simpleSelect(SimpleSelect(AllField, TableName(tableName)), queryTimeout), awaitTimeout)
-      .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).drop(1))
+    connector
+      .simpleSelect(SimpleSelect(AllField, TableName(tableName)), queryTimeout)
+      .flatMap(result => result.right.value.runWith(Sink.seq))
+      .map(_.drop(1))
   }
 }

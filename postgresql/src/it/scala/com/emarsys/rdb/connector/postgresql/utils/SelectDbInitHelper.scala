@@ -13,7 +13,7 @@ trait SelectDbInitHelper {
   val aTableName: String
   val bTableName: String
 
-  val connector: Connector =
+  lazy val connector: Connector =
     Await.result(PostgreSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
 
   def initDb(): Unit = {

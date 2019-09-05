@@ -7,87 +7,109 @@ import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
-import com.emarsys.rdb.connector.postgresql.utils.TestHelper
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.PostgreSqlConnectionConfig
+import com.emarsys.rdb.connector.postgresql.utils.TestHelper.TEST_CONNECTION_CONFIG
+import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
+import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class PostgreSqlConnectorItSpec
-    extends TestKit(ActorSystem("postgre-connector-it-spec"))
-    with WordSpecLike
+    extends TestKit(ActorSystem("PostgreSqlConnectorItSpec"))
+    with AsyncWordSpecLike
     with Matchers
-    with BeforeAndAfterAll {
+    with BeforeAndAfterAll
+    with EitherValues {
 
-  implicit val mat      = ActorMaterializer()
-  override def afterAll = TestKit.shutdownActorSystem(system)
+  implicit val mat = ActorMaterializer()
+
+  private val timeoutMessage = "Connection is not available, request timed out after"
+
+  override def afterAll: Unit = {
+    shutdown()
+  }
 
   "PostgreSqlConnector" when {
 
-    implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
-    val defaultConnection         = TestHelper.TEST_CONNECTION_CONFIG
+    val defaultConnection = TEST_CONNECTION_CONFIG
 
     "create connector" should {
 
       "connect success" in {
-        val connectorEither = Await.result(PostgreSqlConnector.create(defaultConnection), 5.seconds)
-
-        connectorEither shouldBe a[Right[_, _]]
-
-        connectorEither.right.get.close()
+        PostgreSqlConnector.create(defaultConnection).map { result =>
+          result.right.value
+          succeed
+        }
       }
 
       "connect fail when ssl disabled" in {
-        val conn            = defaultConnection.copy(connectionParams = "ssl=false")
-        val connectorEither = Await.result(PostgreSqlConnector.create(conn), 5.seconds)
+        val expected =
+          DatabaseError(ErrorCategory.Internal, ErrorName.ConnectionConfigError, "SSL Error", None, None)
+        val conn = defaultConnection.copy(connectionParams = "ssl=false")
 
-        connectorEither shouldBe Left(ConnectionConfigError("SSL Error"))
+        PostgreSqlConnector.create(conn).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expected)
+        }
       }
 
       "connect fail when sslrootcert modified" in {
-        val conn            = defaultConnection.copy(connectionParams = "sslrootcert=/root.crt")
-        val connectorEither = Await.result(PostgreSqlConnector.create(conn), 5.seconds)
+        val expected =
+          DatabaseError(ErrorCategory.Internal, ErrorName.ConnectionConfigError, "SSL Error", None, None)
+        val conn = defaultConnection.copy(connectionParams = "sslrootcert=/root.crt")
 
-        connectorEither shouldBe Left(ConnectionConfigError("SSL Error"))
+        PostgreSqlConnector.create(conn).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expected)
+        }
       }
 
       "connect fail when sslmode modified" in {
-        val conn            = defaultConnection.copy(connectionParams = "sslmode=disable")
-        val connectorEither = Await.result(PostgreSqlConnector.create(conn), 5.seconds)
+        val expected =
+          DatabaseError(ErrorCategory.Internal, ErrorName.ConnectionConfigError, "SSL Error", None, None)
+        val conn = defaultConnection.copy(connectionParams = "sslmode=disable")
 
-        connectorEither shouldBe Left(ConnectionConfigError("SSL Error"))
+        PostgreSqlConnector.create(conn).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expected)
+        }
       }
 
       "connect fail when wrong certificate" in {
-        val conn            = defaultConnection.copy(certificate = "")
-        val connectorEither = Await.result(PostgreSqlConnector.create(conn), 5.seconds)
+        val expected =
+          DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, timeoutMessage, None, None)
+        val conn = defaultConnection.copy(certificate = "")
 
-        connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe a[ConnectionTimeout]
+        PostgreSqlConnector.create(conn).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expected)
+        }
       }
 
       "connect fail when wrong host" in {
-        val conn            = defaultConnection.copy(host = "wrong")
-        val connectorEither = Await.result(PostgreSqlConnector.create(conn), 5.seconds)
+        val expected =
+          DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, timeoutMessage, None, None)
+        val conn = defaultConnection.copy(host = "wrong")
 
-        connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe a[ConnectionTimeout]
+        PostgreSqlConnector.create(conn).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expected)
+        }
       }
 
       "connect fail when wrong user" in {
-        val conn            = defaultConnection.copy(dbUser = "")
-        val connectorEither = Await.result(PostgreSqlConnector.create(conn), 5.seconds)
+        val expected =
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, timeoutMessage, None, None)
+        val conn = defaultConnection.copy(dbUser = "")
 
-        connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe a[ConnectionTimeout]
+        PostgreSqlConnector.create(conn).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expected)
+        }
       }
 
       "connect fail when wrong password" in {
-        val conn            = defaultConnection.copy(dbPassword = "")
-        val connectorEither = Await.result(PostgreSqlConnector.create(conn), 5.seconds)
+        val expected =
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, timeoutMessage, None, None)
+        val conn = defaultConnection.copy(dbPassword = "")
 
-        connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe a[ConnectionTimeout]
+        PostgreSqlConnector.create(conn).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expected)
+        }
       }
 
     }
@@ -95,81 +117,92 @@ class PostgreSqlConnectorItSpec
     "#testConnection" should {
 
       "success" in {
-        val Right(connection) = Await.result(PostgreSqlConnector.create(defaultConnection), 3.seconds)
-        val result            = Await.result(connection.testConnection(), 3.seconds)
-        result shouldBe Right(())
-        connection.close()
+        for {
+          result <- PostgreSqlConnector.create(defaultConnection)
+          connector = result.right.value
+          _ <- connector.testConnection()
+          _ <- connector.close()
+        } yield succeed
       }
 
     }
 
-    trait QueryRunnerScope {
-      lazy val connectionConfig = defaultConnection
-      lazy val queryTimeout     = 5.second
+    def runSelect(q: String, connConfig: PostgreSqlConnectionConfig = defaultConnection): ConnectorResponse[Unit] =
+      for {
+        Right(connector) <- PostgreSqlConnector.create(connConfig)
+        Right(source)    <- connector.rawSelect(q, limit = None, 5.second)
+        res              <- sinkOrLeft(source)
+        _                <- connector.close()
+      } yield res
 
-      def runQuery(q: String): ConnectorResponse[Unit] =
-        for {
-          Right(connector) <- PostgreSqlConnector.create(connectionConfig)
-          Right(source)    <- connector.rawSelect(q, limit = None, queryTimeout)
-          res              <- sinkOrLeft(source)
-          _                <- connector.close()
-        } yield res
-
-      def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =
-        source
-          .runWith(Sink.ignore)
-          .map[Either[ConnectorError, Unit]](_ => Right(()))
-          .recover {
-            case e: ConnectorError => Left[ConnectorError, Unit](e)
-          }
-    }
+    def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =
+      source
+        .runWith(Sink.ignore)
+        .map[Either[ConnectorError, Unit]](_ => Right(()))
+        .recover {
+          case e: ConnectorError => Left[ConnectorError, Unit](e)
+        }
 
     "custom error handling" should {
-      "recognize syntax errors" in new QueryRunnerScope {
-        val result = Await.result(runQuery("select from table"), 1.second)
+      "recognize syntax errors" in {
+        val message = """ERROR: syntax error at or near "table""""
+        val expectedError =
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, message, None, None)
 
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe an[SqlSyntaxError]
+        runSelect("select from table").map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+        }
       }
 
-      "recognize access denied errors" in new QueryRunnerScope {
-        override lazy val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(
-          dbUser = "unprivileged",
-          dbPassword = "unprivilegedpw"
-        )
-        val result = Await.result(runQuery("select * from access_denied"), 1.second)
+      "recognize access denied errors" in {
+        val message = "ERROR: permission denied for relation access_denied"
+        val expectedError =
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, message, None, None)
+        val connectionConfig = defaultConnection.copy(dbUser = "unprivileged", dbPassword = "unprivilegedpw")
 
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe an[AccessDeniedError]
+        runSelect("select * from access_denied", connectionConfig).map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+        }
       }
 
-      "recognize query timeouts" in new QueryRunnerScope {
-        val result = Await.result(runQuery("select pg_sleep(6)"), 6.second)
+      "recognize query timeouts" in {
+        val message       = "ERROR: canceling statement due to user request"
+        val expectedError = DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, message, None, None)
 
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe a[QueryTimeout]
+        runSelect("select pg_sleep(6)").map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+        }
       }
 
-      "recognize if a table is not found" in new QueryRunnerScope {
-        val result = Await.result(runQuery("select * from a_non_existing_table"), 1.second)
+      "recognize if a table is not found" in {
+        val tableMissingMessage = """ERROR: relation "a_non_existing_table" does not exist"""
+        val expectedError =
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, tableMissingMessage, None, None)
 
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe a[TableNotFound]
+        runSelect("select * from a_non_existing_table").map { result =>
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+        }
       }
 
       "recognize not found columns as syntax error" when {
-        "column does not exists" in new QueryRunnerScope {
-          val result = Await.result(runQuery("select no_such_column from test"), 1.second)
+        "column does not exists" in {
+          val message = """ERROR: column "no_such_column" does not exist"""
+          val expectedError =
+            DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, message, None, None)
 
-          result shouldBe a[Left[_, _]]
-          result.left.get shouldBe a[SqlSyntaxError]
+          runSelect("select no_such_column from test").map { result =>
+            result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+          }
         }
 
-        "column does not exist on joined table" in new QueryRunnerScope {
-          val result = Await.result(runQuery("select t2.id from test t1 join test2 t2 on t1.id = t2.test_id"), 1.second)
+        "column does not exist on joined table" in {
+          val message = "ERROR: column t2.id does not exist"
+          val expectedError =
+            DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, message, None, None)
 
-          result shouldBe a[Left[_, _]]
-          result.left.get shouldBe a[SqlSyntaxError]
+          runSelect("select t2.id from test t1 join test2 t2 on t1.id = t2.test_id").map { result =>
+            result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+          }
         }
       }
     }

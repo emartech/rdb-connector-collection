@@ -1,19 +1,22 @@
 package com.emarsys.rdb.connector.postgresql
 
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.Sink
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.Errors.QueryTimeout
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect.{FieldName, SpecificFields, TableName}
 import com.emarsys.rdb.connector.postgresql.utils.{SelectDbInitHelper, TestHelper}
-import com.emarsys.rdb.connector.test.SimpleSelectItSpec
+import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
+import com.emarsys.rdb.connector.test.{SimpleSelectItSpec, getConnectorResult}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PostgreSqlSimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSelectItSpec with SelectDbInitHelper {
+class PostgreSqlSimpleSelectItSpec
+    extends TestKit(ActorSystem("PostgreSqlSimpleSelectItSpec"))
+    with SimpleSelectItSpec
+    with SelectDbInitHelper {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   override implicit val materializer: Materializer = ActorMaterializer()
@@ -21,7 +24,7 @@ class PostgreSqlSimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSel
   override val awaitTimeout = 15.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 
@@ -73,12 +76,15 @@ class PostgreSqlSimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSel
   "#simpleSelect" should {
 
     "return QueryTimeout when the query does not terminate within the specified timeout" in {
-      val select = SimpleSelect(SpecificFields(Seq(FieldName("sleep"))), TableName(sleepViewName))
+      val message  = "ERROR: canceling statement due to user request"
+      val expected = DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, message, None, None)
+      val select   = SimpleSelect(SpecificFields(Seq(FieldName("sleep"))), TableName(sleepViewName))
+      val error = the[DatabaseError] thrownBy getConnectorResult(
+        connector.simpleSelect(select, 5.seconds),
+        awaitTimeout
+      )
 
-      a[QueryTimeout] should be thrownBy {
-        val resultE = Await.result(connector.simpleSelect(select, 5.second), awaitTimeout)
-        Await.result(resultE.right.get.runWith(Sink.seq), awaitTimeout)
-      }
+      error should beDatabaseErrorEqualWithoutCause(expected)
     }
 
   }

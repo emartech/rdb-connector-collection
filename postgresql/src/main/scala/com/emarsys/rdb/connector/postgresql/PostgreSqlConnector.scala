@@ -4,9 +4,9 @@ import java.io.{File, PrintWriter}
 import java.util.UUID
 
 import cats.data.EitherT
-import com.emarsys.rdb.connector.common.ConnectorResponse
+import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectionConfigError, ConnectorError}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.{PostgreSqlConnectionConfig, PostgreSqlConnectorConfig}
 import com.typesafe.config.ConfigValueFactory.fromAnyRef
@@ -99,7 +99,9 @@ trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHa
     val poolName = UUID.randomUUID.toString
 
     if (isSslDisabledOrTamperedWith(config.connectionParams)) {
-      Future.successful(Left(ConnectionConfigError("SSL Error")))
+      Future.successful(
+        Left(DatabaseError(ErrorCategory.Internal, ErrorName.ConnectionConfigError, "SSL Error", None, None))
+      )
     } else {
       val dbConfig = createDbConfig(config, connectorConfig, poolName)
       val database = Database.forConfig("", dbConfig)
@@ -134,7 +136,7 @@ trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHa
       poolName: String,
       config: PostgreSqlConnectionConfig,
       db: Database
-  )(implicit ec: ExecutionContext): EitherT[Future, ConnectorError, PostgreSqlConnector] = {
+  )(implicit ec: ExecutionContext): ConnectorResponseET[PostgreSqlConnector] = {
     EitherT(
       checkConnection(db)
         .as(Right(new PostgreSqlConnector(db, connectorConfig, poolName, createSchemaName(config))))
@@ -145,6 +147,7 @@ trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHa
     }
   }
 
+  // TODO rewrite
   private def createTempFile(certificate: String): String = {
     val tempFile = File.createTempFile("root", ".crt")
     tempFile.deleteOnExit()

@@ -10,7 +10,7 @@ import com.emarsys.rdb.connector.test.SearchItSpec
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PostgreSqlSearchItSpec extends TestKit(ActorSystem()) with SearchItSpec {
+class PostgreSqlSearchItSpec extends TestKit(ActorSystem("PostgreSqlSearchItSpec")) with SearchItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val connector: Connector =
@@ -21,7 +21,7 @@ class PostgreSqlSearchItSpec extends TestKit(ActorSystem()) with SearchItSpec {
   override val awaitTimeout = 15.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

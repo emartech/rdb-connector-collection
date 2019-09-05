@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.postgresql
 
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
 
 import scala.concurrent.Future
@@ -28,7 +28,15 @@ trait PostgreSqlMetadata {
       .map(_.map(parseToFiledModel))
       .map(fields => {
         if (fields.isEmpty) {
-          Left(TableNotFound(tableName))
+          Left(
+            DatabaseError(
+              ErrorCategory.FatalQueryExecution,
+              ErrorName.TableNotFound,
+              s"Table not found: $tableName",
+              None,
+              None
+            )
+          )
         } else {
           Right(fields)
         }

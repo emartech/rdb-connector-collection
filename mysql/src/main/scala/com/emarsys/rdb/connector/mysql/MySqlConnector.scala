@@ -6,7 +6,7 @@ import java.util.UUID
 import cats.data.EitherT
 import cats.syntax.applicativeError._
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
-import com.emarsys.rdb.connector.common.models.Errors._
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.mysql.CertificateUtil.createTrustStoreTempUrl
@@ -35,11 +35,11 @@ class MySqlConnector(
   override protected val fieldValueConverters = MysqlFieldValueConverters
 
   override val isErrorRetryable: PartialFunction[Throwable, Boolean] = {
-    case _: ConnectionTimeout                                      => true
-    case _: TransientDbError                                       => true
-    case ErrorWithMessage(message) if message.contains("Deadlock") => true
-    case _: SQLTransientException                                  => true
-    case _                                                         => false
+    case DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, _, _, _)                             => true
+    case DatabaseError(ErrorCategory.Transient, _, _, _, _)                                                     => true
+    case DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, message, _, _) if message.contains("Deadlock") => true
+    case _: SQLTransientException                                                                               => true
+    case _                                                                                                      => false
   }
 
   override def close(): Future[Unit] = {

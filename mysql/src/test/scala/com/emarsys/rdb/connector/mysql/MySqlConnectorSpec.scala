@@ -1,12 +1,12 @@
 package com.emarsys.rdb.connector.mysql
 
 import java.lang.management.ManagementFactory
+import java.sql.SQLTransientException
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.models.Errors.ConnectionTimeout
 import com.emarsys.rdb.connector.common.Models.MetaData
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectionConfig
-import com.mysql.cj.jdbc.exceptions.MySQLTransactionRollbackException
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
 import org.scalatest.mockito.MockitoSugar
@@ -16,7 +16,7 @@ import spray.json._
 
 class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
 
-  "MySqlConnectorSpec" when {
+  "MySqlConnector" when {
 
     val exampleConnection = MySqlConnectionConfig(
       host = "host",
@@ -32,9 +32,24 @@ class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
     "#isErrorRetryable" should {
 
       Seq(
-        new MySQLTransactionRollbackException() -> true,
-        ConnectionTimeout("timeout")            -> true,
-        new Exception()                         -> false
+        DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, "whatever", None, None) -> true,
+        DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, "whatever", None, None)  -> true,
+        DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, "whatever", None, None)       -> false,
+        DatabaseError(ErrorCategory.Timeout, ErrorName.CompletionTimeout, "whatever", None, None)  -> false,
+        DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "Deadlock detected", None, None)   -> true,
+        DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "whatever else", None, None)       -> false
+      ).foreach {
+        case (e @ DatabaseError(errorCategory, errorName, message, _, _), expected) =>
+          s"return $expected for ${errorCategory}#$errorName - $message" in {
+            val connector = new MySqlConnector(null, null, null)(null)
+
+            connector.isErrorRetryable(e) shouldBe expected
+          }
+      }
+
+      Seq(
+        new SQLTransientException()    -> true,
+        new Exception("whatever else") -> false
       ).foreach {
         case (e, expected) =>
           s"return $expected for ${e.getClass.getSimpleName}" in {
@@ -43,7 +58,6 @@ class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
             connector.isErrorRetryable(e) shouldBe expected
           }
       }
-
     }
 
     "#createUrl" should {

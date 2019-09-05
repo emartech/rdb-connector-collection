@@ -73,6 +73,7 @@ object Errors {
     // ======================================
     case object TooManyQueries extends ErrorName
     case object StuckPool      extends ErrorName
+    case object Failsafe       extends ErrorName
     // ======================================
     //              FatalQueryExecution
     // ======================================
@@ -81,6 +82,7 @@ object Errors {
     case object AccessDeniedError       extends ErrorName
     case object NotImplementedOperation extends ErrorName
     case object SSLError                extends ErrorName
+    case object ConnectionConfigError   extends ErrorName
     // ======================================
     //              Transient
     // ======================================
@@ -89,7 +91,6 @@ object Errors {
     // ======================================
     //              Internal
     // ======================================
-    case object ConnectionConfigError            extends ErrorName
     case object SimpleSelectIsNotGroupableFormat extends ErrorName
     // ======================================
     //              Unknown

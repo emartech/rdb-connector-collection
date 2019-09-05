@@ -3,15 +3,16 @@ package com.emarsys.rdb.connector.mssql
 import java.util.UUID
 
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mssql.utils.TestHelper
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
+import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class MsSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
+class MsSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
 
   val uuid = UUID.randomUUID().toString
 
@@ -74,30 +75,26 @@ class MsSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
 
       "if simple index exists in its own" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A0")), 5.seconds)
-        resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
-        result shouldBe true
+
+        resultE.right.value shouldBe true
       }
 
       "if simple index exists in complex index as first member" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A1")), 5.seconds)
-        resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
-        result shouldBe true
+
+        resultE.right.value shouldBe true
       }
 
       "if complex index exists" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A1", "A2")), 5.seconds)
-        resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
-        result shouldBe true
+
+        resultE.right.value shouldBe true
       }
 
       "if complex index exists but in different order" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A2", "A1")), 5.seconds)
-        resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
-        result shouldBe true
+
+        resultE.right.value shouldBe true
       }
     }
 
@@ -105,31 +102,32 @@ class MsSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
 
       "if simple index does not exists at all" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A3")), 5.seconds)
-        resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
-        result shouldBe false
+
+        resultE.right.value shouldBe false
       }
 
       "if simple index exists in complex index but not as first member" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A2")), 5.seconds)
-        resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
-        result shouldBe false
+
+        resultE.right.value shouldBe false
       }
 
       "if complex index exists only as part of another complex index" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A4", "A5")), 5.seconds)
-        resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
-        result shouldBe false
+
+        resultE.right.value shouldBe false
       }
     }
 
     "table not exists" should {
 
       "fail" in {
-        val result = Await.result(connector.isOptimized("TABLENAME", Seq("A0")), 5.seconds)
-        result shouldEqual Left(TableNotFound("TABLENAME"))
+        val table = "TABLENAME"
+        val expectedError =
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, table, None, None)
+        val result = Await.result(connector.isOptimized(table, Seq("A0")), 5.seconds)
+
+        result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
       }
     }
   }

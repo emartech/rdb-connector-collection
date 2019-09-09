@@ -5,69 +5,89 @@ import java.sql.{SQLException, SQLTransientConnectionException}
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.microsoft.sqlserver.jdbc.SQLServerException
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{Matchers, PrivateMethodTester, WordSpecLike}
+import org.scalatest.{EitherValues, Matchers, PrivateMethodTester, WordSpecLike}
+import com.emarsys.rdb.connector.test.CustomMatchers._
 
-class MsSqlErrorHandlingSpec extends WordSpecLike with Matchers with MockitoSugar with PrivateMethodTester {
+class MsSqlErrorHandlingSpec
+    extends WordSpecLike
+    with Matchers
+    with MockitoSugar
+    with PrivateMethodTester
+    with EitherValues {
 
-  val possibleSQLErrorsCodes = Seq(
-    ("HY008", "query cancelled", QueryTimeout("msg")),
-    ("S0001", "sql syntax error", SqlSyntaxError("msg")),
-    ("S0005", "permission denied", AccessDeniedError("msg")),
-    ("S0002", "invalid object name", TableNotFound("msg")),
-    ("23000", "duplicate key in object", SqlSyntaxError("msg"))
+  case class ErrorCase(
+      errorCaseName: String,
+      errorCode: String,
+      errorMessage: String,
+      expectedError: DatabaseError
   )
 
-  val possibleConnectionErrors = Seq(
-    ("08S01", "bad host error")
+  val possibleErrors = Seq(
+    (
+      "query cancelled",
+      new SQLServerException("Error1", "HY008", 0, new Exception()),
+      DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, new Exception(""))
+    ),
+    (
+      "sql syntax error",
+      new SQLServerException("Error1", "S0001", 0, new Exception()),
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, new Exception(""))
+    ),
+    (
+      "duplicate key in object",
+      new SQLServerException("Error1", "23000", 0, new Exception()),
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, new Exception(""))
+    ),
+    (
+      "invalid object name",
+      new SQLServerException("Error1", "S0002", 0, new Exception()),
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, new Exception(""))
+    ),
+    (
+      "permission denied",
+      new SQLServerException("Error1", "S0005", 0, new Exception()),
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, new Exception(""))
+    ),
+    (
+      "showplan permission denied",
+      new SQLServerException("Error1", "S0004", 0, new Exception()),
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, new Exception(""))
+    ),
+    (
+      "explain permission denied",
+      new SQLException(
+        "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table",
+        "HY000",
+        0,
+        new Exception()
+      ),
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, new Exception(""))
+    ),
+    (
+      "timeout transient sql error",
+      new SQLTransientConnectionException("Connection is not available, request timed out after"),
+      DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, new Exception(""))
+    ),
+    (
+      "unknown error",
+      new SQLTransientConnectionException("Other transient error", "not-handled-sql-state", 999),
+      DatabaseError(
+        ErrorCategory.Unknown,
+        ErrorName.Unknown,
+        s"[not-handled-sql-state] - [999] - Other transient error"
+      )
+    )
   )
-
-  private def shouldBeWithCause[T](
-      result: Either[ConnectorError, T],
-      expected: ConnectorError,
-      expectedCause: Throwable
-  ): Unit = {
-    result shouldBe Left(expected)
-    result.left.get.getCause shouldBe expectedCause
-  }
 
   "ErrorHandling" should {
 
-    possibleSQLErrorsCodes.foreach(
-      errorWithResponse =>
-        s"""convert ${errorWithResponse._2} to ${errorWithResponse._3.getClass.getSimpleName}""" in new MsSqlErrorHandling {
-          val error = new SQLServerException("msg", errorWithResponse._1, 0, new Exception())
-          shouldBeWithCause(eitherErrorHandler().apply(error), errorWithResponse._3, error)
+    possibleErrors.foreach {
+      case (errorCaseName, thrownError, expectedError) =>
+        s"convert $errorCaseName to ${expectedError.getClass.getSimpleName}" in new MsSqlErrorHandling {
+          val result = eitherErrorHandler().apply(thrownError)
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+          result.left.get.asInstanceOf[DatabaseError].cause shouldBe Some(thrownError)
         }
-    )
-
-    possibleConnectionErrors.foreach(
-      errorCode =>
-        s"""convert ${errorCode._2} to ConnectionError""" in new MsSqlErrorHandling {
-          val error = new SQLException("msg", errorCode._1)
-          shouldBeWithCause(eitherErrorHandler().apply(error), ConnectionError(error), error)
-        }
-    )
-
-    "handle EXPLAIN/SHOW can not be issued" in new MsSqlErrorHandling {
-      val msg   = "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table"
-      val error = new SQLException(msg, "HY000")
-      shouldBeWithCause(eitherErrorHandler().apply(error), AccessDeniedError(msg), error)
-    }
-
-    "convert timeout transient sql error to connection timeout error" in new MsSqlErrorHandling {
-      val msg   = "Connection is not available, request timed out after"
-      val error = new SQLTransientConnectionException(msg)
-      shouldBeWithCause(eitherErrorHandler().apply(error), ConnectionTimeout(msg), error)
-    }
-
-    "convert sql error to error with message and state if not timeout" in new MsSqlErrorHandling {
-      val msg   = "Other transient error"
-      val error = new SQLTransientConnectionException(msg, "not-handled-sql-state", 999)
-      shouldBeWithCause(
-        eitherErrorHandler().apply(error),
-        ErrorWithMessage(s"[not-handled-sql-state] - [999] - $msg"),
-        error
-      )
     }
 
   }

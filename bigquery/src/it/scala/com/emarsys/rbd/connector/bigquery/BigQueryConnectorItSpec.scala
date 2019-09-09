@@ -8,13 +8,18 @@ import akka.testkit.TestKit
 import com.emarsys.rbd.connector.bigquery.utils.TestHelper
 import com.emarsys.rdb.connector.bigquery.BigQueryConnector
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors._
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.test.CustomMatchers.haveErrorCategoryAndErrorName
+import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class BigQueryConnectorItSpec extends TestKit(ActorSystem()) with WordSpecLike with Matchers with BeforeAndAfterAll {
+class BigQueryConnectorItSpec
+    extends TestKit(ActorSystem("BigQueryConnectorItSpec"))
+    with AsyncWordSpecLike
+    with Matchers
+    with BeforeAndAfterAll
+    with EitherValues {
 
   implicit val mat      = ActorMaterializer()
   override def afterAll = shutdown()
@@ -26,70 +31,86 @@ class BigQueryConnectorItSpec extends TestKit(ActorSystem()) with WordSpecLike w
     "#testConnection" should {
 
       "return ok in happy case" in {
-        val connection = Await.result(BigQueryConnector(testConnection)(system), 3.seconds).toOption.get
-        val result     = Await.result(connection.testConnection(), 5.seconds)
-        result shouldBe Right(())
-        connection.close()
+        for {
+          connector <- BigQueryConnector(testConnection)(system)
+          _         <- connector.right.value.testConnection()
+        } yield succeed
       }
 
       "return error if invalid project id" in {
         val badConnection = testConnection.copy(projectId = "asd")
-        val connection    = Await.result(BigQueryConnector(badConnection)(system), 3.seconds).toOption.get
-        val result        = Await.result(connection.testConnection(), 5.seconds)
-        result should matchPattern { case Left(ConnectionError(_)) => }
+
+        for {
+          connector <- BigQueryConnector(badConnection)(system)
+          error     <- connector.right.value.testConnection()
+        } yield {
+          error.left.value should haveErrorCategoryAndErrorName(
+            ErrorCategory.FatalQueryExecution,
+            ErrorName.TableNotFound
+          )
+        }
       }
 
       "return error if invalid dataset" in {
         val badConnection = testConnection.copy(dataset = "asd")
-        val connection    = Await.result(BigQueryConnector(badConnection)(system), 3.seconds).toOption.get
-        val result        = Await.result(connection.testConnection(), 5.seconds)
-        result should matchPattern { case Left(ConnectionError(_)) => }
+
+        for {
+          connector <- BigQueryConnector(badConnection)(system)
+          error     <- connector.right.value.testConnection()
+        } yield {
+          error.left.value should haveErrorCategoryAndErrorName(
+            ErrorCategory.FatalQueryExecution,
+            ErrorName.TableNotFound
+          )
+        }
       }
     }
 
     "custom error handling" should {
-      "recognize syntax errors" in new QueryRunnerScope {
-        val result = Await.result(runQuery("select from test.table"), 3.seconds)
-
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe a[SqlSyntaxError]
+      "recognize syntax errors" in {
+        rawSelect("select from test.table").map(
+          error =>
+            error.left.value should haveErrorCategoryAndErrorName(
+              ErrorCategory.FatalQueryExecution,
+              ErrorName.SqlSyntaxError
+            )
+        )
       }
 
-      "recognize not found tables" in new QueryRunnerScope {
-        val result = Await.result(runQuery("select * from test.a_non_existing_table"), 3.seconds)
-
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe a[TableNotFound]
+      "recognize not found tables" in {
+        rawSelect("select * from test.a_non_existing_table").map(
+          error =>
+            error.left.value should haveErrorCategoryAndErrorName(
+              ErrorCategory.FatalQueryExecution,
+              ErrorName.TableNotFound
+            )
+        )
       }
 
-      "recognize query timeouts" in new QueryRunnerScope {
-        override lazy val queryTimeout = 100.millis
-        val result                     = Await.result(runQuery("select * from test.test_table"), 1.second)
-
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe a[QueryTimeout]
+      "recognize query timeouts" in {
+        rawSelect("select * from test.test_table", timeout = 100.millis).map(
+          error =>
+            error.left.value should haveErrorCategoryAndErrorName(
+              ErrorCategory.Timeout,
+              ErrorName.QueryTimeout
+            )
+        )
       }
     }
 
-    trait QueryRunnerScope {
-      lazy val queryTimeout = 3.second
-      implicit val ec       = system.dispatcher
+    def rawSelect(q: String, timeout: FiniteDuration = 3.seconds): ConnectorResponse[Unit] =
+      for {
+        connector <- BigQueryConnector(testConnection)(system)
+        source    <- connector.right.value.rawSelect(q, limit = None, timeout)
+        res       <- sinkOrLeft(source.right.value)
+      } yield res
 
-      def runQuery(q: String): ConnectorResponse[Unit] =
-        for {
-          Right(connector) <- BigQueryConnector(testConnection)(system)
-          Right(source)    <- connector.rawSelect(q, limit = None, queryTimeout)
-          res              <- sinkOrLeft(source)
-          _ = connector.close()
-        } yield res
-
-      def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =
-        source
-          .runWith(Sink.ignore)
-          .map[Either[ConnectorError, Unit]](_ => Right(()))
-          .recover {
-            case e: ConnectorError => Left[ConnectorError, Unit](e)
-          }
-    }
+    def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =
+      source
+        .runWith(Sink.ignore)
+        .map[Either[ConnectorError, Unit]](_ => Right(()))
+        .recover {
+          case e: ConnectorError => Left[ConnectorError, Unit](e)
+        }
   }
 }

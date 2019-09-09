@@ -12,7 +12,10 @@ import com.emarsys.rdb.connector.test._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class BigQuerySimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSelectItSpec with SelectDbInitHelper {
+class BigQuerySimpleSelectItSpec
+    extends TestKit(ActorSystem("BigQuerySimpleSelectItSpec"))
+    with SimpleSelectItSpec
+    with SelectDbInitHelper {
 
   override implicit val sys: ActorSystem                = system
   override implicit val materializer: ActorMaterializer = ActorMaterializer()

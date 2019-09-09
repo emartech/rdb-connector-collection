@@ -14,7 +14,7 @@ import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.util.{Failure, Try}
 
 class BigQueryRawSelectItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("BigQueryRawSelectItSpec"))
     with RawSelectItSpec
     with SelectDbInitHelper
     with WordSpecLike
@@ -31,7 +31,6 @@ class BigQueryRawSelectItSpec
 
   override def afterAll(): Unit = {
     cleanUpDb()
-    connector.close()
     shutdown()
   }
 

@@ -7,50 +7,38 @@ import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import akka.util.Timeout
 import com.emarsys.rbd.connector.bigquery.utils.MetaDbInitHelper
-import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.common.models.Errors.{ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.test.CustomMatchers._
+import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext}
 
 class BigQueryIsOptimizedItSpec
-    extends TestKit(ActorSystem())
-    with WordSpecLike
+    extends TestKit(ActorSystem("BigQueryIsOptimizedItSpec"))
+    with AsyncWordSpecLike
     with Matchers
     with BeforeAndAfterAll
-    with MetaDbInitHelper {
+    with MetaDbInitHelper
+    with EitherValues {
 
   implicit override val sys: ActorSystem                = system
   implicit override val materializer: ActorMaterializer = ActorMaterializer()
   implicit override val timeout: Timeout                = Timeout(30.second)
-
-  val awaitTimeout = 30.seconds
+  implicit val asyncWordSpecEC: ExecutionContext        = executionContext
 
   val uuid      = UUID.randomUUID().toString.replace("-", "")
   val tableName = s"is_optimized_table_$uuid"
 
   override val viewName: String = ""
 
-  override def initDb(): Unit = {
-    Await.result(for {
-      _ <- runRequest(createTable(createTableSql))
-    } yield (), timeout.duration)
+  override def beforeAll(): Unit = {
+    Await.result(runRequest(createTable(createTableSql)), timeout.duration)
     sleep()
   }
 
-  override def cleanUpDb(): Unit = {
-    Await.result(for {
-      _ <- runRequest(dropTable(tableName))
-    } yield (), timeout.duration)
-  }
-
-  override def beforeAll(): Unit = {
-    initDb()
-  }
-
   override def afterAll(): Unit = {
-    cleanUpDb()
-    connector.close()
+    Await.result(runRequest(dropTable(tableName)), timeout.duration)
     shutdown()
   }
 
@@ -58,17 +46,20 @@ class BigQueryIsOptimizedItSpec
 
     "#isOptimized" should {
 
-      "success" in {
-        val result = Await.result(connector.isOptimized(tableName, Seq("ANY")), awaitTimeout)
-        result shouldBe Right(true)
+      "succeed" in {
+        connector.isOptimized(tableName, Seq.empty).map { result =>
+          result.right.value shouldBe true
+        }
       }
 
-      "failed if table not found" in {
-        val result = Await.result(connector.isOptimized("TABLENAME", Seq("ANY")), awaitTimeout)
-        result shouldBe Left(TableNotFound("TABLENAME"))
+      "fail if table not found" in {
+        connector.isOptimized("NON_EXISTING_TABLENAME", Seq.empty) map { result =>
+          result.left.value should haveErrorCategoryAndErrorName(
+            ErrorCategory.FatalQueryExecution,
+            ErrorName.TableNotFound
+          )
+        }
       }
-
     }
   }
-
 }

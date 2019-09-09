@@ -23,7 +23,7 @@ class EnrichRequestWithOauthSpec
     with MockitoSugar {
 
   override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
   implicit val materializer = ActorMaterializer()

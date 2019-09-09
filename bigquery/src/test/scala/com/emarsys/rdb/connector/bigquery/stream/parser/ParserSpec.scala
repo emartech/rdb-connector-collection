@@ -19,7 +19,7 @@ class ParserSpec extends TestKit(ActorSystem("ParserSpec")) with WordSpecLike wi
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
   val pageToken = "dummyToken"

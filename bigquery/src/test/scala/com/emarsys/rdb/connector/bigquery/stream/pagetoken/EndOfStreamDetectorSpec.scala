@@ -15,7 +15,7 @@ class EndOfStreamDetectorSpec
     with BeforeAndAfterAll {
 
   override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
   "EndOfStreamDetector" should {

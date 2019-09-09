@@ -11,14 +11,10 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
 
-class SplitterSpec
-    extends TestKit(ActorSystem("BooleanSplitterSpec"))
-    with WordSpecLike
-    with Matchers
-    with BeforeAndAfterAll {
+class SplitterSpec extends TestKit(ActorSystem("SplitterSpec")) with WordSpecLike with Matchers with BeforeAndAfterAll {
 
   override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
   implicit val materializer = ActorMaterializer()

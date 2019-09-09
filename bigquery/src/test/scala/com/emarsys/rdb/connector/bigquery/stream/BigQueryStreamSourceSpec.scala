@@ -29,7 +29,7 @@ class BigQueryStreamSourceSpec
     with MockitoSugar {
 
   override def afterAll(): Unit = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
   val timeout                   = 3.seconds

@@ -12,7 +12,6 @@ import com.emarsys.rdb.connector.bigquery.GoogleApi._
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.bigquery.{BigQueryConnector, GoogleSession, GoogleTokenApi}
 
-import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 trait DbInitUtil {
@@ -25,9 +24,7 @@ trait DbInitUtil {
 
   lazy val connector: BigQueryConnector = Await.result(BigQueryConnector(testConfig)(sys), timeout.duration).right.get
 
-  def sleep(): Unit = {
-    Await.result(Future(Thread.sleep(1000)), 2.seconds)
-  }
+  def sleep(): Unit = Thread.sleep(1000)
 
   def runRequest(httpRequest: HttpRequest): Future[Done] = {
     val googleSession = new GoogleSession(testConfig.clientEmail, testConfig.privateKey, new GoogleTokenApi(Http()))

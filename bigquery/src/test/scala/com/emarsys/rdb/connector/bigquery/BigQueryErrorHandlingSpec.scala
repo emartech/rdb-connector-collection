@@ -1,25 +1,31 @@
 package com.emarsys.rdb.connector.bigquery
 
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, QueryTimeout}
-import org.scalatest.{Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
+import org.scalatest.{Matchers, PartialFunctionValues, WordSpecLike}
 
 import scala.concurrent.TimeoutException
 
-class BigQueryErrorHandlingSpec extends WordSpecLike with Matchers {
-
-  private def shouldBeWithCause[T](
-      result: Either[ConnectorError, T],
-      expected: ConnectorError,
-      expectedCause: Throwable
-  ): Unit = {
-    result shouldBe Left(expected)
-    result.left.get.getCause shouldBe expectedCause
-  }
+class BigQueryErrorHandlingSpec extends WordSpecLike with Matchers with PartialFunctionValues {
 
   "BigQueryErrorHandling" should {
     "convert timeout exception to QueryTimeout" in new BigQueryErrorHandling {
       val exception = new TimeoutException("msg")
-      shouldBeWithCause(eitherErrorHandler.apply(exception), QueryTimeout("msg"), exception)
+      val expected  = DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, exception)
+
+      eitherErrorHandler.valueAt(exception) shouldBe Left(expected)
+    }
+
+    "not convert DatabaseErrors" in new BigQueryErrorHandling {
+      val error = DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "error", None, None)
+
+      eitherErrorHandler.valueAt(error) shouldBe Left(error)
+    }
+
+    "convert every other exception into unknown DatabaseError" in new BigQueryErrorHandling {
+      val exception = new RuntimeException("Explosion")
+      val error     = DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, exception)
+
+      eitherErrorHandler.valueAt(exception) shouldBe Left(error)
     }
   }
 }

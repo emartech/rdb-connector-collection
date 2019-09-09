@@ -11,7 +11,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.concurrent.duration._
 
 class BigQueryMetadataItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("BigQueryMetadataItSpec"))
     with MetadataItSpec
     with WordSpecLike
     with Matchers
@@ -30,7 +30,6 @@ class BigQueryMetadataItSpec
 
   override def afterAll(): Unit = {
     cleanUpDb()
-    connector.close()
     shutdown()
   }
 

@@ -11,7 +11,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class BigQuerySelectWithGroupLimitItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("BigQuerySelectWithGroupLimitItSpec"))
     with SelectWithGroupLimitItSpec
     with DbInitUtil {
   override implicit val sys: ActorSystem                = system
@@ -22,7 +22,7 @@ class BigQuerySelectWithGroupLimitItSpec
 
   override def afterAll(): Unit = {
     super.afterAll()
-    system.terminate()
+    shutdown()
   }
 
   override def initDb(): Unit = {

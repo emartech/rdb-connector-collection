@@ -21,7 +21,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 class GoogleTokenApiSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("GoogleTokenApiSpec"))
     with WordSpecLike
     with Matchers
     with ScalaFutures
@@ -29,7 +29,7 @@ class GoogleTokenApiSpec
     with BeforeAndAfterAll {
 
   override def afterAll: Unit =
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   implicit val defaultPatience =
     PatienceConfig(timeout = 2.seconds, interval = 50.millis)
 

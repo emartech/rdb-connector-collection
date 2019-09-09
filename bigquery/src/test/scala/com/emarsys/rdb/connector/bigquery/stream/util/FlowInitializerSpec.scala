@@ -7,13 +7,13 @@ import akka.testkit.TestKit
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 class FlowInitializerSpec
-    extends TestKit(ActorSystem("PageTokenGeneratorSpec"))
+    extends TestKit(ActorSystem("FlowInitializerSpec"))
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll {
 
   override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
   "FlowInitializer" should {

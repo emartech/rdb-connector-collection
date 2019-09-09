@@ -4,14 +4,10 @@ import java.util.UUID
 
 import cats.data.EitherT
 import cats.syntax.applicativeError._
-import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig}
-import com.emarsys.rdb.connector.common.models.Errors.ConnectionConfigError
-import com.emarsys.rdb.connector.mssql.MsSqlAzureConnector.{
-  AzureMsSqlPort,
-  MsSqlAzureConnectionConfig,
-  MsSqlAzureConnectorConfig
-}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
+import com.emarsys.rdb.connector.mssql.MsSqlAzureConnector.{AzureMsSqlPort, MsSqlAzureConnectionConfig, MsSqlAzureConnectorConfig}
 import com.emarsys.rdb.connector.mssql.MsSqlConnector.MsSqlConnectorConfig
 import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import com.typesafe.config.{Config, ConfigFactory}
@@ -56,9 +52,21 @@ trait MsSqlAzureConnectorTrait extends MsSqlErrorHandling with MsSqlConnectorHel
       connectorConfig: MsSqlAzureConnectorConfig = defaultConfig
   )(implicit e: ExecutionContext): ConnectorResponse[MsSqlConnector] = {
     if (isSslDisabledOrTamperedWith(config.connectionParams)) {
-      Future.successful(Left(ConnectionConfigError("SSL Error")))
+      Future.successful(
+        Left(DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "SSL is disabled", None, None))
+      )
     } else if (!checkAzureUrl(config.host)) {
-      Future.successful(Left(ConnectionConfigError("Wrong Azure SQL host!")))
+      Future.successful(
+        Left(
+          DatabaseError(
+            ErrorCategory.FatalQueryExecution,
+            ErrorName.ConnectionConfigError,
+            s"Wrong Azure SQL host: ${config.host}",
+            None,
+            None
+          )
+        )
+      )
     } else {
       val poolName = UUID.randomUUID.toString
       val dbConfig = createDbConfig(config, poolName, connectorConfig)

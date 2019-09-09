@@ -66,9 +66,9 @@ trait MySqlErrorHandling {
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
-    (errorHandler orElse defaultDBError) andThen Left.apply
+    (errorHandler orElse default) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    (errorHandler orElse defaultDBError) andThen Source.failed
+    (errorHandler orElse default) andThen Source.failed
 
 }

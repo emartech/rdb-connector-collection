@@ -4,7 +4,7 @@ import java.sql.SQLException
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
-import com.emarsys.rdb.connector.common.defaults.ErrorConverter.defaultDBError
+import com.emarsys.rdb.connector.common.defaults.ErrorConverter.default
 import com.emarsys.rdb.connector.common.models.Errors._
 
 trait PostgreSqlErrorHandling {
@@ -41,9 +41,9 @@ trait PostgreSqlErrorHandling {
     "Update statements should not return a ResultSet" == message
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
-    (errorHandler orElse defaultDBError) andThen Left.apply
+    (errorHandler orElse default) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    (errorHandler orElse defaultDBError) andThen Source.failed
+    (errorHandler orElse default) andThen Source.failed
 
 }

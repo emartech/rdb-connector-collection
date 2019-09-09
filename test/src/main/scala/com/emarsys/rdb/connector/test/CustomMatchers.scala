@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.test
 
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError}
+import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError, ErrorCategory, ErrorName}
 import org.scalatest.matchers.{MatchResult, Matcher}
 
 object CustomMatchers extends CustomMatchers
@@ -22,4 +22,22 @@ trait CustomMatchers {
   }
 
   def beDatabaseErrorEqualWithoutCause(expected: DatabaseError) = new DatabaseErrorMatcher(expected)
+
+  class ErrorCategoryAndErrorNameMatcher(errorCategory: ErrorCategory, errorName: ErrorName)
+      extends Matcher[ConnectorError] {
+    override def apply(actual: ConnectorError): MatchResult =
+      actual match {
+        case DatabaseError(actualErrorCategory, actualErrorName, _, _, _) =>
+          MatchResult(
+            actualErrorCategory == errorCategory && actualErrorName == errorName,
+            s"\nActual: $actualErrorCategory, $actualErrorName\nExpected: $errorCategory, $errorName",
+            "Actual and expected error categories and error names are equal"
+          )
+        case ee =>
+          MatchResult(matches = false, s"$ee did not have $errorCategory and $errorName", "This.Should.Never.Happen.")
+      }
+  }
+
+  def haveErrorCategoryAndErrorName(errorCategory: ErrorCategory, errorName: ErrorName) =
+    new ErrorCategoryAndErrorNameMatcher(errorCategory, errorName)
 }

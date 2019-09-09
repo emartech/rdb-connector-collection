@@ -140,8 +140,8 @@ object Errors {
       errorCategory: ErrorCategory,
       error: ErrorName,
       message: String,
-      cause: Option[Throwable],
-      context: Option[Context]
+      cause: Option[Throwable] = None,
+      context: Option[Context] = None
   ) extends ConnectorError(message)
   object DatabaseError {
     def apply(errorCategory: ErrorCategory, errorName: ErrorName, cause: Throwable): DatabaseError = DatabaseError(

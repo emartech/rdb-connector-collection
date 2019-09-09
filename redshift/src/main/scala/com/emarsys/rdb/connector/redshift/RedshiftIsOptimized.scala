@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.redshift
 
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 
 trait RedshiftIsOptimized {
   self: RedshiftConnector with RedshiftMetadata =>
@@ -12,7 +12,10 @@ trait RedshiftIsOptimized {
         _.map(_.exists(_.name == table))
           .flatMap(
             if (_) Right(true)
-            else Left(TableNotFound(table))
+            else
+              Left(
+                DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, s"Table not found: $table")
+              )
           )
       )
       .recover(eitherErrorHandler)

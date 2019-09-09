@@ -5,10 +5,9 @@ import java.sql.SQLException
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.defaults.ErrorConverter
-import com.emarsys.rdb.connector.common.models.Errors._
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName, ConnectorError}
 
 trait RedshiftErrorHandling {
-  import ErrorConverter._
 
   val REDSHIFT_STATE_GENERAL_ERROR        = "HY000"
   val REDSHIFT_STATE_QUERY_CANCELLED      = "57014"
@@ -34,21 +33,21 @@ trait RedshiftErrorHandling {
 
   private def errorHandler: PartialFunction[Throwable, ConnectorError] = {
     case ex: SQLException if isConnectionTimeout(ex) =>
-      ConnectionTimeout(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, ex)
     case ex: SQLException if isTcpSocketTimeout(ex) =>
-      QueryTimeout(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, ex)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_QUERY_CANCELLED =>
-      QueryTimeout(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, ex)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_SYNTAX_ERROR =>
-      SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_AMBIGUOUS_COLUMN_REF =>
-      SqlSyntaxError(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_PERMISSION_DENIED =>
-      AccessDeniedError(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, ex)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_RELATION_NOT_FOUND =>
-      TableNotFound(getErrorMessage(ex)).withCause(ex)
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, ex)
     case ex: SQLException if connectionErrors.contains(ex.getSQLState) =>
-      ConnectionError(ex).withCause(ex)
+      DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, ex)
   }
 
   private def isConnectionTimeout(ex: SQLException): Boolean = {
@@ -62,8 +61,8 @@ trait RedshiftErrorHandling {
   }
 
   protected def eitherErrorHandler[T]: PartialFunction[Throwable, Either[ConnectorError, T]] =
-    (errorHandler orElse ErrorConverter.default) andThen Left.apply
+    (errorHandler orElse ErrorConverter.defaultDBError) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    (errorHandler orElse ErrorConverter.default) andThen Source.failed
+    (errorHandler orElse ErrorConverter.defaultDBError) andThen Source.failed
 }

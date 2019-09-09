@@ -6,9 +6,10 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.redshift.utils.TestHelper
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName, ConnectorError}
+import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.test.CustomMatchers._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -17,6 +18,7 @@ class RedshiftConnectorItSpec
     extends TestKit(ActorSystem("connector-it-test"))
     with WordSpecLike
     with Matchers
+    with EitherValues
     with BeforeAndAfterAll {
   implicit val mat              = ActorMaterializer()
   override def afterAll(): Unit = shutdown()
@@ -36,8 +38,10 @@ class RedshiftConnectorItSpec
         connectionParams += "ssl=false"
 
         val badConnection = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = connectionParams)
-        val connection    = Await.result(RedshiftConnector.create(badConnection), timeout)
-        connection shouldBe Left(ConnectionConfigError("SSL Error"))
+        val result        = Await.result(RedshiftConnector.create(badConnection), timeout)
+        result.left.value should beDatabaseErrorEqualWithoutCause(
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "SSL is disabled")
+        )
       }
 
       "connect ok" in {
@@ -63,7 +67,7 @@ class RedshiftConnectorItSpec
         val badConnection = TestHelper.TEST_CONNECTION_CONFIG.copy(host = "asd.asd.asd")
         val connection    = Await.result(RedshiftConnector.create(badConnection), timeout)
         connection shouldBe a[Left[_, _]]
-        connection.left.get shouldBe a[ConnectionTimeout]
+        connection.left.get should haveErrorCategoryAndErrorName(ErrorCategory.Timeout, ErrorName.ConnectionTimeout)
       }
 
     }
@@ -94,14 +98,20 @@ class RedshiftConnectorItSpec
         val result = Await.result(runQuery("select from table"), timeout)
 
         result shouldBe a[Left[_, _]]
-        result.left.get shouldBe an[SqlSyntaxError]
+        result.left.get should haveErrorCategoryAndErrorName(
+          ErrorCategory.FatalQueryExecution,
+          ErrorName.SqlSyntaxError
+        )
       }
 
       "recognize if a table is not found" in new QueryRunnerScope {
         val result = Await.result(runQuery("select * from a_non_existing_table"), timeout)
 
         result shouldBe a[Left[_, _]]
-        result.left.get shouldBe a[TableNotFound]
+        result.left.get should haveErrorCategoryAndErrorName(
+          ErrorCategory.FatalQueryExecution,
+          ErrorName.TableNotFound
+        )
       }
     }
   }

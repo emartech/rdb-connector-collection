@@ -2,31 +2,44 @@ package com.emarsys.rdb.connector.redshift
 
 import java.sql.{SQLException, SQLTransientConnectionException}
 
-import com.emarsys.rdb.connector.common.models.Errors._
-import org.scalatest.{Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.test.CustomMatchers._
+import org.scalatest.{EitherValues, Matchers, WordSpecLike}
 
-class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
+class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers with EitherValues {
 
-  val possibleSQLErrors = Seq(
+  val possibleSQLErrors: Seq[(String, String, DatabaseError)] = Seq(
     (
       "HY000",
       "Connection is not available, request timed out after",
-      ConnectionTimeout("Connection is not available, request timed out after")
+      DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, "", None, None)
     ),
     (
       "HY000",
       "[Amazon](500053) The TCP Socket has timed out while waiting for response",
-      QueryTimeout("[Amazon](500053) The TCP Socket has timed out while waiting for response")
+      DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, "", None, None)
     ),
-    ("HY000", "other error with HY000", ErrorWithMessage("[HY000] - [999] - other error with HY000")),
-    ("57014", "query cancelled", QueryTimeout("query cancelled")),
-    ("42601", "sql syntax error", SqlSyntaxError("sql syntax error")),
-    ("42501", "permission denied", AccessDeniedError("permission denied")),
-    ("42P01", "relation not found", TableNotFound("relation not found")),
+    ("HY000", "other error with HY000", DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "", None, None)),
+    ("57014", "query cancelled", DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, "", None, None)),
+    (
+      "42601",
+      "sql syntax error",
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "", None, None)
+    ),
+    (
+      "42501",
+      "permission denied",
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, "", None, None)
+    ),
+    (
+      "42P01",
+      "relation not found",
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, "", None, None)
+    ),
     (
       "42702",
       "[Amazon](500310) Invalid operation: column reference \"seller_id\" is ambiguous;",
-      SqlSyntaxError("[Amazon](500310) Invalid operation: column reference \"seller_id\" is ambiguous;")
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "", None, None)
     )
   )
 
@@ -37,50 +50,43 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers {
     ("28P01", "invalid password")
   )
 
-  private def shouldBeWithCause[T](
-      result: Either[ConnectorError, T],
-      expected: ConnectorError,
-      expectedCause: Throwable
-  ): Unit = {
-    result shouldBe Left(expected)
-    result.left.get.getCause shouldBe expectedCause
-  }
-
   "RedshiftErrorHandling" should {
 
     possibleSQLErrors.foreach {
       case (sqlState, message, expectedError) =>
         s"""convert $message to ${expectedError.getClass.getSimpleName}""" in new RedshiftErrorHandling {
-          val sqlException = new SQLException(message, sqlState, 999)
-          eitherErrorHandler.apply(sqlException) shouldEqual Left(expectedError)
-          shouldBeWithCause(eitherErrorHandler.apply(sqlException), expectedError, sqlException)
+          val thrownError = new SQLException(message, sqlState, 999)
+          val result      = eitherErrorHandler.apply(thrownError)
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+          result.left.value.asInstanceOf[DatabaseError].cause shouldBe Some(thrownError)
         }
     }
 
     possibleConnectionErrors.foreach {
       case (sqlState, message) =>
         s"""convert $message to ConnectionError""" in new RedshiftErrorHandling {
-          val sqlException = new SQLException("msg", sqlState)
-          eitherErrorHandler.apply(sqlException) shouldEqual Left(ConnectionError(sqlException))
-          shouldBeWithCause(eitherErrorHandler.apply(sqlException), ConnectionError(sqlException), sqlException)
+          val thrownError   = new SQLException("msg", sqlState)
+          val result        = eitherErrorHandler.apply(thrownError)
+          val expectedError = DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "", None, None)
+          result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
+          result.left.value.asInstanceOf[DatabaseError].cause shouldBe Some(thrownError)
         }
     }
 
     "convert timeout transient sql error to connection timeout error" in new RedshiftErrorHandling {
-      val msg          = "Connection is not available, request timed out after"
-      val sqlException = new SQLTransientConnectionException(msg)
-      shouldBeWithCause(eitherErrorHandler.apply(sqlException), ConnectionTimeout(msg), sqlException)
+      val msg         = "Connection is not available, request timed out after"
+      val thrownError = new SQLTransientConnectionException(msg)
+      val result      = eitherErrorHandler.apply(thrownError)
+      result.left.value should haveErrorCategoryAndErrorName(ErrorCategory.Timeout, ErrorName.ConnectionTimeout)
+      result.left.value.asInstanceOf[DatabaseError].cause shouldBe Some(thrownError)
     }
 
     "convert sql error to error with message and state if not timeout" in new RedshiftErrorHandling {
-      val msg          = "Other transient error"
-      val sqlException = new SQLTransientConnectionException(msg, "not-handled-sql-state", 999)
-      shouldBeWithCause(
-        eitherErrorHandler.apply(sqlException),
-        ErrorWithMessage(s"[not-handled-sql-state] - [999] - $msg"),
-        sqlException
-      )
+      val msg         = "Other transient error"
+      val thrownError = new SQLTransientConnectionException(msg, "not-handled-sql-state", 999)
+      val result      = eitherErrorHandler.apply(thrownError)
+      result.left.value should haveErrorCategoryAndErrorName(ErrorCategory.Unknown, ErrorName.Unknown)
+      result.left.value.asInstanceOf[DatabaseError].cause shouldBe Some(thrownError)
     }
-
   }
 }

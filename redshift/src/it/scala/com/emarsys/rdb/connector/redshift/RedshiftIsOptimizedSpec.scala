@@ -3,14 +3,15 @@ package com.emarsys.rdb.connector.redshift
 import java.util.UUID
 
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.Errors.TableNotFound
+import com.emarsys.rdb.connector.common.models.Errors.{ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.redshift.utils.TestHelper
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.test.CustomMatchers._
+import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class RedshiftIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
+class RedshiftIsOptimizedSpec extends WordSpecLike with EitherValues with Matchers with BeforeAndAfterAll {
   implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val uuid      = UUID.randomUUID().toString
@@ -59,7 +60,10 @@ class RedshiftIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndA
 
       "failed if table not found" in {
         val result = Await.result(connector.isOptimized("TABLENAME", Seq("ANY")), 15.seconds)
-        result shouldBe Left(TableNotFound("TABLENAME"))
+        result.left.value should haveErrorCategoryAndErrorName(
+          ErrorCategory.FatalQueryExecution,
+          ErrorName.TableNotFound
+        )
       }
 
     }

@@ -5,7 +5,7 @@ import java.util.UUID
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectionConfigError, ConnectorError}
+import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.redshift.RedshiftConnector.{RedshiftConnectionConfig, RedshiftConnectorConfig}
@@ -94,7 +94,7 @@ trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandli
       connectorConfig: RedshiftConnectorConfig = defaultConfig
   )(implicit ec: ExecutionContext): ConnectorResponse[RedshiftConnector] = {
     if (isSslDisabled(config.connectionParams)) {
-      Future.successful(Left(ConnectionConfigError("SSL Error")))
+      Future.successful(Left(DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "SSL is disabled")))
     } else {
       val poolName      = UUID.randomUUID.toString
       val currentSchema = createSchemaName(config)

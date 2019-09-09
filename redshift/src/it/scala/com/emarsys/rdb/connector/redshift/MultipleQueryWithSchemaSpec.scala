@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.Sink
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.Errors.ConnectionError
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.redshift.utils.SelectDbWithSchemaInitHelper
 import com.emarsys.rdb.connector.test.uuidGenerate
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
@@ -54,7 +54,16 @@ class MultipleQueryWithSchemaSpec
           case Left(ex) => Future.successful(Left(ex))
           case Right(source) =>
             source.runWith(Sink.seq).map(Right(_)).recover {
-              case error => Left(ConnectionError(error))
+              case error =>
+                Left(
+                  DatabaseError(
+                    ErrorCategory.Unknown,
+                    ErrorName.Unknown,
+                    "Something went wrong",
+                    Some(error),
+                    None
+                  )
+                )
             }
         }
       }

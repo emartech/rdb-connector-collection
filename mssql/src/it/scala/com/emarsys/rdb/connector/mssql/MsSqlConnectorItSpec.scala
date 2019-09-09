@@ -8,7 +8,8 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.mssql.utils.TestHelper
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.test.CustomMatchers._
+import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,7 +19,8 @@ class MsSqlConnectorItSpec
     extends TestKit(ActorSystem("connector-it-soec"))
     with WordSpecLike
     with Matchers
-    with BeforeAndAfterAll {
+    with BeforeAndAfterAll
+    with EitherValues {
 
   implicit val mat      = ActorMaterializer()
   override def afterAll = TestKit.shutdownActorSystem(system)
@@ -43,24 +45,36 @@ class MsSqlConnectorItSpec
         val conn            = testConnection.copy(host = "wrong")
         val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
 
-        connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe a[ConnectionError]
+        val result = connectorEither.left.value.asInstanceOf[DatabaseError]
+        result.copy(message = "") should beDatabaseErrorEqualWithoutCause(
+          DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, "", None, None)
+        )
+        result.message should include("Connection is not available, request timed out after")
+        result.cause shouldBe defined
       }
 
       "connect fail when wrong user" in {
         val conn            = testConnection.copy(dbUser = "")
         val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
 
-        connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe an[ConnectionTimeout]
+        val result = connectorEither.left.value.asInstanceOf[DatabaseError]
+        result.copy(message = "") should beDatabaseErrorEqualWithoutCause(
+          DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, "", None, None)
+        )
+        result.message should include("Connection is not available, request timed out after")
+        result.cause shouldBe defined
       }
 
       "connect fail when wrong password" in {
         val conn            = testConnection.copy(dbPassword = "")
         val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
 
-        connectorEither shouldBe a[Left[_, _]]
-        connectorEither.left.get shouldBe an[ConnectionTimeout]
+        val result = connectorEither.left.value.asInstanceOf[DatabaseError]
+        result.copy(message = "") should beDatabaseErrorEqualWithoutCause(
+          DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, "", None, None)
+        )
+        result.message should include("Connection is not available, request timed out after")
+        result.cause shouldBe defined
       }
 
       "connect fail when wrong certificate" in {
@@ -122,15 +136,17 @@ class MsSqlConnectorItSpec
       "recognize query timeouts" in new QueryRunnerScope {
         val result = Await.result(runQuery("waitfor delay '00:00:06.000'; select 1"), 6.second)
 
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe an[QueryTimeout]
+        result.left.value should beDatabaseErrorEqualWithoutCause(
+          DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, "", None, None)
+        )
       }
 
       "recognize syntax errors" in new QueryRunnerScope {
         val result = Await.result(runQuery("select from table"), 1.second)
 
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe an[SqlSyntaxError]
+        result.left.value should beDatabaseErrorEqualWithoutCause(
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "", None, None)
+        )
       }
 
       "recognize access denied errors" in new QueryRunnerScope {
@@ -140,15 +156,17 @@ class MsSqlConnectorItSpec
         )
         val result = Await.result(runQuery("select * from access_denied"), 1.second)
 
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe an[AccessDeniedError]
+        result.left.value should beDatabaseErrorEqualWithoutCause(
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, "", None, None)
+        )
       }
 
       "recognize if a table is not found" in new QueryRunnerScope {
         val result = Await.result(runQuery("select * from a_non_existing_table"), 1.second)
 
-        result shouldBe a[Left[_, _]]
-        result.left.get shouldBe a[TableNotFound]
+        result.left.value should beDatabaseErrorEqualWithoutCause(
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, "", None, None)
+        )
       }
     }
   }

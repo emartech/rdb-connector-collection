@@ -5,7 +5,7 @@ import java.util.UUID
 import cats.data.EitherT
 import cats.syntax.applicativeError._
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
-import com.emarsys.rdb.connector.common.models.Errors.ConnectionConfigError
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.mssql.CertificateUtil.createTrustStoreTempFile
@@ -97,7 +97,9 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
       connectorConfig: MsSqlConnectorConfig = defaultConfig
   )(implicit e: ExecutionContext): ConnectorResponse[MsSqlConnector] = {
     if (isSslDisabledOrTamperedWith(config.connectionParams)) {
-      Future.successful(Left(ConnectionConfigError("SSL Error")))
+      Future.successful(
+        Left(DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "SSL is disabled", None, None))
+      )
     } else {
       (for {
         trustStorePath <- createTrustStorePath(config.certificate)
@@ -114,7 +116,10 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
   )(implicit e: ExecutionContext): ConnectorResponseET[String] = {
     EitherT
       .fromEither[Future](createTrustStoreTempFile(cert).toEither)
-      .leftMap(ex => ConnectionConfigError("Wrong SSL cert format").withCause(ex))
+      .leftMap(
+        ex =>
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "Wrong SSL cert format", Some(ex), None)
+      )
   }
 
   private def createMsSqlConnector(connectorConfig: MsSqlConnectorConfig, poolName: String, db: Database)(

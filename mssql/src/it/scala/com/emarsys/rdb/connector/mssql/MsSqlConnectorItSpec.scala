@@ -81,14 +81,24 @@ class MsSqlConnectorItSpec
         val conn            = testConnection.copy(certificate = "")
         val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
 
-        connectorEither shouldBe Left(ConnectionConfigError("Wrong SSL cert format"))
+        val result = connectorEither.left.value.asInstanceOf[DatabaseError]
+        result should beDatabaseErrorEqualWithoutCause(
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "Wrong SSL cert format", None, None)
+        )
+        result.cause.map(_.toString) shouldBe Some(
+          "java.security.cert.CertificateException: Could not parse certificate: java.io.IOException: Empty input"
+        )
       }
 
       "connect fail when ssl disabled" in {
         val conn            = testConnection.copy(connectionParams = "encrypt=false")
         val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
 
-        connectorEither shouldBe Left(ConnectionConfigError("SSL Error"))
+        val result = connectorEither.left.value.asInstanceOf[DatabaseError]
+        result should beDatabaseErrorEqualWithoutCause(
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "SSL is disabled", None, None)
+        )
+        result.cause shouldBe None
       }
 
     }

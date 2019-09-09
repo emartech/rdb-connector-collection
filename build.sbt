@@ -45,8 +45,8 @@ lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(scalafmtOnCompile := true)
 
 lazy val bigQuery = connector("bigquery", Dependencies.BigQuery)
-lazy val mssql = connector("mssql", Dependencies.Mssql)
-lazy val mysql = connector("mysql", Dependencies.Mysql)
+lazy val mssql    = connector("mssql", Dependencies.Mssql)
+lazy val mysql    = connector("mysql", Dependencies.Mysql)
 lazy val postgres = connector("postgresql", Dependencies.Postgresql)
 lazy val redshift = connector("redshift", Dependencies.Redshift)
 
@@ -84,9 +84,14 @@ lazy val meta =
       Developer("fugafree", "Gabor Fulop", "gabor.fulop@emarsys.com", url("https://github.com/fugafree")),
       Developer("Ksisu", "Kristof Horvath", "kristof.horvath@emarsys.com", url("https://github.com/Ksisu")),
       Developer("miklos-martin", "Miklos Martin", "miklos.martin@gmail.com", url("https://github.com/miklos-martin")),
-      Developer("tg44", "Gergo Torcsvari", "gergo.torcsvari@emarsys.com", url("https://github.com/tg44")),
+      Developer("tg44", "Gergo Torcsvari", "gergo.torcsvari@emarsys.com", url("https://github.com/tg44"))
     ),
-    scmInfo := Some(ScmInfo(url("https://github.com/emartech/rdb-connector-collection"), "scm:git:git@github.com:emartech/rdb-connector-collection.git"))
+    scmInfo := Some(
+      ScmInfo(
+        url("https://github.com/emartech/rdb-connector-collection"),
+        "scm:git:git@github.com:emartech/rdb-connector-collection.git"
+      )
+    )
   )
 
 lazy val publishSettings = Seq(

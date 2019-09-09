@@ -4,7 +4,7 @@ import cats.data.EitherT
 import cats.instances.future._
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.StringValue
 import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
-import com.emarsys.rdb.connector.common.models.Errors.{CommunicationsLinkFailure, ConnectorError}
+import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.TableModel
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import org.mockito.Mockito._
@@ -21,6 +21,8 @@ class DataManipulationValidatorSpec extends WordSpecLike with Matchers with Mock
   val viewName        = "viewName"
   val availableTables = Future.successful(Right(Seq(TableModel(tableName, false), TableModel(viewName, true))))
   val optimizedField  = Future.successful(Right(true))
+
+  val failure = DatabaseError(ErrorCategory.Transient, ErrorName.CommunicationsLinkFailure, "oh no")
 
   class ValidatorScope {
     val connector = new Connector {
@@ -58,9 +60,9 @@ class DataManipulationValidatorSpec extends WordSpecLike with Matchers with Mock
       await(validator.validateUpdateDefinition(tableName, updateData, connector)).right.value shouldBe
         ValidationResult.Valid
 
-      verify(dataValidator, times(1)).validateUpdateFormat(updateData, 1000)
-      verify(dataValidator, times(1)).validateTableExistsAndNotView(tableName, connector)
-      verify(dataValidator, times(1)).validateUpdateFields(tableName, updateData, connector)
+      verify(dataValidator).validateUpdateFormat(updateData, 1000)
+      verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
+      verify(dataValidator).validateUpdateFields(tableName, updateData, connector)
     }
 
     "stop validation if one of the validation return invalid result" in new ValidatorScope {
@@ -72,23 +74,23 @@ class DataManipulationValidatorSpec extends WordSpecLike with Matchers with Mock
       await(validator.validateUpdateDefinition(tableName, updateData, connector)).right.value shouldBe
         ValidationResult.NoIndexOnFields
 
-      verify(dataValidator, times(1)).validateUpdateFormat(updateData, 1000)
-      verify(dataValidator, times(1)).validateTableExistsAndNotView(tableName, connector)
-      verify(dataValidator, times(0)).validateUpdateFields(tableName, updateData, connector)
+      verify(dataValidator).validateUpdateFormat(updateData, 1000)
+      verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
+      verify(dataValidator, never()).validateUpdateFields(tableName, updateData, connector)
     }
 
     "fail if one of the validation fails" in new ValidatorScope {
       when(dataValidator.validateUpdateFormat(updateData, 1000)(executionContext)) thenReturn
         toResponse(ValidationResult.Valid)
       when(dataValidator.validateTableExistsAndNotView(tableName, connector)(executionContext)) thenReturn
-        toResponse(CommunicationsLinkFailure("Error"))
+        toResponse(failure)
 
       await(validator.validateUpdateDefinition(tableName, updateData, connector)).left.value shouldBe
-        CommunicationsLinkFailure("Error")
+        failure
 
-      verify(dataValidator, times(1)).validateUpdateFormat(updateData, 1000)
-      verify(dataValidator, times(1)).validateTableExistsAndNotView(tableName, connector)
-      verify(dataValidator, times(0)).validateUpdateFields(tableName, updateData, connector)
+      verify(dataValidator).validateUpdateFormat(updateData, 1000)
+      verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
+      verify(dataValidator, never()).validateUpdateFields(tableName, updateData, connector)
     }
   }
 
@@ -110,9 +112,9 @@ class DataManipulationValidatorSpec extends WordSpecLike with Matchers with Mock
       await(validator.validateInsertData(tableName, dataToInsert, connector)).right.value shouldBe
         ValidationResult.Valid
 
-      verify(dataValidator, times(1)).validateFormat(dataToInsert, 1000)
-      verify(dataValidator, times(1)).validateTableExistsAndNotView(tableName, connector)
-      verify(dataValidator, times(1)).validateFieldExistence(tableName, Set("a", "b"), connector)
+      verify(dataValidator).validateFormat(dataToInsert, 1000)
+      verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
+      verify(dataValidator).validateFieldExistence(tableName, Set("a", "b"), connector)
     }
 
     "stop validation if one of the validation return invalid result" in new ValidatorScope {
@@ -124,23 +126,23 @@ class DataManipulationValidatorSpec extends WordSpecLike with Matchers with Mock
       await(validator.validateInsertData(tableName, dataToInsert, connector)).right.value shouldBe
         ValidationResult.NoIndexOnFields
 
-      verify(dataValidator, times(1)).validateFormat(dataToInsert, 1000)
-      verify(dataValidator, times(1)).validateTableExistsAndNotView(tableName, connector)
-      verify(dataValidator, times(0)).validateFieldExistence(tableName, Set("a", "b"), connector)
+      verify(dataValidator).validateFormat(dataToInsert, 1000)
+      verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
+      verify(dataValidator, never()).validateFieldExistence(tableName, Set("a", "b"), connector)
     }
 
     "fail if one of the validation fails" in new ValidatorScope {
       when(dataValidator.validateFormat(dataToInsert, 1000)(executionContext)) thenReturn
         toResponse(ValidationResult.Valid)
       when(dataValidator.validateTableExistsAndNotView(tableName, connector)(executionContext)) thenReturn
-        toResponse(CommunicationsLinkFailure("Error"))
+        toResponse(failure)
 
       await(validator.validateInsertData(tableName, dataToInsert, connector)).left.value shouldBe
-        CommunicationsLinkFailure("Error")
+        failure
 
-      verify(dataValidator, times(1)).validateFormat(dataToInsert, 1000)
-      verify(dataValidator, times(1)).validateTableExistsAndNotView(tableName, connector)
-      verify(dataValidator, times(0)).validateFieldExistence(tableName, Set("a", "b"), connector)
+      verify(dataValidator).validateFormat(dataToInsert, 1000)
+      verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
+      verify(dataValidator, never()).validateFieldExistence(tableName, Set("a", "b"), connector)
     }
 
     "return Valid if one of the validation fails with EmptyData" in new ValidatorScope {
@@ -152,9 +154,9 @@ class DataManipulationValidatorSpec extends WordSpecLike with Matchers with Mock
       await(validator.validateInsertData(tableName, dataToInsert, connector)).right.value shouldBe
         ValidationResult.Valid
 
-      verify(dataValidator, times(1)).validateFormat(dataToInsert, 1000)
-      verify(dataValidator, times(1)).validateTableExistsAndNotView(tableName, connector)
-      verify(dataValidator, times(0)).validateFieldExistence(tableName, Set("a", "b"), connector)
+      verify(dataValidator).validateFormat(dataToInsert, 1000)
+      verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
+      verify(dataValidator, never()).validateFieldExistence(tableName, Set("a", "b"), connector)
     }
   }
 
@@ -178,10 +180,10 @@ class DataManipulationValidatorSpec extends WordSpecLike with Matchers with Mock
       await(validator.validateDeleteCriteria(tableName, criteria, connector)).right.value shouldBe
         ValidationResult.Valid
 
-      verify(dataValidator, times(1)).validateFormat(criteria, 1000)
-      verify(dataValidator, times(1)).validateTableExistsAndNotView(tableName, connector)
-      verify(dataValidator, times(1)).validateFieldExistence(tableName, Set("a", "b"), connector)
-      verify(dataValidator, times(1)).validateIndices(tableName, Set("a", "b"), connector)
+      verify(dataValidator).validateFormat(criteria, 1000)
+      verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
+      verify(dataValidator).validateFieldExistence(tableName, Set("a", "b"), connector)
+      verify(dataValidator).validateIndices(tableName, Set("a", "b"), connector)
     }
 
     "stop validation if one of the validation return invalid result" in new ValidatorScope {
@@ -193,23 +195,23 @@ class DataManipulationValidatorSpec extends WordSpecLike with Matchers with Mock
       await(validator.validateDeleteCriteria(tableName, criteria, connector)).right.value shouldBe
         ValidationResult.NoIndexOnFields
 
-      verify(dataValidator, times(1)).validateFormat(criteria, 1000)
-      verify(dataValidator, times(1)).validateTableExistsAndNotView(tableName, connector)
-      verify(dataValidator, times(0)).validateFieldExistence(tableName, Set("a", "b"), connector)
+      verify(dataValidator).validateFormat(criteria, 1000)
+      verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
+      verify(dataValidator, never()).validateFieldExistence(tableName, Set("a", "b"), connector)
     }
 
     "fail if one of the validation fails" in new ValidatorScope {
       when(dataValidator.validateFormat(criteria, 1000)(executionContext)) thenReturn
         toResponse(ValidationResult.Valid)
       when(dataValidator.validateTableExistsAndNotView(tableName, connector)(executionContext)) thenReturn
-        toResponse(CommunicationsLinkFailure("Error"))
+        toResponse(failure)
 
       await(validator.validateDeleteCriteria(tableName, criteria, connector)).left.value shouldBe
-        CommunicationsLinkFailure("Error")
+        failure
 
-      verify(dataValidator, times(1)).validateFormat(criteria, 1000)
-      verify(dataValidator, times(1)).validateTableExistsAndNotView(tableName, connector)
-      verify(dataValidator, times(0)).validateFieldExistence(tableName, Set("a", "b"), connector)
+      verify(dataValidator).validateFormat(criteria, 1000)
+      verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
+      verify(dataValidator, never()).validateFieldExistence(tableName, Set("a", "b"), connector)
     }
   }
 
@@ -230,10 +232,10 @@ class DataManipulationValidatorSpec extends WordSpecLike with Matchers with Mock
       await(validator.validateSearchCriteria(tableName, criteria, connector)).right.value shouldBe
         ValidationResult.Valid
 
-      verify(dataValidator, times(1)).validateEmptyCriteria(criteria)
-      verify(dataValidator, times(1)).validateTableExists(tableName, connector)
-      verify(dataValidator, times(1)).validateFieldExistence(tableName, Set("a", "b"), connector)
-      verify(dataValidator, times(1)).validateIndices(tableName, Set("a", "b"), connector)
+      verify(dataValidator).validateEmptyCriteria(criteria)
+      verify(dataValidator).validateTableExists(tableName, connector)
+      verify(dataValidator).validateFieldExistence(tableName, Set("a", "b"), connector)
+      verify(dataValidator).validateIndices(tableName, Set("a", "b"), connector)
     }
 
     "stop validation if one of the validation return invalid result" in new ValidatorScope {
@@ -245,23 +247,23 @@ class DataManipulationValidatorSpec extends WordSpecLike with Matchers with Mock
       await(validator.validateSearchCriteria(tableName, criteria, connector)).right.value shouldBe
         ValidationResult.NoIndexOnFields
 
-      verify(dataValidator, times(1)).validateEmptyCriteria(criteria)
-      verify(dataValidator, times(1)).validateTableExists(tableName, connector)
-      verify(dataValidator, times(0)).validateFieldExistence(tableName, Set("a", "b"), connector)
+      verify(dataValidator).validateEmptyCriteria(criteria)
+      verify(dataValidator).validateTableExists(tableName, connector)
+      verify(dataValidator, never()).validateFieldExistence(tableName, Set("a", "b"), connector)
     }
 
     "fail if one of the validation fails" in new ValidatorScope {
       when(dataValidator.validateEmptyCriteria(criteria)(executionContext)) thenReturn
         toResponse(ValidationResult.Valid)
       when(dataValidator.validateTableExists(tableName, connector)(executionContext)) thenReturn
-        toResponse(CommunicationsLinkFailure("Error"))
+        toResponse(failure)
 
       await(validator.validateSearchCriteria(tableName, criteria, connector)).left.value shouldBe
-        CommunicationsLinkFailure("Error")
+        failure
 
-      verify(dataValidator, times(1)).validateEmptyCriteria(criteria)
-      verify(dataValidator, times(1)).validateTableExists(tableName, connector)
-      verify(dataValidator, times(0)).validateFieldExistence(tableName, Set("a", "b"), connector)
+      verify(dataValidator).validateEmptyCriteria(criteria)
+      verify(dataValidator).validateTableExists(tableName, connector)
+      verify(dataValidator, never()).validateFieldExistence(tableName, Set("a", "b"), connector)
     }
   }
 

@@ -89,9 +89,7 @@ object Dependencies {
   )
 
   val Redshift = Seq(
-    resolvers ++= Seq(
-      ("Amazon" at "http://redshift-maven-repository.s3-website-us-east-1.amazonaws.com/release").withAllowInsecureProtocol(true)
-    ),
+    resolvers ++= Seq(("Amazon" at "https://s3.amazonaws.com/redshift-maven-repository/release")),
     libraryDependencies ++= Seq(
       "com.typesafe.slick"  %% "slick"          % slickVersion,
       "com.typesafe.slick"  %% "slick-hikaricp" % slickVersion,

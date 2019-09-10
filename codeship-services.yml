@@ -15,9 +15,6 @@ services:
       context: .
       dockerfile: Dockerfile
     cached: true
-    depends_on:
-      - rdb-allconnector
-      - mysql-db-56
     encrypted_env_file: itenv.encrypted
     environment:
       DATABASE_HOST: "db"
@@ -29,9 +26,6 @@ services:
       context: .
       dockerfile: Dockerfile
     cached: true
-    depends_on:
-      - rdb-allconnector
-      - mysql-db-57
     encrypted_env_file: itenv.encrypted
     environment:
       DATABASE_HOST: "db"
@@ -43,9 +37,6 @@ services:
       context: .
       dockerfile: Dockerfile
     cached: true
-    depends_on:
-      - rdb-allconnector
-      - mysql-db-8
     encrypted_env_file: itenv.encrypted
     environment:
       DATABASE_HOST: "db"

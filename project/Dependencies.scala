@@ -8,7 +8,7 @@ object Dependencies {
   val akkaVersion     = "2.5.6"
   val slickVersion    = "3.3.0"
   val akkaHttpVersion = "10.0.7"
-  val catsCoreVersion = "1.6.0"
+  val catsCoreVersion = "2.0.0"
 
   val scala = Seq(
     scalaVersion := ScalaVersion,
@@ -90,7 +90,7 @@ object Dependencies {
 
   val Redshift = Seq(
     resolvers ++= Seq(
-      "Amazon" at "http://redshift-maven-repository.s3-website-us-east-1.amazonaws.com/release"
+      ("Amazon" at "http://redshift-maven-repository.s3-website-us-east-1.amazonaws.com/release").withAllowInsecureProtocol(true)
     ),
     libraryDependencies ++= Seq(
       "com.typesafe.slick"  %% "slick"          % slickVersion,

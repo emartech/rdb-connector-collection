@@ -6,36 +6,31 @@ import com.emarsys.rdb.connector.common
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.StringValue
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
-import com.emarsys.rdb.connector.common.models.Errors.{
-  FailedValidation,
-  SimpleSelectIsNotGroupableFormat,
-  SqlSyntaxError
-}
+import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.common.models.SimpleSelect.{AllField, TableName}
-import com.emarsys.rdb.connector.common.models.ValidationResult.{InvalidOperationOnView, Valid}
 import org.mockito.Answers
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito._
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.{EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
-class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
+class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar with ScalaFutures with EitherValues {
 
-  val tableName = "tableName"
-  val viewName  = "viewName"
+  val tableName                      = "tableName"
+  val viewName                       = "viewName"
+  val defaultTimeout                 = 3.seconds
+  val validValidationResult          = Future.successful(Right(()))
+  val validationError                = Left(DatabaseError.validation(ErrorName.InvalidOperationOnView))
+  val invalidValidationResult        = Future.successful(validationError)
+  val connectorError                 = Left(DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "oh no"))
+  val connectorErrorValidationResult = Future.successful(connectorError)
+  val rawResponse                    = Right(4)
 
   trait TestScope extends Connector {
-
-    val defaultTimeout = 3.seconds
-
-    val validValidationResult          = Future.successful(Right(Valid))
-    val invalidValidationResult        = Future.successful(Right(InvalidOperationOnView))
-    val connectorError                 = Left(SqlSyntaxError("Oh, Snap!"))
-    val connectorErrorValidationResult = Future.successful(connectorError)
 
     override val validator = mock[DataManipulationValidator](Answers.RETURNS_SMART_NULLS)
 
@@ -52,19 +47,19 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
     override protected def rawUpdate(
         tableName: String,
         definitions: Seq[DataManipulation.UpdateDefinition]
-    ): ConnectorResponse[Int] = Future.successful(Right(4))
+    ): ConnectorResponse[Int] = Future.successful(rawResponse)
 
     override protected def rawInsertData(tableName: String, data: Seq[Record]): ConnectorResponse[Int] =
-      Future.successful(Right(4))
+      Future.successful(rawResponse)
 
     override protected def rawReplaceData(tableName: String, data: Seq[Record]): ConnectorResponse[Int] =
-      Future.successful(Right(4))
+      Future.successful(rawResponse)
 
     override protected def rawUpsert(tableName: String, data: Seq[Record]): ConnectorResponse[Int] =
-      Future.successful(Right(4))
+      Future.successful(rawResponse)
 
     override protected def rawDelete(tableName: String, criteria: Seq[Criteria]): ConnectorResponse[Int] =
-      Future.successful(Right(4))
+      Future.successful(rawResponse)
 
   }
 
@@ -72,30 +67,22 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
 
     "return ok" in new TestScope {
       val definitions = Seq(UpdateDefinition(Map("a" -> StringValue("1")), Map("b" -> StringValue("2"))))
-      when(
-        validator.validateUpdateDefinition(eqTo(tableName), eqTo(definitions), any[Connector])(any[ExecutionContext])
-      ) thenReturn validValidationResult
+      when(validator.validateUpdateDefinition(tableName, definitions, this)(executionContext)) thenReturn validValidationResult
 
-      Await.result(update(tableName, definitions), defaultTimeout) shouldBe Right(4)
+      update(tableName, definitions).futureValue shouldBe rawResponse
     }
 
     "return validation error" in new TestScope {
       val definitions = Seq(UpdateDefinition(Map("a" -> StringValue("1")), Map("b" -> StringValue("2"))))
-      when(
-        validator.validateUpdateDefinition(eqTo(viewName), eqTo(definitions), any[Connector])(any[ExecutionContext])
-      ) thenReturn invalidValidationResult
-      Await.result(update(viewName, definitions), defaultTimeout) shouldBe Left(
-        FailedValidation(InvalidOperationOnView)
-      )
+      when(validator.validateUpdateDefinition(viewName, definitions, this)(executionContext)) thenReturn invalidValidationResult
+      update(viewName, definitions).futureValue shouldBe validationError
     }
 
     "return connector error unchanged" in new TestScope {
       val definitions = Seq(UpdateDefinition(Map("a" -> StringValue("1")), Map("b" -> StringValue("2"))))
-      when(
-        validator.validateUpdateDefinition(eqTo(viewName), eqTo(definitions), any[Connector])(any[ExecutionContext])
-      ) thenReturn connectorErrorValidationResult
+      when(validator.validateUpdateDefinition(viewName, definitions, this)(executionContext)) thenReturn connectorErrorValidationResult
 
-      Await.result(update(viewName, definitions), defaultTimeout) shouldBe connectorError
+      update(viewName, definitions).futureValue shouldBe connectorError
     }
 
   }
@@ -104,29 +91,21 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
 
     "return ok" in new TestScope {
       val records = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      when(
-        validator.validateInsertData(eqTo(tableName), eqTo(records), any[Connector])(any[ExecutionContext])
-      ) thenReturn validValidationResult
-      Await.result(insertIgnore(tableName, records), defaultTimeout) shouldBe Right(4)
+      when(validator.validateInsertData(tableName, records, this)(executionContext)) thenReturn validValidationResult
+      insertIgnore(tableName, records).futureValue shouldBe Right(4)
     }
 
     "return validation error" in new TestScope {
       val records = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      when(
-        validator.validateInsertData(eqTo(viewName), eqTo(records), any[Connector])(any[ExecutionContext])
-      ) thenReturn invalidValidationResult
-      Await.result(insertIgnore(viewName, records), defaultTimeout) shouldBe Left(
-        FailedValidation(InvalidOperationOnView)
-      )
+      when(validator.validateInsertData(viewName, records, this)(executionContext)) thenReturn invalidValidationResult
+      insertIgnore(viewName, records).futureValue shouldBe validationError
     }
 
     "return connector error unchanged" in new TestScope {
       val records = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      when(
-        validator.validateInsertData(eqTo(viewName), eqTo(records), any[Connector])(any[ExecutionContext])
-      ) thenReturn connectorErrorValidationResult
+      when(validator.validateInsertData(viewName, records, this)(executionContext)) thenReturn connectorErrorValidationResult
 
-      Await.result(insertIgnore(viewName, records), defaultTimeout) shouldBe connectorError
+      insertIgnore(viewName, records).futureValue shouldBe connectorError
     }
 
   }
@@ -135,29 +114,21 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
 
     "return ok" in new TestScope {
       val records = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      when(
-        validator.validateInsertData(eqTo(tableName), eqTo(records), any[Connector])(any[ExecutionContext])
-      ) thenReturn validValidationResult
-      Await.result(replaceData(tableName, records), defaultTimeout) shouldBe Right(4)
+      when(validator.validateInsertData(tableName, records, this)(executionContext)) thenReturn validValidationResult
+      replaceData(tableName, records).futureValue shouldBe Right(4)
     }
 
     "return validation error" in new TestScope {
       val records = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      when(
-        validator.validateInsertData(eqTo(viewName), eqTo(records), any[Connector])(any[ExecutionContext])
-      ) thenReturn invalidValidationResult
-      Await.result(replaceData(viewName, records), defaultTimeout) shouldBe Left(
-        FailedValidation(InvalidOperationOnView)
-      )
+      when(validator.validateInsertData(viewName, records, this)(executionContext)) thenReturn invalidValidationResult
+      replaceData(viewName, records).futureValue shouldBe validationError
     }
 
     "return connector error unchanged" in new TestScope {
       val records = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      when(
-        validator.validateInsertData(eqTo(viewName), eqTo(records), any[Connector])(any[ExecutionContext])
-      ) thenReturn connectorErrorValidationResult
+      when(validator.validateInsertData(viewName, records, this)(executionContext)) thenReturn connectorErrorValidationResult
 
-      Await.result(replaceData(viewName, records), defaultTimeout) shouldBe connectorError
+      replaceData(viewName, records).futureValue shouldBe connectorError
     }
   }
 
@@ -165,29 +136,21 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
 
     "return ok" in new TestScope {
       val records = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      when(
-        validator.validateInsertData(eqTo(tableName), eqTo(records), any[Connector])(any[ExecutionContext])
-      ) thenReturn validValidationResult
-      Await.result(upsert(tableName, records), defaultTimeout) shouldBe Right(4)
+      when(validator.validateInsertData(tableName, records, this)(executionContext)) thenReturn validValidationResult
+      upsert(tableName, records).futureValue shouldBe Right(4)
     }
 
     "return validation error" in new TestScope {
       val records = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      when(
-        validator.validateInsertData(eqTo(viewName), eqTo(records), any[Connector])(any[ExecutionContext])
-      ) thenReturn invalidValidationResult
-      Await.result(upsert(viewName, records), defaultTimeout) shouldBe Left(
-        FailedValidation(InvalidOperationOnView)
-      )
+      when(validator.validateInsertData(viewName, records, this)(executionContext)) thenReturn invalidValidationResult
+      upsert(viewName, records).futureValue shouldBe validationError
     }
 
     "return connector error unchanged" in new TestScope {
       val records = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      when(
-        validator.validateInsertData(eqTo(viewName), eqTo(records), any[Connector])(any[ExecutionContext])
-      ) thenReturn connectorErrorValidationResult
+      when(validator.validateInsertData(viewName, records, this)(executionContext)) thenReturn connectorErrorValidationResult
 
-      Await.result(upsert(viewName, records), defaultTimeout) shouldBe connectorError
+      upsert(viewName, records).futureValue shouldBe connectorError
     }
   }
 
@@ -195,29 +158,21 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
 
     "return ok" in new TestScope {
       val criteria = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      when(
-        validator.validateDeleteCriteria(eqTo(tableName), eqTo(criteria), any[Connector])(any[ExecutionContext])
-      ) thenReturn validValidationResult
-      Await.result(delete(tableName, criteria), defaultTimeout) shouldBe Right(4)
+      when(validator.validateDeleteCriteria(tableName, criteria, this)(executionContext)) thenReturn validValidationResult
+      delete(tableName, criteria).futureValue shouldBe Right(4)
     }
 
     "return validation error" in new TestScope {
       val criteria = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      when(
-        validator.validateDeleteCriteria(eqTo(viewName), eqTo(criteria), any[Connector])(any[ExecutionContext])
-      ) thenReturn invalidValidationResult
-      Await.result(delete(viewName, criteria), defaultTimeout) shouldBe Left(
-        FailedValidation(InvalidOperationOnView)
-      )
+      when(validator.validateDeleteCriteria(viewName, criteria, this)(executionContext)) thenReturn invalidValidationResult
+      delete(viewName, criteria).futureValue shouldBe validationError
     }
 
     "return connector error unchanged" in new TestScope {
       val criteria = Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
-      when(
-        validator.validateDeleteCriteria(eqTo(viewName), eqTo(criteria), any[Connector])(any[ExecutionContext])
-      ) thenReturn connectorErrorValidationResult
+      when(validator.validateDeleteCriteria(viewName, criteria, this)(executionContext)) thenReturn connectorErrorValidationResult
 
-      Await.result(delete(viewName, criteria), defaultTimeout) shouldBe connectorError
+      delete(viewName, criteria).futureValue shouldBe connectorError
     }
   }
 
@@ -288,7 +243,7 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
       override implicit val executionContext: ExecutionContext = global
       override val groupLimitValidator                         = stubbedGroupLimitValidator
 
-      Await.result(selectWithGroupLimit(select, 5, 10.minutes), 1.second) shouldBe Left(
+      selectWithGroupLimit(select, 5, 10.minutes).futureValue shouldBe Left(
         SimpleSelectIsNotGroupableFormat("SimpleSelect(AllField,TableName(table),None,None,None)")
       )
     }

@@ -2,7 +2,6 @@ package com.emarsys.rdb.connector.test
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
-import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{
   BooleanValue,
   IntValue,
@@ -10,13 +9,13 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrappe
   StringValue
 }
 import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
-import com.emarsys.rdb.connector.common.models.Errors.FailedValidation
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.common.models.ValidationResult.NonExistingFields
+import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 
-import concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 /*
 For positive results use the A table definition and preloaded data defined in the SimpleSelect.
@@ -54,7 +53,7 @@ trait UpdateItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach wi
       "validation error" in {
         val updateData = Seq(UpdateDefinition(Map("a" -> StringValue("1")), Map("a" -> StringValue("2"))))
         Await.result(connector.update(tableName, updateData), awaitTimeout) shouldBe Left(
-          FailedValidation(NonExistingFields(Set("a")))
+          DatabaseError.validation(ErrorName.MissingFields, Some(Fields(List("a"))))
         )
       }
 

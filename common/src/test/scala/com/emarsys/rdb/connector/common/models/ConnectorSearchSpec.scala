@@ -5,9 +5,8 @@ import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.DataManipulation.Criteria
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper._
-import com.emarsys.rdb.connector.common.models.Errors.{FailedValidation, SqlSyntaxError}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.common.models.ValidationResult.{InvalidOperationOnView, Valid}
 import org.mockito.Answers
 import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito.{never, spy, verify, when}
@@ -27,9 +26,10 @@ class ConnectorSearchSpec extends WordSpecLike with Matchers with MockitoSugar {
   val sqlTimeout     = 3.seconds
 
   trait TestScope {
-    val validValidationResult          = Future.successful(Right(Valid))
-    val invalidValidationResult        = Future.successful(Right(InvalidOperationOnView))
-    val connectorError                 = Left(SqlSyntaxError("Oh, Snap!"))
+    val validValidationResult          = Future.successful(Right(()))
+    val validationError                = Left(DatabaseError.validation(ErrorName.InvalidOperationOnView))
+    val invalidValidationResult        = Future.successful(validationError)
+    val connectorError                 = Left(DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "Oh, Snap!"))
     val connectorErrorValidationResult = Future.successful(connectorError)
     val validator                      = mock[DataManipulationValidator](Answers.RETURNS_SMART_NULLS)
 
@@ -140,9 +140,8 @@ class ConnectorSearchSpec extends WordSpecLike with Matchers with MockitoSugar {
       val criteria: Criteria = Map("a" -> NullValue)
       when(validator.validateSearchCriteria(eqTo(tableName), eqTo(criteria), any[Connector])(any[ExecutionContext])) thenReturn invalidValidationResult
 
-      Await.result(myConnector.search(tableName, criteria, Some(1), sqlTimeout), defaultTimeout) shouldBe Left(
-        FailedValidation(InvalidOperationOnView)
-      )
+      Await.result(myConnector.search(tableName, criteria, Some(1), sqlTimeout), defaultTimeout) shouldBe validationError
+
       verify(myConnector, never()).simpleSelect(any[SimpleSelect], any[FiniteDuration])
     }
 

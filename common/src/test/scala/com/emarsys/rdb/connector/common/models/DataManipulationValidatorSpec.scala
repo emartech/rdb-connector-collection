@@ -6,7 +6,6 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
 import com.emarsys.rdb.connector.common.models.Errors.ErrorName.NoIndexOnFields
 import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.TableModel
-import com.emarsys.rdb.connector.common.models.ValidationResult.Valid
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar
@@ -30,11 +29,12 @@ class DataManipulationValidatorSpec
   val optimizedField  = Future.successful(Right(true))
   val failure         = DatabaseError(ErrorCategory.Transient, ErrorName.CommunicationsLinkFailure, "oh no")
   val validationError = DatabaseError.validation(NoIndexOnFields)
+  val valid           = Right(())
 
-  val validResult: EitherT[Future, ConnectorError, ValidationResult]   = EitherT.rightT(Valid)
-  val invalidResult: EitherT[Future, ConnectorError, ValidationResult] = EitherT.leftT(validationError)
-  val failedResult: EitherT[Future, ConnectorError, ValidationResult]  = EitherT.leftT(failure)
-  val emptyData: EitherT[Future, ConnectorError, ValidationResult] =
+  val validResult: EitherT[Future, ConnectorError, Unit]   = EitherT.rightT(())
+  val invalidResult: EitherT[Future, ConnectorError, Unit] = EitherT.leftT(validationError)
+  val failedResult: EitherT[Future, ConnectorError, Unit]  = EitherT.leftT(failure)
+  val emptyData: EitherT[Future, ConnectorError, Unit] =
     EitherT.leftT(DatabaseError.validation(ErrorName.EmptyData))
 
   class ValidatorScope {
@@ -53,7 +53,7 @@ class DataManipulationValidatorSpec
       when(dataValidator.validateTableExistsAndNotView(tableName, connector)(executionContext)) thenReturn validResult
       when(dataValidator.validateUpdateFields(tableName, data, connector)(executionContext)) thenReturn validResult
 
-      validator.validateUpdateDefinition(tableName, data, connector).futureValue.right.value shouldBe Valid
+      validator.validateUpdateDefinition(tableName, data, connector).futureValue shouldBe valid
 
       verify(dataValidator).validateUpdateFormat(data, 1000)
       verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
@@ -95,7 +95,7 @@ class DataManipulationValidatorSpec
       when(dataValidator.validateTableExistsAndNotView(tableName, connector)(executionContext)) thenReturn validResult
       when(dataValidator.validateFieldExistence(tableName, Set("a", "b"), connector)(executionContext)) thenReturn validResult
 
-      validator.validateInsertData(tableName, dataToInsert, connector).futureValue.right.value shouldBe Valid
+      validator.validateInsertData(tableName, dataToInsert, connector).futureValue shouldBe valid
 
       verify(dataValidator).validateFormat(dataToInsert, 1000)
       verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
@@ -124,11 +124,11 @@ class DataManipulationValidatorSpec
       verify(dataValidator, never()).validateFieldExistence(tableName, Set("a", "b"), connector)
     }
 
-    "return Valid if one of the validation fails with EmptyData" in new ValidatorScope {
+    "return valid if one of the validation fails with EmptyData" in new ValidatorScope {
       when(dataValidator.validateFormat(dataToInsert, 1000)(executionContext)) thenReturn validResult
       when(dataValidator.validateTableExistsAndNotView(tableName, connector)(executionContext)) thenReturn emptyData
 
-      validator.validateInsertData(tableName, dataToInsert, connector).futureValue.right.value shouldBe Valid
+      validator.validateInsertData(tableName, dataToInsert, connector).futureValue shouldBe valid
 
       verify(dataValidator).validateFormat(dataToInsert, 1000)
       verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
@@ -149,7 +149,7 @@ class DataManipulationValidatorSpec
       when(dataValidator.validateFieldExistence(tableName, Set("a", "b"), connector)(executionContext)) thenReturn validResult
       when(dataValidator.validateIndices(tableName, Set("a", "b"), connector)(executionContext)) thenReturn validResult
 
-      validator.validateDeleteCriteria(tableName, criteria, connector).futureValue.right.value shouldBe Valid
+      validator.validateDeleteCriteria(tableName, criteria, connector).futureValue shouldBe valid
 
       verify(dataValidator).validateFormat(criteria, 1000)
       verify(dataValidator).validateTableExistsAndNotView(tableName, connector)
@@ -190,7 +190,7 @@ class DataManipulationValidatorSpec
       when(dataValidator.validateFieldExistence(tableName, Set("a", "b"), connector)(executionContext)) thenReturn validResult
       when(dataValidator.validateIndices(tableName, Set("a", "b"), connector)(executionContext)) thenReturn validResult
 
-      validator.validateSearchCriteria(tableName, criteria, connector).futureValue.right.value shouldBe Valid
+      validator.validateSearchCriteria(tableName, criteria, connector).futureValue shouldBe valid
 
       verify(dataValidator).validateEmptyCriteria(criteria)
       verify(dataValidator).validateTableExists(tableName, connector)

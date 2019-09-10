@@ -6,14 +6,13 @@ import akka.stream.scaladsl.{Sink, Source}
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, StringValue}
 import com.emarsys.rdb.connector.common.models.DataManipulation.Record
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, FailedValidation}
+import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.common.models.ValidationResult.NonExistingFields
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 trait ReplaceItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
   val connector: Connector
@@ -92,7 +91,7 @@ trait ReplaceItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach w
 
       "validation error" in {
         await(connector.replaceData(tableName, replaceNonExistingFieldFieldData)) shouldBe Left(
-          FailedValidation(NonExistingFields(Set("a")))
+          DatabaseError.validation(ErrorName.MissingFields, Some(Fields(List("a"))))
         )
       }
 

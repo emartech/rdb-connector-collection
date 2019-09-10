@@ -1,34 +1,35 @@
 package com.emarsys.rdb.connector.common.models
 
 import cats.data.EitherT
-import cats.instances.future._
 import com.emarsys.rdb.connector.common.ConnectorResponseET
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
-import com.emarsys.rdb.connector.common.models.ValidationResult._
 
 import scala.concurrent.ExecutionContext
 
 trait RawDataValidator {
+  import cats.instances.future._
   import cats.syntax.flatMap._
+
+  def valid(implicit ec: ExecutionContext): ConnectorResponseET[Unit] = EitherT.rightT(())
 
   def validateEmptyCriteria(data: Criteria)(
       implicit ec: ExecutionContext
-  ): ConnectorResponseET[ValidationResult] = {
+  ): ConnectorResponseET[Unit] = {
     if (data.isEmpty)
       EitherT.leftT(DatabaseError.validation(ErrorName.EmptyData))
-    else EitherT.rightT(Valid)
+    else valid
   }
 
   def validateFieldExistence(tableName: String, fields: Set[String], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ConnectorResponseET[ValidationResult] = {
+  ): ConnectorResponseET[Unit] = {
     EitherT(connector.listFields(tableName))
       .flatMap { columns =>
         val lowerCasedFields  = fields.map(_.toLowerCase)
         val nonExistingFields = lowerCasedFields.diff(columns.map(_.name.toLowerCase).toSet)
         if (nonExistingFields.isEmpty) {
-          EitherT.rightT(Valid)
+          valid
         } else {
           val missingFields = lowerCasedFields.intersect(nonExistingFields).toList
           EitherT.leftT(
@@ -40,25 +41,25 @@ trait RawDataValidator {
 
   def validateTableExists(tableName: String, connector: Connector)(
       implicit ec: ExecutionContext
-  ): ConnectorResponseET[ValidationResult] = {
+  ): ConnectorResponseET[Unit] = {
     validateTableExistsAndIfView(tableName, connector, canBeView = true)
   }
 
   def validateTableExistsAndNotView(tableName: String, connector: Connector)(
       implicit ec: ExecutionContext
-  ): ConnectorResponseET[ValidationResult] = {
+  ): ConnectorResponseET[Unit] = {
     validateTableExistsAndIfView(tableName, connector, canBeView = false)
   }
 
   private def validateTableExistsAndIfView(tableName: String, connector: Connector, canBeView: Boolean)(
       implicit ec: ExecutionContext
-  ): ConnectorResponseET[ValidationResult] = {
+  ): ConnectorResponseET[Unit] = {
     EitherT(connector.listTables()).flatMap { tableModels =>
       tableModels.find(tableModel => tableModel.name == tableName) match {
         case Some(table) =>
           if (!canBeView && table.isView)
             EitherT.leftT(DatabaseError.validation(ErrorName.InvalidOperationOnView))
-          else EitherT.rightT(Valid)
+          else valid
         case None => EitherT.leftT(DatabaseError.validation(ErrorName.NonExistingTable))
       }
     }
@@ -66,7 +67,7 @@ trait RawDataValidator {
 
   def validateUpdateFields(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ConnectorResponseET[ValidationResult] = {
+  ): ConnectorResponseET[Unit] = {
     updateData match {
       case Nil => EitherT.leftT(DatabaseError.validation(ErrorName.EmptyData))
       case first :: _ =>
@@ -81,10 +82,10 @@ trait RawDataValidator {
 
   def validateIndices(tableName: String, keyFields: Set[String], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ConnectorResponseET[ValidationResult] = {
+  ): ConnectorResponseET[Unit] = {
     EitherT(connector.isOptimized(tableName, keyFields.toList))
       .ifM(
-        EitherT.rightT(Valid),
+        valid,
         EitherT.leftT(DatabaseError.validation(ErrorName.NoIndexOnFields))
       )
   }
@@ -92,7 +93,7 @@ trait RawDataValidator {
   def validateFormat(
       data: Seq[Record],
       maxRows: Int
-  )(implicit ec: ExecutionContext): ConnectorResponseET[ValidationResult] = {
+  )(implicit ec: ExecutionContext): ConnectorResponseET[Unit] = {
     data match {
       case Nil => EitherT.leftT(DatabaseError.validation(ErrorName.EmptyData))
       case first :: _ =>
@@ -101,7 +102,7 @@ trait RawDataValidator {
         } else if (!areAllKeysTheSameAs(first, data)) {
           EitherT.leftT(DatabaseError.validation(ErrorName.DifferentFields))
         } else {
-          EitherT.rightT(Valid)
+          valid
         }
     }
   }
@@ -114,7 +115,7 @@ trait RawDataValidator {
   def validateUpdateFormat(
       updateData: Seq[UpdateDefinition],
       maxRows: Int
-  )(implicit ec: ExecutionContext): ConnectorResponseET[ValidationResult] =
+  )(implicit ec: ExecutionContext): ConnectorResponseET[Unit] =
     if (updateData.size > maxRows) {
       EitherT.leftT(DatabaseError.validation(ErrorName.TooManyRows))
     } else if (updateData.isEmpty) {
@@ -126,7 +127,7 @@ trait RawDataValidator {
     } else if (!areAllCriteriaFieldsTheSame(updateData) || !areAllUpdateFieldsTheSame(updateData)) {
       EitherT.leftT(DatabaseError.validation(ErrorName.DifferentFields))
     } else {
-      EitherT.rightT(Valid)
+      valid
     }
 
   private def hasEmptyCriteria(updateData: Seq[UpdateDefinition]): Boolean = updateData.exists(_.search.isEmpty)

@@ -2,7 +2,6 @@ package com.emarsys.rdb.connector.common.models
 
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import com.emarsys.rdb.connector.common.models.ValidationResult.Valid
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 
 import scala.concurrent.ExecutionContext
@@ -12,13 +11,13 @@ class DataManipulationValidator(validator: RawDataValidator) {
   import cats.instances.list._
   import cats.syntax.foldable._
 
-  private type DeferredValidation = () => ConnectorResponseET[ValidationResult]
+  private type DeferredValidation = () => ConnectorResponseET[Unit]
 
   private val MaxRows = 1000
 
   def validateUpdateDefinition(tableName: String, updateData: Seq[UpdateDefinition], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ConnectorResponse[ValidationResult] = {
+  ): ConnectorResponse[Unit] = {
     runValidations(
       () => validator.validateUpdateFormat(updateData, MaxRows),
       () => validator.validateTableExistsAndNotView(tableName, connector),
@@ -28,13 +27,13 @@ class DataManipulationValidator(validator: RawDataValidator) {
 
   def validateInsertData(tableName: String, dataToInsert: Seq[Record], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ConnectorResponse[ValidationResult] = {
+  ): ConnectorResponse[Unit] = {
     val validationResult = runValidations(
       () => validator.validateFormat(dataToInsert, MaxRows),
       () => validator.validateTableExistsAndNotView(tableName, connector),
       () => validator.validateFieldExistence(tableName, dataToInsert.head.keySet, connector)
     ) recover {
-      case DatabaseError(ErrorCategory.Validation, ErrorName.EmptyData, _, _, _) => Valid
+      case DatabaseError(ErrorCategory.Validation, ErrorName.EmptyData, _, _, _) => ()
     }
 
     validationResult.value
@@ -42,7 +41,7 @@ class DataManipulationValidator(validator: RawDataValidator) {
 
   def validateDeleteCriteria(tableName: String, criteria: Seq[Criteria], connector: Connector)(
       implicit ec: ExecutionContext
-  ): ConnectorResponse[ValidationResult] = {
+  ): ConnectorResponse[Unit] = {
     runValidations(
       () => validator.validateFormat(criteria, MaxRows),
       () => validator.validateTableExistsAndNotView(tableName, connector),
@@ -53,7 +52,7 @@ class DataManipulationValidator(validator: RawDataValidator) {
 
   def validateSearchCriteria(tableName: String, criteria: Criteria, connector: Connector)(
       implicit ec: ExecutionContext
-  ): ConnectorResponse[ValidationResult] = {
+  ): ConnectorResponse[Unit] = {
     runValidations(
       () => validator.validateEmptyCriteria(criteria),
       () => validator.validateTableExists(tableName, connector),
@@ -63,7 +62,7 @@ class DataManipulationValidator(validator: RawDataValidator) {
   }
 
   private def runValidations(validations: DeferredValidation*)(implicit ec: ExecutionContext) = {
-    validations.toList.foldM[ConnectorResponseET, ValidationResult](Valid)((_, nextValidation) => nextValidation())
+    validations.toList.foldM[ConnectorResponseET, Unit](())((_, nextValidation) => nextValidation())
   }
 
 }

@@ -4,15 +4,18 @@ import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.Errors.FailedValidation
-import com.emarsys.rdb.connector.common.models.ValidationResult.NonExistingFields
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class ReplaceSpecSpec extends TestKit(ActorSystem()) with ReplaceItSpec with MockitoSugar with BeforeAndAfterAll {
+class ReplaceSpecSpec
+    extends TestKit(ActorSystem("ReplaceSpecSpec"))
+    with ReplaceItSpec
+    with MockitoSugar
+    with BeforeAndAfterAll {
 
   import com.emarsys.rdb.connector.utils.TestHelper._
 
@@ -27,14 +30,14 @@ class ReplaceSpecSpec extends TestKit(ActorSystem()) with ReplaceItSpec with Moc
   override def cleanUpDb(): Unit = ()
 
   override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
   when(connector.replaceData(tableName, replaceMultipleData)).thenReturn(Future.successful(Right(3)))
   when(connector.replaceData(tableName, replaceSingleData)).thenReturn(Future.successful(Right(1)))
   when(connector.replaceData(tableName, Seq.empty)).thenReturn(Future.successful(Right(0)))
   when(connector.replaceData(tableName, replaceNonExistingFieldFieldData))
-    .thenReturn(Future.successful(Left(FailedValidation(NonExistingFields(Set("a"))))))
+    .thenReturn(Future.successful(Left(DatabaseError.validation(ErrorName.MissingFields, Some(Fields(List("a")))))))
 
   Seq(simpleSelect, simpleSelectF, simpleSelectT, simpleSelectT2).foreach(
     selectUniqueValueMock(_, connector, queryTimeout)

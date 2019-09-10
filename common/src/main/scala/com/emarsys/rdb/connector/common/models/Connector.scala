@@ -9,7 +9,7 @@ import com.emarsys.rdb.connector.common.defaults.{
   GroupWithLimitStage
 }
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
-import com.emarsys.rdb.connector.common.models.Errors.{FailedValidation, SimpleSelectIsNotGroupableFormat}
+import com.emarsys.rdb.connector.common.models.Errors.SimpleSelectIsNotGroupableFormat
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors._
 import com.emarsys.rdb.connector.common.{ConnectorResponse, notImplementedOperation}
@@ -179,15 +179,14 @@ trait Connector {
   }
 
   private def validateAndExecute[A, C](
-      validationFn: (String, C, Connector) => ConnectorResponse[ValidationResult],
+      validationFn: (String, C, Connector) => ConnectorResponse[Unit],
       tableName: String,
       executionFn: (String, C) => ConnectorResponse[A],
       data: C
   ): ConnectorResponse[A] = {
     validationFn(tableName, data, this).flatMap {
-      case Right(ValidationResult.Valid) => executionFn(tableName, data)
-      case Right(failedValidationResult) => Future.successful(Left(FailedValidation(failedValidationResult)))
-      case Left(ex)                      => Future.successful(Left(ex))
+      case Right(_) => executionFn(tableName, data)
+      case Left(ex) => Future.successful(Left(ex))
     }
   }
 

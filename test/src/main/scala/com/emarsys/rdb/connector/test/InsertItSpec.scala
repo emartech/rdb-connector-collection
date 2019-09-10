@@ -4,9 +4,8 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, NullValue, StringValue}
 import com.emarsys.rdb.connector.common.models.DataManipulation.Record
-import com.emarsys.rdb.connector.common.models.Errors.FailedValidation
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.common.models.ValidationResult.NonExistingFields
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest._
 
@@ -98,7 +97,7 @@ trait InsertItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach wi
 
       "validation error" in {
         Await.result(connector.insertIgnore(tableName, insertNonExistingFieldFieldData), awaitTimeout) shouldBe Left(
-          FailedValidation(NonExistingFields(Set("a")))
+          DatabaseError.validation(ErrorName.MissingFields, Some(Fields(List("a"))))
         )
       }
 

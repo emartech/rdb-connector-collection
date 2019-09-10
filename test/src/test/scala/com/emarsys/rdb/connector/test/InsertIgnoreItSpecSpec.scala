@@ -5,15 +5,18 @@ import akka.stream.scaladsl.Source
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.Errors.FailedValidation
-import com.emarsys.rdb.connector.common.models.ValidationResult.NonExistingFields
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class InsertIgnoreItSpecSpec extends TestKit(ActorSystem()) with InsertItSpec with MockitoSugar with BeforeAndAfterAll {
+class InsertIgnoreItSpecSpec
+    extends TestKit(ActorSystem("InsertIgnoreItSpecSpec"))
+    with InsertItSpec
+    with MockitoSugar
+    with BeforeAndAfterAll {
 
   import com.emarsys.rdb.connector.utils.TestHelper._
 
@@ -28,7 +31,7 @@ class InsertIgnoreItSpecSpec extends TestKit(ActorSystem()) with InsertItSpec wi
   override def cleanUpDb(): Unit = ()
 
   override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
   when(connector.insertIgnore(tableName, insertMultipleData)).thenReturn(Future.successful(Right(3)))
@@ -39,7 +42,7 @@ class InsertIgnoreItSpecSpec extends TestKit(ActorSystem()) with InsertItSpec wi
   when(connector.insertIgnore(tableName, Seq.empty)).thenReturn(Future.successful(Right(0)))
 
   when(connector.insertIgnore(tableName, insertNonExistingFieldFieldData))
-    .thenReturn(Future.successful(Left(FailedValidation(NonExistingFields(Set("a"))))))
+    .thenReturn(Future.successful(Left(DatabaseError.validation(ErrorName.MissingFields, Some(Fields(List("a")))))))
 
   when(connector.simpleSelect(simpleSelectIsNull, queryTimeout))
     .thenReturn(Future(Right(Source(List(Seq("columnName"), Seq("vref1"), Seq("vref2"), Seq("v5"), Seq("v7"))))))

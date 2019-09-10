@@ -11,9 +11,8 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrappe
   StringValue
 }
 import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
-import com.emarsys.rdb.connector.common.models.Errors.FailedValidation
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.common.models.ValidationResult.NonExistingFields
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterAll
@@ -21,7 +20,11 @@ import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class UpdateItSpecSpec extends TestKit(ActorSystem()) with UpdateItSpec with MockitoSugar with BeforeAndAfterAll {
+class UpdateItSpecSpec
+    extends TestKit(ActorSystem("UpdateItSpecSpec"))
+    with UpdateItSpec
+    with MockitoSugar
+    with BeforeAndAfterAll {
 
   implicit val materializer: Materializer = ActorMaterializer()
 
@@ -34,7 +37,7 @@ class UpdateItSpecSpec extends TestKit(ActorSystem()) with UpdateItSpec with Moc
   override def cleanUpDb(): Unit = ()
 
   override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
   val updateData = Seq(
@@ -47,7 +50,7 @@ class UpdateItSpecSpec extends TestKit(ActorSystem()) with UpdateItSpec with Moc
     .thenReturn(Future.successful(Right(2)))
   when(connector.update(tableName, updateData)).thenReturn(Future.successful(Right(7)))
   when(connector.update(tableName, Seq(UpdateDefinition(Map("a" -> StringValue("1")), Map("a" -> StringValue("2"))))))
-    .thenReturn(Future.successful(Left(FailedValidation(NonExistingFields(Set("a"))))))
+    .thenReturn(Future.successful(Left(DatabaseError.validation(ErrorName.MissingFields, Some(Fields(List("a")))))))
 
   when(
     connector.simpleSelect(

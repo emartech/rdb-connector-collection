@@ -3,15 +3,14 @@ package com.emarsys.rdb.connector.mysql
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.stream.scaladsl.Sink
+import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{IntValue, NullValue, StringValue}
 import com.emarsys.rdb.connector.common.models.DataManipulation.Record
-import com.emarsys.rdb.connector.common.models.Errors.FailedValidation
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.common.models.ValidationResult.NonExistingFields
 import com.emarsys.rdb.connector.mysql.utils.{SelectDbInitHelper, TestHelper}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 
@@ -19,7 +18,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class MySqlUpsertItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("MySqlUpsertItSpec"))
     with SelectDbInitHelper
     with WordSpecLike
     with Matchers
@@ -39,7 +38,7 @@ class MySqlUpsertItSpec
   val queryTimeout = 5.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     connector.close()
   }
 
@@ -80,7 +79,7 @@ class MySqlUpsertItSpec
           Seq(Map("a" -> StringValue("1")), Map("a" -> StringValue("2")))
 
         Await.result(connector.upsert(tableName, upsertNonExistingFieldFieldData), awaitTimeout) shouldBe Left(
-          FailedValidation(NonExistingFields(Set("a")))
+          DatabaseError.validation(ErrorName.MissingFields, Some(Fields(List("a"))))
         )
       }
 

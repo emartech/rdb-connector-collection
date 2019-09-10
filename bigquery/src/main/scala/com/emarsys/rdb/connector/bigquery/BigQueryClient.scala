@@ -6,7 +6,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequest}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
-import akka.util.Timeout
 import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.BigQueryClient.DryRunJsonProtocol.DryRunResponse
 import com.emarsys.rdb.connector.bigquery.BigQueryClient.QueryJsonProtocol.{QueryRequest, QueryResponse}
@@ -24,8 +23,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 class BigQueryClient(val googleSession: GoogleSession, projectId: String, dataset: String)(
-    implicit timeout: Timeout,
-    materializer: ActorMaterializer
+    implicit materializer: ActorMaterializer
 ) extends BigQueryErrorHandling {
 
   implicit val system: ActorSystem  = materializer.system
@@ -127,8 +125,7 @@ class BigQueryClient(val googleSession: GoogleSession, projectId: String, datase
 object BigQueryClient {
 
   def apply(googleSession: GoogleSession, projectId: String, dataset: String)(
-      implicit timeout: Timeout,
-      materializer: ActorMaterializer
+      implicit materializer: ActorMaterializer
   ): BigQueryClient =
     new BigQueryClient(googleSession, projectId, dataset)
 

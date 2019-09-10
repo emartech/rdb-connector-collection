@@ -1,13 +1,13 @@
 package com.emarsys.rdb.connector.test
 
 import akka.stream.Materializer
-import com.emarsys.rdb.connector.common.models.Errors.SimpleSelectIsNotGroupableFormat
-import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
+import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-import concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 /*
 For positive test results you need to implement an initDb function which creates a table with the given name and
 columns and must insert the sample data.
@@ -132,24 +132,17 @@ trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeA
         where = Some(
           Or(
             Seq(
-              And(
-                Seq(
-                  EqualToValue(FieldName("ID"), Value("1")),
-                  EqualToValue(FieldName("NAME"), Value("test1"))
-                )
-              ),
-              And(
-                Seq(
-                  EqualToValue(FieldName("ID"), Value("2"))
-                )
-              )
+              And(Seq(EqualToValue(FieldName("ID"), Value("1")), EqualToValue(FieldName("NAME"), Value("test1")))),
+              And(Seq(EqualToValue(FieldName("ID"), Value("2"))))
             )
           )
         )
       )
+      val databaseError =
+        DatabaseError(ErrorCategory.Internal, ErrorName.SimpleSelectIsNotGroupableFormat, simpleSelect.toString)
       val result = Await.result(connector.selectWithGroupLimit(simpleSelect, 2, queryTimeout), awaitTimeout)
       result shouldBe a[Left[_, _]]
-      result.left.get shouldBe SimpleSelectIsNotGroupableFormat(simpleSelect.toString)
+      result.left.get shouldBe databaseError
     }
 
     "gets a good OR query but no results" in {

@@ -9,7 +9,7 @@ import com.emarsys.rdb.connector.common.defaults.{
   GroupWithLimitStage
 }
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
-import com.emarsys.rdb.connector.common.models.Errors.SimpleSelectIsNotGroupableFormat
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors._
 import com.emarsys.rdb.connector.common.{ConnectorResponse, notImplementedOperation}
@@ -90,7 +90,10 @@ trait Connector {
     groupLimitValidator.validate(select) match {
       case Simple                => simpleSelect(select.copy(limit = Option(groupLimit)), timeout)
       case Groupable(references) => runSelectWithGroupLimit(select, groupLimit, references, timeout)
-      case NotGroupable          => Future.successful(Left(SimpleSelectIsNotGroupableFormat(select.toString)))
+      case NotGroupable =>
+        Future.successful(
+          Left(DatabaseError(ErrorCategory.Internal, ErrorName.SimpleSelectIsNotGroupableFormat, select.toString))
+        )
     }
   }
 

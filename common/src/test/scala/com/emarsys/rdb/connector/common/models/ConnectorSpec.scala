@@ -195,6 +195,7 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar with Sc
           ValidateGroupLimitableQuery.GroupLimitValidationResult.Simple
       }
       override val groupLimitValidator = stubbedGroupLimitValidator
+
       override def simpleSelect(
           select: SimpleSelect,
           timeout: FiniteDuration
@@ -244,9 +245,8 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar with Sc
       override val groupLimitValidator                         = stubbedGroupLimitValidator
 
       selectWithGroupLimit(select, 5, 10.minutes).futureValue shouldBe Left(
-        SimpleSelectIsNotGroupableFormat("SimpleSelect(AllField,TableName(table),None,None,None)")
+        DatabaseError(ErrorCategory.Internal, ErrorName.SimpleSelectIsNotGroupableFormat, select.toString)
       )
     }
   }
-
 }

@@ -1,14 +1,17 @@
 package com.emarsys.rdb.connector.common.models
 
-import cats.data.EitherT
-import cats.instances.future._
-import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
-import com.emarsys.rdb.connector.common.models.Errors.ConnectorError
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.models.ValidationResult.Valid
+import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class DataManipulationValidator(validator: RawDataValidator) {
+  import cats.instances.future._
+  import cats.instances.list._
+  import cats.syntax.foldable._
+
   private type DeferredValidation = () => ConnectorResponseET[ValidationResult]
 
   private val MaxRows = 1000
@@ -30,9 +33,8 @@ class DataManipulationValidator(validator: RawDataValidator) {
       () => validator.validateFormat(dataToInsert, MaxRows),
       () => validator.validateTableExistsAndNotView(tableName, connector),
       () => validator.validateFieldExistence(tableName, dataToInsert.head.keySet, connector)
-    ) map {
-      case ValidationResult.EmptyData => ValidationResult.Valid
-      case otherValidationResult      => otherValidationResult
+    ) recover {
+      case DatabaseError(ErrorCategory.Validation, ErrorName.EmptyData, _, _, _) => Valid
     }
 
     validationResult.value
@@ -60,18 +62,8 @@ class DataManipulationValidator(validator: RawDataValidator) {
     ).value
   }
 
-  private def runValidations(
-      validations: DeferredValidation*
-  )(implicit ec: ExecutionContext): ConnectorResponseET[ValidationResult] = {
-    validations.headOption match {
-      case None => EitherT.rightT[Future, ConnectorError](ValidationResult.Valid)
-      case Some(headOfValidations) =>
-        val validation = headOfValidations.apply()
-        validation flatMap {
-          case ValidationResult.Valid => runValidations(validations.tail: _*)
-          case validationResult       => EitherT.rightT[Future, ConnectorError](validationResult)
-        }
-    }
+  private def runValidations(validations: DeferredValidation*)(implicit ec: ExecutionContext) = {
+    validations.toList.foldM[ConnectorResponseET, ValidationResult](Valid)((_, nextValidation) => nextValidation())
   }
 
 }

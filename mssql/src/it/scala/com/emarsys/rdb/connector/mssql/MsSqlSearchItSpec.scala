@@ -10,7 +10,7 @@ import com.emarsys.rdb.connector.test.SearchItSpec
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
-class MsSqlSearchItSpec extends TestKit(ActorSystem()) with SearchItSpec {
+class MsSqlSearchItSpec extends TestKit(ActorSystem("MsSqlSearchItSpec")) with SearchItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val connector: Connector =

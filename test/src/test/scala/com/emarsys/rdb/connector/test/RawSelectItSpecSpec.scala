@@ -12,7 +12,11 @@ import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
-class RawSelectItSpecSpec extends TestKit(ActorSystem()) with RawSelectItSpec with MockitoSugar with BeforeAndAfterAll {
+class RawSelectItSpecSpec
+    extends TestKit(ActorSystem("RawSelectItSpecSpec"))
+    with RawSelectItSpec
+    with MockitoSugar
+    with BeforeAndAfterAll {
 
   implicit val materializer: Materializer = ActorMaterializer()
 

@@ -9,7 +9,10 @@ import com.emarsys.rdb.connector.test.SimpleSelectItSpec
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class MsSqlSimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSelectItSpec with SelectDbInitHelper {
+class MsSqlSimpleSelectItSpec
+    extends TestKit(ActorSystem("MsSqlSimpleSelectItSpec"))
+    with SimpleSelectItSpec
+    with SelectDbInitHelper {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 

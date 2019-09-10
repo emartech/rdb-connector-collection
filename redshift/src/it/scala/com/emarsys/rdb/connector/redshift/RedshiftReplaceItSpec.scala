@@ -8,7 +8,10 @@ import com.emarsys.rdb.connector.test.ReplaceItSpec
 
 import concurrent.duration._
 
-class RedshiftReplaceItSpec extends TestKit(ActorSystem()) with ReplaceItSpec with SelectDbInitHelper {
+class RedshiftReplaceItSpec
+    extends TestKit(ActorSystem("RedshiftReplaceItSpec"))
+    with ReplaceItSpec
+    with SelectDbInitHelper {
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
 
@@ -24,7 +27,7 @@ class RedshiftReplaceItSpec extends TestKit(ActorSystem()) with ReplaceItSpec wi
 }
 
 class RedshiftReplaceWithSchemaItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("RedshiftReplaceWithSchemaItSpec"))
     with ReplaceItSpec
     with SelectDbWithSchemaInitHelper {
   val aTableName: String = tableName

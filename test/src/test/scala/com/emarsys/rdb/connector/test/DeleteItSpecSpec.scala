@@ -10,7 +10,11 @@ import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class DeleteItSpecSpec extends TestKit(ActorSystem()) with DeleteItSpec with MockitoSugar with BeforeAndAfterAll {
+class DeleteItSpecSpec
+    extends TestKit(ActorSystem("DeleteItSpecSpec"))
+    with DeleteItSpec
+    with MockitoSugar
+    with BeforeAndAfterAll {
 
   import com.emarsys.rdb.connector.utils.TestHelper._
 

@@ -13,7 +13,7 @@ import com.emarsys.rdb.connector.test.InsertItSpec
 
 import scala.concurrent.Await
 
-class MsSqlInsertSpec extends TestKit(ActorSystem()) with InsertItSpec with SelectDbInitHelper {
+class MsSqlInsertSpec extends TestKit(ActorSystem("MsSqlInsertSpec")) with InsertItSpec with SelectDbInitHelper {
 
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"

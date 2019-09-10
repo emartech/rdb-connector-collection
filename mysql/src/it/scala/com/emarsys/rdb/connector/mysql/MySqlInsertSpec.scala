@@ -11,7 +11,7 @@ import com.emarsys.rdb.connector.test.InsertItSpec
 
 import scala.concurrent.Await
 
-class MySqlInsertSpec extends TestKit(ActorSystem()) with InsertItSpec with SelectDbInitHelper {
+class MySqlInsertSpec extends TestKit(ActorSystem("MySqlInsertSpec")) with InsertItSpec with SelectDbInitHelper {
 
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
@@ -19,7 +19,7 @@ class MySqlInsertSpec extends TestKit(ActorSystem()) with InsertItSpec with Sele
   override implicit val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

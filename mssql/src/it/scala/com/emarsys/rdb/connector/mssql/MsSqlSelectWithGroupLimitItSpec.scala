@@ -10,7 +10,9 @@ import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class MsSqlSelectWithGroupLimitItSpec extends TestKit(ActorSystem()) with SelectWithGroupLimitItSpec {
+class MsSqlSelectWithGroupLimitItSpec
+    extends TestKit(ActorSystem("MsSqlSelectWithGroupLimitItSpec"))
+    with SelectWithGroupLimitItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   override implicit val materializer: Materializer = ActorMaterializer()

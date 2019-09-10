@@ -10,7 +10,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.concurrent.ExecutionContextExecutor
 
 class MsSqlRawSelectItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("MsSqlRawSelectItSpec"))
     with RawSelectItSpec
     with SelectDbInitHelper
     with WordSpecLike

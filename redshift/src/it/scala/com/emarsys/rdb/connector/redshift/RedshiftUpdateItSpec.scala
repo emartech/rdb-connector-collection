@@ -8,7 +8,10 @@ import com.emarsys.rdb.connector.test.UpdateItSpec
 
 import concurrent.duration._
 
-class RedshiftUpdateItSpec extends TestKit(ActorSystem()) with UpdateItSpec with SelectDbInitHelper {
+class RedshiftUpdateItSpec
+    extends TestKit(ActorSystem("RedshiftUpdateItSpec"))
+    with UpdateItSpec
+    with SelectDbInitHelper {
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
 
@@ -23,7 +26,7 @@ class RedshiftUpdateItSpec extends TestKit(ActorSystem()) with UpdateItSpec with
 }
 
 class RedshiftUpdateWithSchemaItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("RedshiftUpdateWithSchemaItSpec"))
     with UpdateItSpec
     with SelectDbWithSchemaInitHelper {
   val aTableName: String = tableName

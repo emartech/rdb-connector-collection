@@ -10,7 +10,7 @@ import com.emarsys.rdb.connector.test.SearchItSpec
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class RedshiftSearchItSpec extends TestKit(ActorSystem()) with SearchItSpec {
+class RedshiftSearchItSpec extends TestKit(ActorSystem("RedshiftSearchItSpec")) with SearchItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val connector: Connector =
@@ -58,7 +58,7 @@ class RedshiftSearchItSpec extends TestKit(ActorSystem()) with SearchItSpec {
   }
 }
 
-class RedshiftSearchWithSchemaItSpec extends TestKit(ActorSystem()) with SearchItSpec {
+class RedshiftSearchWithSchemaItSpec extends TestKit(ActorSystem("RedshiftSearchWithSchemaItSpec")) with SearchItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val schema = "ittestschema"

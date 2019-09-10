@@ -17,7 +17,11 @@ import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class SearchItSpecSpec extends TestKit(ActorSystem()) with SearchItSpec with MockitoSugar with BeforeAndAfterAll {
+class SearchItSpecSpec
+    extends TestKit(ActorSystem("SearchItSpecSpec"))
+    with SearchItSpec
+    with MockitoSugar
+    with BeforeAndAfterAll {
 
   implicit val materializer: Materializer = ActorMaterializer()
 

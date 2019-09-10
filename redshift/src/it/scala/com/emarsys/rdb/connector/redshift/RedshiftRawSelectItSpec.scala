@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
 
 class RedshiftRawSelectItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("RedshiftRawSelectItSpec"))
     with RawSelectItSpec
     with SelectDbInitHelper
     with WordSpecLike
@@ -49,7 +49,7 @@ class RedshiftRawSelectItSpec
 }
 
 class RedshiftRawSelectWithSchemaItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("RedshiftRawSelectWithSchemaItSpec"))
     with RawSelectItSpec
     with SelectDbWithSchemaInitHelper
     with WordSpecLike

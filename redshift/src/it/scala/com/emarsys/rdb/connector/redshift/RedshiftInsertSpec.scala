@@ -8,7 +8,7 @@ import com.emarsys.rdb.connector.test.InsertItSpec
 
 import concurrent.duration._
 
-class RedshiftInsertSpec extends TestKit(ActorSystem()) with InsertItSpec with SelectDbInitHelper {
+class RedshiftInsertSpec extends TestKit(ActorSystem("RedshiftInsertSpec")) with InsertItSpec with SelectDbInitHelper {
 
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
@@ -23,7 +23,10 @@ class RedshiftInsertSpec extends TestKit(ActorSystem()) with InsertItSpec with S
   }
 }
 
-class RedshiftInsertWithSchemaSpec extends TestKit(ActorSystem()) with InsertItSpec with SelectDbWithSchemaInitHelper {
+class RedshiftInsertWithSchemaSpec
+    extends TestKit(ActorSystem("RedshiftInsertWithSchemaSpec"))
+    with InsertItSpec
+    with SelectDbWithSchemaInitHelper {
 
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"

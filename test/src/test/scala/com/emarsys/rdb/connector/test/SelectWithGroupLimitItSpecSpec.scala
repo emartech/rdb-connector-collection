@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
 
 class SelectWithGroupLimitItSpecSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("SelectWithGroupLimitItSpecSpec"))
     with SelectWithGroupLimitItSpec
     with MockitoSugar
     with BeforeAndAfterAll {

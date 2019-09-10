@@ -8,7 +8,10 @@ import com.emarsys.rdb.connector.test.DeleteItSpec
 
 import concurrent.duration._
 
-class RedshiftDeleteItSpec extends TestKit(ActorSystem()) with DeleteItSpec with SelectDbInitHelper {
+class RedshiftDeleteItSpec
+    extends TestKit(ActorSystem("RedshiftDeleteItSpec"))
+    with DeleteItSpec
+    with SelectDbInitHelper {
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
 
@@ -24,7 +27,7 @@ class RedshiftDeleteItSpec extends TestKit(ActorSystem()) with DeleteItSpec with
 }
 
 class RedshiftDeleteWithCurrentSchemaItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("RedshiftDeleteWithCurrentSchemaItSpec"))
     with DeleteItSpec
     with SelectDbWithSchemaInitHelper {
   val aTableName: String = tableName

@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 class MultipleQueryWithSchemaSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("MultipleQueryWithSchemaSpec"))
     with WordSpecLike
     with Matchers
     with BeforeAndAfterEach

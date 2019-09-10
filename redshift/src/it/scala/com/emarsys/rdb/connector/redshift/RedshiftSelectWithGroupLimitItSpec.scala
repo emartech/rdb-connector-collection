@@ -10,7 +10,9 @@ import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class RedshiftSelectWithGroupLimitItSpec extends TestKit(ActorSystem()) with SelectWithGroupLimitItSpec {
+class RedshiftSelectWithGroupLimitItSpec
+    extends TestKit(ActorSystem("RedshiftSelectWithGroupLimitItSpec"))
+    with SelectWithGroupLimitItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
   override implicit val materializer: Materializer = ActorMaterializer()
   override val awaitTimeout                        = 20.seconds
@@ -57,7 +59,9 @@ class RedshiftSelectWithGroupLimitItSpec extends TestKit(ActorSystem()) with Sel
   }
 }
 
-class RedshiftSelectWithGroupLimitWithSchemaItSpec extends TestKit(ActorSystem()) with SelectWithGroupLimitItSpec {
+class RedshiftSelectWithGroupLimitWithSchemaItSpec
+    extends TestKit(ActorSystem("RedshiftSelectWithGroupLimitWithSchemaItSpec"))
+    with SelectWithGroupLimitItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
   override implicit val materializer: Materializer = ActorMaterializer()
 

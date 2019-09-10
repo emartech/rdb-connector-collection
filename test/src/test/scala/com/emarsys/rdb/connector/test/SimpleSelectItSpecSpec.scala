@@ -13,7 +13,7 @@ import org.scalatest.mockito.MockitoSugar
 import scala.concurrent.Future
 
 class SimpleSelectItSpecSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("SimpleSelectItSpecSpec"))
     with SimpleSelectItSpec
     with MockitoSugar
     with BeforeAndAfterAll {

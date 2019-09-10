@@ -6,7 +6,7 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.mssql.utils.SelectDbInitHelper
 import com.emarsys.rdb.connector.test.DeleteItSpec
 
-class MsSqlDeleteItSpec extends TestKit(ActorSystem()) with DeleteItSpec with SelectDbInitHelper {
+class MsSqlDeleteItSpec extends TestKit(ActorSystem("MsSqlDeleteItSpec")) with DeleteItSpec with SelectDbInitHelper {
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
 

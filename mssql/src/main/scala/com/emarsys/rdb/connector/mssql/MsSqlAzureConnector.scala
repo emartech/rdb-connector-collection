@@ -7,7 +7,11 @@ import cats.syntax.applicativeError._
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
-import com.emarsys.rdb.connector.mssql.MsSqlAzureConnector.{AzureMsSqlPort, MsSqlAzureConnectionConfig, MsSqlAzureConnectorConfig}
+import com.emarsys.rdb.connector.mssql.MsSqlAzureConnector.{
+  AzureMsSqlPort,
+  MsSqlAzureConnectionConfig,
+  MsSqlAzureConnectorConfig
+}
 import com.emarsys.rdb.connector.mssql.MsSqlConnector.MsSqlConnectorConfig
 import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import com.typesafe.config.{Config, ConfigFactory}

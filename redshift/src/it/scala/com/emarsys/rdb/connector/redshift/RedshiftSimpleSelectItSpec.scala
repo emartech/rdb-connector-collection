@@ -11,7 +11,10 @@ import com.emarsys.rdb.connector.test._
 import concurrent.duration._
 import scala.concurrent.Await
 
-class RedshiftSimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSelectItSpec with SelectDbInitHelper {
+class RedshiftSimpleSelectItSpec
+    extends TestKit(ActorSystem("RedshiftSimpleSelectItSpec"))
+    with SimpleSelectItSpec
+    with SelectDbInitHelper {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   override implicit val materializer: Materializer = ActorMaterializer()
@@ -68,7 +71,7 @@ class RedshiftSimpleSelectItSpec extends TestKit(ActorSystem()) with SimpleSelec
 }
 
 class RedshiftSimpleSelectWithSchemaItSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("RedshiftSimpleSelectWithSchemaItSpec"))
     with SimpleSelectItSpec
     with SelectDbWithSchemaInitHelper {
   import scala.concurrent.ExecutionContext.Implicits.global

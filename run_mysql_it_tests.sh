@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
 function test_mysql {
-    mysqladmin ping -h database --silent
+    mysqladmin ping -h ${MYSQL_HOST} --silent
 }
+
+echo "Waiting for ${MYSQL_HOST} to become ready"
 
 count=0
 until ( test_mysql )

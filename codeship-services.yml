@@ -5,57 +5,74 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    cached: true
     encrypted_env_file: itenv.encrypted
+    environment:
+      SBT_OPTS: "-Xmx2G -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -Xss2M"
 
   rdb-mysql-connector-56:
     build:
       context: .
       dockerfile: Dockerfile
+    cached: true
     depends_on:
+      - rdb-allconnector
       - mysql-db-56
     encrypted_env_file: itenv.encrypted
-    networks:
-      - mysql56
+    environment:
+      DATABASE_HOST: "db"
+    links:
+      - mysql-db-56:db
 
   rdb-mysql-connector-57:
     build:
       context: .
       dockerfile: Dockerfile
+    cached: true
     depends_on:
+      - rdb-allconnector
       - mysql-db-57
     encrypted_env_file: itenv.encrypted
-    networks:
-      - mysql57
+    environment:
+      DATABASE_HOST: "db"
+    links:
+    - mysql-db-57:db
 
   rdb-mysql-connector-8:
     build:
       context: .
       dockerfile: Dockerfile
+    cached: true
     depends_on:
+      - rdb-allconnector
       - mysql-db-8
     encrypted_env_file: itenv.encrypted
-    networks:
-      - mysql8
+    environment:
+      DATABASE_HOST: "db"
+    links:
+      - mysql-db-8:db
 
   rdb-mssql-connector:
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on:
-      - mssql-db
+    cached: true
     encrypted_env_file: itenv.encrypted
-    networks:
-      - mssql
+    environment:
+      DATABASE_HOST: "db"
+    links:
+    - mssql-db:db
 
   rdb-postgresql-connector:
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on:
-      - postgresql-db
+    cached: true
     encrypted_env_file: itenv.encrypted
-    networks:
-      - postgres
+    environment:
+      DATABASE_HOST: "db"
+    links:
+    - postgresql-db:db
 
   rdb-publisher:
     build:
@@ -75,10 +92,6 @@ services:
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
-    networks:
-      mysql56:
-        aliases:
-          - database
 
   mysql-db-57:
     image: mysql/mysql-server:5.7
@@ -91,10 +104,6 @@ services:
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
-    networks:
-      mysql57:
-        aliases:
-          - database
 
   mysql-db-8:
     image: mysql/mysql-server:8.0.14
@@ -108,10 +117,6 @@ services:
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
-    networks:
-      mysql8:
-        aliases:
-          - database
 
   mssql-db:
     image: mcmoe/mssqldocker
@@ -127,10 +132,6 @@ services:
     - ./mssql/mssql/mssql_db.key:/etc/ssl/private/mssql.key:ro
     - ./mssql/mssql/mssql_db.pem:/etc/ssl/certs/mssql.pem:ro
     - ./mssql/mssql/setup.sql:/usr/config/setup.sql
-    networks:
-      mssql:
-        aliases:
-          - database
 
   postgresql-db:
     build: ./postgresql/postgresql
@@ -139,15 +140,3 @@ services:
       POSTGRES_USER: "it-test-user"
       POSTGRES_DB: "it-test-db"
     cached: true
-    networks:
-      postgres:
-        aliases:
-          - database
-
-networks:
-    mysql56:
-    mysql57:
-    mysql8:
-    postgres:
-    mssql:
-

@@ -4,31 +4,38 @@ import cats.data.EitherT
 import cats.instances.future._
 import com.emarsys.rdb.connector.common.ConnectorResponseET
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
-import com.emarsys.rdb.connector.common.models.Errors.ConnectorError
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.ValidationResult._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 trait RawDataValidator {
+  import cats.syntax.flatMap._
 
   def validateEmptyCriteria(data: Criteria)(
       implicit ec: ExecutionContext
-  ): ConnectorResponseET[ValidationResult] =
-    EitherT.rightT[Future, ConnectorError] {
-      if (data.isEmpty) EmptyData else Valid
-    }
+  ): ConnectorResponseET[ValidationResult] = {
+    if (data.isEmpty)
+      EitherT.leftT(DatabaseError.validation(ErrorName.EmptyData))
+    else EitherT.rightT(Valid)
+  }
 
   def validateFieldExistence(tableName: String, fields: Set[String], connector: Connector)(
       implicit ec: ExecutionContext
   ): ConnectorResponseET[ValidationResult] = {
-    EitherT(connector.listFields(tableName)).map { columns =>
-      val nonExistingFields = fields.map(_.toLowerCase).diff(columns.map(_.name.toLowerCase).toSet)
-      if (nonExistingFields.isEmpty) {
-        Valid
-      } else {
-        NonExistingFields(fields.filter(field => nonExistingFields.contains(field.toLowerCase)))
+    EitherT(connector.listFields(tableName))
+      .flatMap { columns =>
+        val lowerCasedFields  = fields.map(_.toLowerCase)
+        val nonExistingFields = lowerCasedFields.diff(columns.map(_.name.toLowerCase).toSet)
+        if (nonExistingFields.isEmpty) {
+          EitherT.rightT(Valid)
+        } else {
+          val missingFields = lowerCasedFields.intersect(nonExistingFields).toList
+          EitherT.leftT(
+            DatabaseError.validation(ErrorName.MissingFields, Some(Fields(missingFields)))
+          )
+        }
       }
-    }
   }
 
   def validateTableExists(tableName: String, connector: Connector)(
@@ -46,10 +53,13 @@ trait RawDataValidator {
   private def validateTableExistsAndIfView(tableName: String, connector: Connector, canBeView: Boolean)(
       implicit ec: ExecutionContext
   ): ConnectorResponseET[ValidationResult] = {
-    EitherT(connector.listTables()).map { tableModels =>
+    EitherT(connector.listTables()).flatMap { tableModels =>
       tableModels.find(tableModel => tableModel.name == tableName) match {
-        case Some(table) => if (!canBeView && table.isView) InvalidOperationOnView else Valid
-        case None        => NonExistingTable
+        case Some(table) =>
+          if (!canBeView && table.isView)
+            EitherT.leftT(DatabaseError.validation(ErrorName.InvalidOperationOnView))
+          else EitherT.rightT(Valid)
+        case None => EitherT.leftT(DatabaseError.validation(ErrorName.NonExistingTable))
       }
     }
   }
@@ -58,48 +68,42 @@ trait RawDataValidator {
       implicit ec: ExecutionContext
   ): ConnectorResponseET[ValidationResult] = {
     updateData match {
-      case Nil => EitherT.rightT[Future, ConnectorError](EmptyData)
+      case Nil => EitherT.leftT(DatabaseError.validation(ErrorName.EmptyData))
       case first :: _ =>
-        validateFieldExistence(tableName, first, connector) flatMap {
-          case Valid =>
-            validateIndices(tableName, first.search.keySet, connector)
-          case validationResult => EitherT.rightT[Future, ConnectorError](validationResult)
+        validateFieldExistence(tableName, fieldsOf(first), connector).flatMap { _ =>
+          validateIndices(tableName, first.search.keySet, connector)
         }
     }
   }
 
-  private def validateFieldExistence(tableName: String, firstUpdateData: UpdateDefinition, connector: Connector)(
-      implicit ec: ExecutionContext
-  ): ConnectorResponseET[ValidationResult] = {
-    val fields = firstUpdateData.search.keySet ++ firstUpdateData.update.keySet
-    validateFieldExistence(tableName, fields, connector)
-  }
+  private def fieldsOf(updateDefinition: UpdateDefinition): Set[String] =
+    updateDefinition.search.keySet ++ updateDefinition.update.keySet
 
   def validateIndices(tableName: String, keyFields: Set[String], connector: Connector)(
       implicit ec: ExecutionContext
   ): ConnectorResponseET[ValidationResult] = {
     EitherT(connector.isOptimized(tableName, keyFields.toList))
-      .map(isOptimized => if (isOptimized) Valid else NoIndexOnFields)
+      .ifM(
+        EitherT.rightT(Valid),
+        EitherT.leftT(DatabaseError.validation(ErrorName.NoIndexOnFields))
+      )
   }
 
   def validateFormat(
       data: Seq[Record],
       maxRows: Int
   )(implicit ec: ExecutionContext): ConnectorResponseET[ValidationResult] = {
-    val result = data match {
-      case Nil => EmptyData
+    data match {
+      case Nil => EitherT.leftT(DatabaseError.validation(ErrorName.EmptyData))
       case first :: _ =>
         if (data.size > maxRows) {
-          TooManyRows
-        } else if (data.isEmpty) {
-          EmptyData
+          EitherT.leftT(DatabaseError.validation(ErrorName.TooManyRows))
         } else if (!areAllKeysTheSameAs(first, data)) {
-          DifferentFields
+          EitherT.leftT(DatabaseError.validation(ErrorName.DifferentFields))
         } else {
-          Valid
+          EitherT.rightT(Valid)
         }
     }
-    EitherT.rightT[Future, ConnectorError](result)
   }
 
   private def areAllKeysTheSameAs(compareWith: Record, dataToInsert: Seq[Record]): Boolean = {
@@ -111,22 +115,18 @@ trait RawDataValidator {
       updateData: Seq[UpdateDefinition],
       maxRows: Int
   )(implicit ec: ExecutionContext): ConnectorResponseET[ValidationResult] =
-    EitherT.rightT[Future, ConnectorError] {
-      if (updateData.size > maxRows) {
-        TooManyRows
-      } else if (updateData.isEmpty) {
-        EmptyData
-      } else if (hasEmptyCriteria(updateData)) {
-        EmptyCriteria
-      } else if (hasEmptyData(updateData)) {
-        EmptyData
-      } else if (!areAllCriteriaFieldsTheSame(updateData)) {
-        DifferentFields
-      } else if (!areAllUpdateFieldsTheSame(updateData)) {
-        DifferentFields
-      } else {
-        Valid
-      }
+    if (updateData.size > maxRows) {
+      EitherT.leftT(DatabaseError.validation(ErrorName.TooManyRows))
+    } else if (updateData.isEmpty) {
+      EitherT.leftT(DatabaseError.validation(ErrorName.EmptyData))
+    } else if (hasEmptyCriteria(updateData)) {
+      EitherT.leftT(DatabaseError.validation(ErrorName.EmptyCriteria))
+    } else if (hasEmptyData(updateData)) {
+      EitherT.leftT(DatabaseError.validation(ErrorName.EmptyData))
+    } else if (!areAllCriteriaFieldsTheSame(updateData) || !areAllUpdateFieldsTheSame(updateData)) {
+      EitherT.leftT(DatabaseError.validation(ErrorName.DifferentFields))
+    } else {
+      EitherT.rightT(Valid)
     }
 
   private def hasEmptyCriteria(updateData: Seq[UpdateDefinition]): Boolean = updateData.exists(_.search.isEmpty)

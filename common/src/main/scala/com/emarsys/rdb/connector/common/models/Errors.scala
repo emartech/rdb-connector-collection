@@ -46,6 +46,8 @@ object Errors {
     override def values: immutable.IndexedSeq[ErrorCategory] = findValues
   }
 
+  sealed trait ValidationError
+
   sealed trait ErrorName extends EnumEntry {
     def unapply(payload: ErrorPayload): Boolean = ErrorName.withNameOption(payload.error).contains(this)
   }
@@ -53,15 +55,15 @@ object Errors {
     // ======================================
     //              Validation
     // ======================================
-    case object MissingFields          extends ErrorName
-    case object DifferentFields        extends ErrorName
-    case object EmptyData              extends ErrorName
-    case object TooManyRows            extends ErrorName
-    case object NonExistingTable       extends ErrorName
-    case object NoIndexOnFields        extends ErrorName
-    case object EmptyCriteria          extends ErrorName
-    case object InvalidOperationOnView extends ErrorName
-    case object ValidationFailed       extends ErrorName
+    case object MissingFields          extends ErrorName with ValidationError
+    case object DifferentFields        extends ErrorName with ValidationError
+    case object EmptyData              extends ErrorName with ValidationError
+    case object TooManyRows            extends ErrorName with ValidationError
+    case object NonExistingTable       extends ErrorName with ValidationError
+    case object NoIndexOnFields        extends ErrorName with ValidationError
+    case object EmptyCriteria          extends ErrorName with ValidationError
+    case object InvalidOperationOnView extends ErrorName with ValidationError
+    case object ValidationFailed       extends ErrorName with ValidationError
     // ======================================
     //              Timeout
     // ======================================
@@ -151,6 +153,10 @@ object Errors {
       Some(cause),
       None
     )
+
+    def validation[E <: ErrorName with ValidationError](errorName: E, context: Option[Context] = None): DatabaseError =
+      DatabaseError(ErrorCategory.Validation, errorName, "", None, context)
+
   }
 
   sealed trait Context

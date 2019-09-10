@@ -1,20 +1,22 @@
 package com.emarsys.rdb.connector.common.models
 
-import com.emarsys.rdb.connector.common.ConnectorResponseET
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.StringValue
 import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
-import com.emarsys.rdb.connector.common.models.Errors.{CommunicationsLinkFailure, ConnectorError}
+import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, TableModel}
 import org.mockito.Mockito._
+import org.scalatest.matchers.{MatchResult, Matcher}
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{EitherValues, Matchers, WordSpecLike}
+import org.scalatest.{AsyncWordSpecLike, EitherValues, Matchers}
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.Future
 
-class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar with EitherValues {
-  implicit val executionContext: ExecutionContext = ExecutionContext.global
-
+class RawDataValidatorSpec
+    extends AsyncWordSpecLike
+    with Matchers
+    with MockitoSugar
+    with EitherValues
+    with ValidationMatchers {
   val tableName = "tableName"
   val viewName  = "viewName"
   val availableTables = Future.successful(
@@ -25,8 +27,9 @@ class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar 
       )
     )
   )
+  val databaseError = DatabaseError(ErrorCategory.Transient, ErrorName.CommunicationsLinkFailure, "oh no")
 
-  class ValidatorScope {
+  trait ValidatorScope {
     val connector = mock[Connector]
 
     def initTables(): Unit = {
@@ -43,105 +46,134 @@ class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar 
     }
   }
 
-  private def await(f: ConnectorResponseET[ValidationResult]): Either[ConnectorError, ValidationResult] = {
-    Await.result(f.value, 3.seconds)
-  }
-
   "#validateEmptyCriteria" should {
-    "return Valid if the data is not empty" in new ValidatorScope {
-      await(RawDataValidator.validateEmptyCriteria(Map("field1" -> StringValue("value1")))).right.value shouldBe
-        ValidationResult.Valid
+    "return Valid if the data is not empty" in {
+      RawDataValidator.validateEmptyCriteria(Map("field1" -> StringValue("value1"))).value.map(_ should beValid)
     }
 
-    "return EmptyData if the data is empty" in new ValidatorScope {
-      await(RawDataValidator.validateEmptyCriteria(Map())).right.value shouldBe
-        ValidationResult.EmptyData
+    "return EmptyData if the data is empty" in {
+      RawDataValidator.validateEmptyCriteria(Map()).value.map(_ should failWith(ErrorName.EmptyData))
     }
   }
 
   "#validateFieldExistence" should {
-    "return Valid if all fields exist" in new ValidatorScope {
-      initFieldsForTable(tableName, Seq("field1", "field2"))
+    "return Valid if all fields exist" in {
+      val scope = new ValidatorScope {
+        initFieldsForTable(tableName, Seq("field1", "field2"))
+      }
 
-      await(RawDataValidator.validateFieldExistence(tableName, Set("field1", "field2"), connector)).right.value shouldBe
-        ValidationResult.Valid
+      RawDataValidator
+        .validateFieldExistence(tableName, Set("field1", "field2"), scope.connector)
+        .value
+        .map(_ should beValid)
     }
 
-    "return NonExistingFields if some of the fields not exist" in new ValidatorScope {
-      initFieldsForTable(tableName, Seq("field1", "field2"))
+    "return NonExistingFields if some of the fields not exist" in {
+      val scope = new ValidatorScope {
+        initFieldsForTable(tableName, Seq("field1", "field2"))
+      }
 
-      await(RawDataValidator.validateFieldExistence(tableName, Set("field99", "field2"), connector)).right.value shouldBe
-        ValidationResult.NonExistingFields(Set("field99"))
+      RawDataValidator.validateFieldExistence(tableName, Set("field99", "field2"), scope.connector).value.map {
+        result =>
+          result should failWith(ErrorName.MissingFields)
+          result should haveContext(Fields(List("field99")))
+      }
     }
 
-    "return the error if listFields fails" in new ValidatorScope {
-      when(connector.listFields(tableName)) thenReturn
-        Future.successful(Left(CommunicationsLinkFailure("Error")))
+    "return the error if listFields fails" in {
+      val scope = new ValidatorScope {
+        when(connector.listFields(tableName)) thenReturn Future.successful(Left(databaseError))
+      }
 
-      await(RawDataValidator.validateFieldExistence(tableName, Set("field1", "field2"), connector)).left.value shouldBe
-        CommunicationsLinkFailure("Error")
+      RawDataValidator
+        .validateFieldExistence(tableName, Set("field1", "field2"), scope.connector)
+        .value
+        .map(result => result.left.value shouldBe databaseError)
     }
   }
 
   "#validateTableExists" should {
-    "return Valid if the table exists as table" in new ValidatorScope {
-      initTables()
+    "return Valid if the table exists as table" in {
+      val scope = new ValidatorScope {
+        initTables()
+      }
 
-      await(RawDataValidator.validateTableExists(tableName, connector)).right.value shouldBe
-        ValidationResult.Valid
+      RawDataValidator.validateTableExists(tableName, scope.connector).value.map(_ should beValid)
     }
 
-    "return Valid if the table exists as view" in new ValidatorScope {
-      initTables()
+    "return Valid if the table exists as view" in {
+      val scope = new ValidatorScope {
+        initTables()
+      }
 
-      await(RawDataValidator.validateTableExists(viewName, connector)).right.value shouldBe
-        ValidationResult.Valid
+      RawDataValidator.validateTableExists(viewName, scope.connector).value.map(_ should beValid)
     }
 
-    "return NonExistingTable if the table not exists neither as table or view" in new ValidatorScope {
-      initTables()
+    "return NonExistingTable if the table not exists neither as table or view" in {
+      val scope = new ValidatorScope {
+        initTables()
+      }
 
-      await(RawDataValidator.validateTableExists("unknown_table", connector)).right.value shouldBe
-        ValidationResult.NonExistingTable
+      RawDataValidator
+        .validateTableExists("unknown_table", scope.connector)
+        .value
+        .map(_ should failWith(ErrorName.NonExistingTable))
     }
 
-    "return the error if listTables fails" in new ValidatorScope {
-      when(connector.listTables()) thenReturn
-        Future.successful(Left(CommunicationsLinkFailure("Error")))
+    "return the error if listTables fails" in {
+      val scope = new ValidatorScope {
+        when(connector.listTables()) thenReturn
+          Future.successful(Left(databaseError))
+      }
 
-      await(RawDataValidator.validateTableExists("unknown_table", connector)).left.value shouldBe
-        CommunicationsLinkFailure("Error")
+      RawDataValidator
+        .validateTableExists("unknown_table", scope.connector)
+        .value
+        .map(_.left.value shouldBe databaseError)
     }
   }
 
   "#validateTableExistsAndNotView" should {
-    "return Valid if the table exists as table" in new ValidatorScope {
-      initTables()
+    "return Valid if the table exists as table" in {
+      val scope = new ValidatorScope {
+        initTables()
+      }
 
-      await(RawDataValidator.validateTableExistsAndNotView(tableName, connector)).right.value shouldBe
-        ValidationResult.Valid
+      RawDataValidator.validateTableExistsAndNotView(tableName, scope.connector).value.map(_ should beValid)
     }
 
-    "return InvalidOperationOnView if the table exists as view" in new ValidatorScope {
-      initTables()
+    "return InvalidOperationOnView if the table exists as view" in {
+      val scope = new ValidatorScope {
+        initTables()
+      }
 
-      await(RawDataValidator.validateTableExistsAndNotView(viewName, connector)).right.value shouldBe
-        ValidationResult.InvalidOperationOnView
+      RawDataValidator
+        .validateTableExistsAndNotView(viewName, scope.connector)
+        .value
+        .map(_ should failWith(ErrorName.InvalidOperationOnView))
     }
 
-    "return NonExistingTable if the table not exists neither as table or view" in new ValidatorScope {
-      initTables()
+    "return NonExistingTable if the table not exists neither as table or view" in {
+      val scope = new ValidatorScope {
+        initTables()
+      }
 
-      await(RawDataValidator.validateTableExistsAndNotView("unknown_table", connector)).right.value shouldBe
-        ValidationResult.NonExistingTable
+      RawDataValidator
+        .validateTableExistsAndNotView("unknown_table", scope.connector)
+        .value
+        .map(_ should failWith(ErrorName.NonExistingTable))
     }
 
-    "return the error if listTables fails" in new ValidatorScope {
-      when(connector.listTables()) thenReturn
-        Future.successful(Left(CommunicationsLinkFailure("Error")))
+    "return the error if listTables fails" in {
+      val scope = new ValidatorScope {
+        when(connector.listTables()) thenReturn
+          Future.successful(Left(databaseError))
+      }
 
-      await(RawDataValidator.validateTableExistsAndNotView("unknown_table", connector)).left.value shouldBe
-        CommunicationsLinkFailure("Error")
+      RawDataValidator
+        .validateTableExistsAndNotView("unknown_table", scope.connector)
+        .value
+        .map(_.left.value shouldBe databaseError)
     }
   }
 
@@ -158,68 +190,98 @@ class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar 
       )
     )
 
-    "return Valid if everything is correct" in new ValidatorScope {
-      initFieldsForTable(tableName, Seq("search_field11", "search_field12", "update_field11", "update_field12"))
-      initIsOptimized(tableName, Seq("search_field11", "search_field12"), isOptimized = true)
+    "return Valid if everything is correct" in {
+      val scope = new ValidatorScope {
+        initFieldsForTable(tableName, Seq("search_field11", "search_field12", "update_field11", "update_field12"))
+        initIsOptimized(tableName, Seq("search_field11", "search_field12"), isOptimized = true)
+      }
 
-      await(RawDataValidator.validateUpdateFields(tableName, updateData, connector)).right.value shouldBe
-        ValidationResult.Valid
+      RawDataValidator.validateUpdateFields(tableName, updateData, scope.connector).value.map(_ should beValid)
     }
 
-    "return EmptyData if the update data is empty" in new ValidatorScope {
-      initFieldsForTable(tableName, Seq("search_field11", "search_field12", "update_field11", "update_field12"))
-      initIsOptimized(tableName, Seq("search_field11", "search_field12"), isOptimized = true)
+    "return EmptyData if the update data is empty" in {
+      val scope = new ValidatorScope {
+        initFieldsForTable(tableName, Seq("search_field11", "search_field12", "update_field11", "update_field12"))
+        initIsOptimized(tableName, Seq("search_field11", "search_field12"), isOptimized = true)
+      }
 
-      await(RawDataValidator.validateUpdateFields(tableName, Seq(), connector)).right.value shouldBe
-        ValidationResult.EmptyData
+      RawDataValidator
+        .validateUpdateFields(tableName, Seq(), scope.connector)
+        .value
+        .map(_ should failWith(ErrorName.EmptyData))
     }
 
-    "return NonExistingFields if not all keys of first UpdateDefinition exists as field" in new ValidatorScope {
-      initFieldsForTable(tableName, Seq("search_field11", "update_field12"))
-      initIsOptimized(tableName, Seq("search_field11", "search_field12"), isOptimized = true)
+    "return NonExistingFields if not all keys of first UpdateDefinition exists as field" in {
+      val nonExistingField = List("search_field11", "update_field12")
+      val scope = new ValidatorScope {
+        initFieldsForTable(tableName, nonExistingField)
+        initIsOptimized(tableName, nonExistingField, isOptimized = true)
+      }
 
-      await(RawDataValidator.validateUpdateFields(tableName, updateData, connector)).right.value shouldBe
-        ValidationResult.NonExistingFields(Set("search_field12", "update_field11"))
+      RawDataValidator.validateUpdateFields(tableName, updateData, scope.connector).value.map { result =>
+        result should failWith(ErrorName.MissingFields)
+        result should haveContext(Fields(nonExistingField))
+      }
     }
 
-    "return NoIndexOnFields if not all keys of search of first UpdateDefinition optimized as field" in new ValidatorScope {
-      initFieldsForTable(tableName, Seq("search_field11", "search_field12", "update_field11", "update_field12"))
-      initIsOptimized(tableName, Seq("search_field11", "search_field12"), isOptimized = false)
+    "return NoIndexOnFields if not all keys of search of first UpdateDefinition optimized as field" in {
+      val scope = new ValidatorScope {
+        initFieldsForTable(tableName, Seq("search_field11", "search_field12", "update_field11", "update_field12"))
+        initIsOptimized(tableName, Seq("search_field11", "search_field12"), isOptimized = false)
+      }
 
-      await(RawDataValidator.validateUpdateFields(tableName, updateData, connector)).right.value shouldBe
-        ValidationResult.NoIndexOnFields
+      RawDataValidator
+        .validateUpdateFields(tableName, updateData, scope.connector)
+        .value
+        .map(_ should failWith(ErrorName.NoIndexOnFields))
     }
 
-    "return the error if listFields fails" in new ValidatorScope {
-      when(connector.listFields(tableName)) thenReturn
-        Future.successful(Left(CommunicationsLinkFailure("Error")))
+    "return the error if listFields fails" in {
+      val scope = new ValidatorScope {
+        when(connector.listFields(tableName)) thenReturn
+          Future.successful(Left(databaseError))
+      }
 
-      await(RawDataValidator.validateUpdateFields(tableName, updateData, connector)).left.value shouldBe
-        CommunicationsLinkFailure("Error")
+      RawDataValidator
+        .validateUpdateFields(tableName, updateData, scope.connector)
+        .value
+        .map(_.left.value shouldBe databaseError)
     }
   }
 
   "#validateIndices" should {
-    "return Valid if the fields are optimized" in new ValidatorScope {
-      initIsOptimized(tableName, Seq("field1", "field2"), isOptimized = true)
+    "return Valid if the fields are optimized" in {
+      val scope = new ValidatorScope {
+        initIsOptimized(tableName, Seq("field1", "field2"), isOptimized = true)
+      }
 
-      await(RawDataValidator.validateIndices(tableName, Set("field1", "field2"), connector)).right.value shouldBe
-        ValidationResult.Valid
+      RawDataValidator.validateIndices(tableName, Set("field1", "field2"), scope.connector).value.map(_ should beValid)
     }
 
-    "return NoIndexOnFields if the fields are not optimized" in new ValidatorScope {
-      initIsOptimized(tableName, Seq("field1", "field2"), isOptimized = false)
+    "return NoIndexOnFields if the fields are not optimized" in {
+      val scope = new ValidatorScope {
+        initIsOptimized(tableName, Seq("field1", "field2"), isOptimized = false)
+      }
 
-      await(RawDataValidator.validateIndices(tableName, Set("field1", "field2"), connector)).right.value shouldBe
-        ValidationResult.NoIndexOnFields
+      RawDataValidator
+        .validateIndices(tableName, Set("field1", "field2"), scope.connector)
+        .value
+        .map(_ should failWith(ErrorName.NoIndexOnFields))
     }
 
-    "return the error if listFields fails" in new ValidatorScope {
-      when(connector.isOptimized(tableName, Seq("field1", "field2"))) thenReturn
-        Future.successful(Left(CommunicationsLinkFailure("Error")))
+    "return the error if listFields fails" in {
+      val scope = new ValidatorScope {
+        when(connector.isOptimized(tableName, Seq("field1", "field2"))) thenReturn
+          Future.successful(Left(databaseError))
+      }
 
-      await(RawDataValidator.validateIndices(tableName, Set("field1", "field2"), connector)).left.value shouldBe
-        CommunicationsLinkFailure("Error")
+      RawDataValidator
+        .validateIndices(tableName, Set("field1", "field2"), scope.connector)
+        .value
+        .map(
+          _.left.value shouldBe
+            databaseError
+        )
     }
   }
 
@@ -229,24 +291,26 @@ class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar 
     val record3            = Map("k1" -> StringValue("r3_v"))
     val recordDifferentKey = Map("k1" -> StringValue("r4_v1"), "k2" -> StringValue("r4_v2"))
 
-    "return TooManyRows if there are too many data" in new ValidatorScope {
-      await(RawDataValidator.validateFormat(Seq(record1, record2, record3), 2)).right.value shouldBe
-        ValidationResult.TooManyRows
+    "return TooManyRows if there are too many data" in {
+      RawDataValidator
+        .validateFormat(Seq(record1, record2, record3), 2)
+        .value
+        .map(_ should failWith(ErrorName.TooManyRows))
     }
 
-    "return EmptyData if the data is empty" in new ValidatorScope {
-      await(RawDataValidator.validateFormat(Seq(), 2)).right.value shouldBe
-        ValidationResult.EmptyData
+    "return EmptyData if the data is empty" in {
+      RawDataValidator.validateFormat(Seq(), 2).value.map(_ should failWith(ErrorName.EmptyData))
     }
 
-    "return DifferentFields if the data is empty" in new ValidatorScope {
-      await(RawDataValidator.validateFormat(Seq(record1, record2, recordDifferentKey), 3)).right.value shouldBe
-        ValidationResult.DifferentFields
+    "return DifferentFields if the data is empty" in {
+      RawDataValidator
+        .validateFormat(Seq(record1, record2, recordDifferentKey), 3)
+        .value
+        .map(_ should failWith(ErrorName.DifferentFields))
     }
 
-    "return Valid everything is ok" in new ValidatorScope {
-      await(RawDataValidator.validateFormat(Seq(record1, record2, record3), 3)).right.value shouldBe
-        ValidationResult.Valid
+    "return Valid everything is ok" in {
+      RawDataValidator.validateFormat(Seq(record1, record2, record3), 3).value.map(_ should beValid)
     }
   }
 
@@ -264,61 +328,101 @@ class RawDataValidatorSpec extends WordSpecLike with Matchers with MockitoSugar 
       update = Map("field3" -> StringValue("value33"))
     )
 
-    "return TooManyRows if there are too many data" in new ValidatorScope {
-      await(RawDataValidator.validateUpdateFormat(Seq(updateData1, updateData2, updateData3), 2)).right.value shouldBe
-        ValidationResult.TooManyRows
+    "return TooManyRows if there are too many data" in {
+      RawDataValidator
+        .validateUpdateFormat(Seq(updateData1, updateData2, updateData3), 2)
+        .value
+        .map(_ should failWith(ErrorName.TooManyRows))
     }
 
-    "return EmptyData if the data is empty" in new ValidatorScope {
-      await(RawDataValidator.validateUpdateFormat(Seq(), 2)).right.value shouldBe
-        ValidationResult.EmptyData
+    "return EmptyData if the data is empty" in {
+      RawDataValidator.validateUpdateFormat(Seq(), 2).value.map(_ should failWith(ErrorName.EmptyData))
     }
 
-    "return EmptyCriteria if there is an UpdateDefinition with empty criteria" in new ValidatorScope {
+    "return EmptyCriteria if there is an UpdateDefinition with empty criteria" in {
       val updateDataWithEmptySearch = UpdateDefinition(
         search = Map(),
         update = Map("k" -> StringValue("v"))
       )
       val data = Seq(updateData1, updateData2, updateDataWithEmptySearch)
-      await(RawDataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
-        ValidationResult.EmptyCriteria
+
+      RawDataValidator.validateUpdateFormat(data, 3).value.map(_ should failWith(ErrorName.EmptyCriteria))
     }
 
-    "return EmptyData if there is an UpdateDefinition with empty criteria" in new ValidatorScope {
+    "return EmptyData if there is an UpdateDefinition with empty criteria" in {
       val updateDataWithEmptyUpdate = UpdateDefinition(
         search = Map("k" -> StringValue("v")),
         update = Map()
       )
       val data = Seq(updateData1, updateData2, updateDataWithEmptyUpdate)
-      await(RawDataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
-        ValidationResult.EmptyData
+
+      RawDataValidator.validateUpdateFormat(data, 3).value.map(_ should failWith(ErrorName.EmptyData))
     }
 
-    "return DifferentFields if not all the search keys are the same" in new ValidatorScope {
+    "return DifferentFields if not all the search keys are the same" in {
       val updateDataWithDifferentSeach = UpdateDefinition(
         search = Map("field1" -> StringValue("value31"), "field2_different" -> StringValue("value32")),
         update = Map("field3" -> StringValue("value33"))
       )
       val data = Seq(updateData1, updateData2, updateDataWithDifferentSeach)
-      await(RawDataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
-        ValidationResult.DifferentFields
+
+      RawDataValidator.validateUpdateFormat(data, 3).value.map(_ should failWith(ErrorName.DifferentFields))
     }
 
-    "return DifferentFields if not all the update keys are the same" in new ValidatorScope {
-      val updateDataWithDifferentSeach = UpdateDefinition(
+    "return DifferentFields if not all the update keys are the same" in {
+      val updateDataWithDifferentSearch = UpdateDefinition(
         search = Map("field1"           -> StringValue("value31"), "field2" -> StringValue("value32")),
         update = Map("field3_different" -> StringValue("value33"))
       )
-      val data = Seq(updateData1, updateData2, updateDataWithDifferentSeach)
-      await(RawDataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
-        ValidationResult.DifferentFields
+      val data = Seq(updateData1, updateData2, updateDataWithDifferentSearch)
+
+      RawDataValidator.validateUpdateFormat(data, 3).value.map(_ should failWith(ErrorName.DifferentFields))
     }
 
-    "return Valid if everything is ok" in new ValidatorScope {
+    "return Valid if everything is ok" in {
       val data = Seq(updateData1, updateData2, updateData3)
-      await(RawDataValidator.validateUpdateFormat(data, 3)).right.value shouldBe
-        ValidationResult.Valid
+
+      RawDataValidator.validateUpdateFormat(data, 3).value.map(_ should beValid)
     }
   }
 
+}
+
+trait ValidationMatchers {
+
+  class ValidMatcher extends Matcher[Either[ConnectorError, ValidationResult]] {
+    override def apply(result: Either[ConnectorError, ValidationResult]): MatchResult = MatchResult(
+      result.isRight && result.right.get == ValidationResult.Valid,
+      s"Expected to pass validation, failed with $result",
+      s"Passed validation"
+    )
+  }
+
+  def beValid = new ValidMatcher
+
+  class InvalidMatcher(reason: ErrorName) extends Matcher[Either[ConnectorError, ValidationResult]] {
+    override def apply(result: Either[ConnectorError, ValidationResult]): MatchResult = MatchResult(
+      result match {
+        case Left(DatabaseError(ErrorCategory.Validation, `reason`, _, _, _)) => true
+        case _                                                                => false
+      },
+      s"Expected to fail validation with $reason, got $result",
+      s"Failed validation with $reason"
+    )
+  }
+
+  def failWith(reason: ErrorName) = new InvalidMatcher(reason)
+
+  class ValidationContextMatcher(context: Context) extends Matcher[Either[ConnectorError, ValidationResult]] {
+    override def apply(result: Either[ConnectorError, ValidationResult]): MatchResult = MatchResult(
+      result match {
+        case Left(DatabaseError(ErrorCategory.Validation, _, _, _, Some(context))) => true
+        case _                                                                     => false
+      },
+      s"Expected to fail validation with $context, got $result",
+      s"Failed validation with $context"
+    )
+  }
+
+  def haveContext(context: Context) = new ValidationContextMatcher(context)
 }

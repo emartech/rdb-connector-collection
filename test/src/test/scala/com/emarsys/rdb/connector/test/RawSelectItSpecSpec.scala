@@ -4,8 +4,8 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.Source
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.Errors.ErrorWithMessage
 import com.emarsys.rdb.connector.common.models.Connector
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar
@@ -30,10 +30,11 @@ class RawSelectItSpecSpec
     TestKit.shutdownActorSystem(system)
   }
 
-  val simpleSelect            = s"""SELECT * FROM "$aTableName";"""
-  val badSimpleSelect         = s"""SELECT * ForM "$aTableName""""
-  val simpleSelectNoSemicolon = s"""SELECT * FROM "$aTableName""""
+  val simpleSelect    = s"""SELECT * FROM "$aTableName";"""
+  val badSimpleSelect = s"""SELECT * ForM "$aTableName""""
+  val databaseError   = DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "oh no")
 
+  val simpleSelectNoSemicolon = s"""SELECT * FROM "$aTableName""""
   when(connector.rawSelect(simpleSelect, None, queryTimeout)).thenReturn(
     Future(
       Right(
@@ -53,7 +54,8 @@ class RawSelectItSpecSpec
     )
   )
 
-  when(connector.rawSelect(badSimpleSelect, None, queryTimeout)).thenReturn(Future(Left(ErrorWithMessage("bad query"))))
+  when(connector.rawSelect(badSimpleSelect, None, queryTimeout))
+    .thenReturn(Future(Left(databaseError)))
 
   when(connector.rawSelect(simpleSelect, Some(2), queryTimeout)).thenReturn(
     Future(
@@ -71,7 +73,8 @@ class RawSelectItSpecSpec
 
   when(connector.validateRawSelect(simpleSelect)).thenReturn(Future(Right(())))
 
-  when(connector.validateRawSelect(badSimpleSelect)).thenReturn(Future(Left(ErrorWithMessage("bad query"))))
+  when(connector.validateRawSelect(badSimpleSelect))
+    .thenReturn(Future(Left(databaseError)))
 
   when(connector.validateRawSelect(simpleSelectNoSemicolon)).thenReturn(Future(Right(())))
 
@@ -80,7 +83,7 @@ class RawSelectItSpecSpec
   when(connector.validateProjectedRawSelect(simpleSelectNoSemicolon, Seq("A1"))).thenReturn(Future(Right(())))
 
   when(connector.validateProjectedRawSelect(simpleSelect, Seq("NONEXISTENT_COLUMN")))
-    .thenReturn(Future(Left(ErrorWithMessage("bad query"))))
+    .thenReturn(Future(Left(databaseError)))
 
   when(connector.projectedRawSelect(simpleSelect, Seq("A2", "A3"), None, queryTimeout, allowNullFieldValue = false))
     .thenReturn(

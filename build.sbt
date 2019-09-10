@@ -99,8 +99,8 @@ lazy val publishSettings = Seq(
   credentials += Credentials(
     "Sonatype Nexus Repository Manager",
     "nexus.service.emarsys.net",
-    sys.env("NEXUS_USERNAME"),
-    sys.env("NEXUS_PASSWORD")
+    sys.env.getOrElse("NEXUS_USERNAME", ""),
+    sys.env.getOrElse("NEXUS_PASSWORD", "")
   ),
   pgpPublicRing := file("./ci/pubring.asc"),
   pgpSecretRing := file("./ci/secring.asc"),

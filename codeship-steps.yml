@@ -17,13 +17,13 @@
       steps:
       - name: mysql-it-8
         service: rdb-mysql-connector-8
-        command: ./run_mysql_8_it_tests.sh
+        command: ./run_mysql_it_tests.sh
       - name: mysql-it-56
         service: rdb-mysql-connector-56
-        command: ./run_mysql_56_it_tests.sh
+        command: ./run_mysql_it_tests.sh
       - name: mysql-it-57
         service: rdb-mysql-connector-57
-        command: ./run_mysql_57_it_tests.sh
+        command: ./run_mysql_it_tests.sh
       - name: mssql-it
         service: rdb-mssql-connector
         command: sbt mssql/it:test

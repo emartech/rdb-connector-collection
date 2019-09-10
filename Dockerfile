@@ -1,7 +1,10 @@
-FROM hseeberger/scala-sbt:8u212_1.2.8_2.12.8
+FROM openlaw/scala-builder:0.9.3-alpine
 
-RUN apt-get update && apt-get install -y mysql-client
-
-ADD . /rdb-allconnector
+ENV SBT_OPTS="${SBT_OPTS} -Dsbt.io.jdktimestamps=true -Xmx2G -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -Xss2M"
 
 WORKDIR /rdb-allconnector
+
+RUN apk --no-cache add mysql-client
+ADD . .
+
+RUN sbt clean compile test:compile it:compile

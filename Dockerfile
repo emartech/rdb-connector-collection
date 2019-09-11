@@ -6,5 +6,6 @@ WORKDIR /rdb-allconnector
 
 RUN apk --no-cache add mysql-client openssl gnupg
 ADD . .
+RUN chmod +x run_mysql_it_tests.sh publish.sh
 
 RUN sbt clean compile test:compile it:compile

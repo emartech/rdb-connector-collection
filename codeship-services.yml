@@ -16,6 +16,8 @@ services:
     depends_on:
       - mysql-db-56
     encrypted_env_file: itenv.encrypted
+    networks:
+      - mysql56
 
   rdb-mysql-connector-57:
     build:
@@ -25,6 +27,8 @@ services:
     depends_on:
       - mysql-db-57
     encrypted_env_file: itenv.encrypted
+    networks:
+      - mysql57
 
   rdb-mysql-connector-8:
     build:
@@ -34,6 +38,8 @@ services:
     depends_on:
       - mysql-db-8
     encrypted_env_file: itenv.encrypted
+    networks:
+      - mysql8
 
   rdb-mssql-connector:
     build:
@@ -43,6 +49,8 @@ services:
     depends_on:
       - mssql-db
     encrypted_env_file: itenv.encrypted
+    networks:
+      - mssql
 
   rdb-postgresql-connector:
     build:
@@ -52,6 +60,8 @@ services:
     depends_on:
       - postgresql-db
     encrypted_env_file: itenv.encrypted
+    networks:
+      - postgres
 
   rdb-publisher:
     build:
@@ -71,6 +81,8 @@ services:
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
+    networks:
+      - mysql56
 
   mysql-db-57:
     image: mysql/mysql-server:5.7
@@ -83,6 +95,8 @@ services:
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
+    networks:
+      - mysql57
 
   mysql-db-8:
     image: mysql/mysql-server:8.0.14
@@ -96,6 +110,8 @@ services:
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
+    networks:
+      - mysql8
 
   mssql-db:
     image: mcmoe/mssqldocker
@@ -111,6 +127,8 @@ services:
     - ./mssql/mssql/mssql_db.key:/etc/ssl/private/mssql.key:ro
     - ./mssql/mssql/mssql_db.pem:/etc/ssl/certs/mssql.pem:ro
     - ./mssql/mssql/setup.sql:/usr/config/setup.sql
+    networks:
+      - mssql
 
   postgresql-db:
     build: ./postgresql/postgresql
@@ -119,3 +137,12 @@ services:
       POSTGRES_USER: "it-test-user"
       POSTGRES_DB: "it-test-db"
     cached: true
+    networks:
+      - postgres
+
+networks:
+  mysql56:
+  mysql57:
+  mysql8:
+  mssql:
+  postgres:

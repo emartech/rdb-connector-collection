@@ -109,6 +109,3 @@ lazy val publishSettings = Seq(
     sys.error("Skipping unsigned publishing, use publishSigned instead!")
   }
 )
-
-logLevel := Level.Debug
-incOptions := incOptions.value.withApiDebug(true).withRelationsDebug(true)

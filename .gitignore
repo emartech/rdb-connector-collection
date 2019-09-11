@@ -1,28 +1,30 @@
-*.class
-*.log
-.DS_Store
-.vagrant
+# Created by https://www.gitignore.io/api/sbt,scala
+# Edit at https://www.gitignore.io/?templates=sbt,scala
 
-# sbt specific
-.cache
-.history
-.lib/
+### SBT ###
+# Simple Build Tool
+# http://www.scala-sbt.org/release/docs/Getting-Started/Directories.html#configuring-version-control
+
 dist/*
-target/
+**/target/
 lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
+.history
+.cache
+.lib/
 
-# IntelliJ specific
-.idea
+### Scala ###
+*.class
+*.log
 
-# Ensime
-.ensime
-.ensime_cache
+# End of https://www.gitignore.io/api/sbt,scala
 
-.env
+### DotEnv ###
+*.env
 
+### Secrets ###
 *.aes
 *.asc
 *.tar

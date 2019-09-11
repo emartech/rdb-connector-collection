@@ -1,39 +1,39 @@
 - type: serial
   steps:
-  - name: compile and unit-tests all
+  - name: Unit test all
     service: rdb-allconnector
     command: sbt test
     tag: master
   - type: parallel
-    name: it tests
+    name: It tests
     tag: master
     steps:
-    - name: redshift-it
+    - name: Redshift
       service: rdb-allconnector
       command: sbt redshift/it:test
     - type: serial
-      name: it tests (rest)
+      name: It tests (rest)
       tag: master
       steps:
-      - name: mysql-it-8
+      - name: MySql 8
         service: rdb-mysql-connector-8
         command: ./run_mysql_8_it_tests.sh
-      - name: mysql-it-56
+      - name: MySql 5.6
         service: rdb-mysql-connector-56
         command: ./run_mysql_56_it_tests.sh
-      - name: mysql-it-57
+      - name: MySql 5.7
         service: rdb-mysql-connector-57
         command: ./run_mysql_57_it_tests.sh
-      - name: mssql-it
+      - name: MS Sql
         service: rdb-mssql-connector
         command: sbt mssql/it:test
-      - name: postgresql-it
+      - name: PostgreSql
         service: rdb-postgresql-connector
         command: sbt postgresql/it:test
-      - name: bigquery-it
+      - name: BigQuery
         service: rdb-allconnector
         command: sbt bigquery/it:test
-  - name: publish
+  - name: Publish connectors
     tag: ^(master|v\d+\.\d+\.\d+)$
     service: rdb-publisher
     command: ./publish.sh

@@ -81,6 +81,9 @@ services:
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
+    healthcheck:
+      interval: 1s
+      timeout: 120s
 
   mysql-db-57:
     cached: true
@@ -93,6 +96,9 @@ services:
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
+    healthcheck:
+      interval: 1s
+      timeout: 120s
 
   mysql-db-8:
     cached: true
@@ -106,6 +112,9 @@ services:
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
+    healthcheck:
+      interval: 1s
+      timeout: 120s
 
   mssql-db:
     cached: true
@@ -121,6 +130,9 @@ services:
     - ./mssql/mssql/mssql_db.key:/etc/ssl/private/mssql.key:ro
     - ./mssql/mssql/mssql_db.pem:/etc/ssl/certs/mssql.pem:ro
     - ./mssql/mssql/setup.sql:/usr/config/setup.sql
+    healthcheck:
+      interval: 1s
+      timeout: 120s
 
   postgresql-db:
     cached: true

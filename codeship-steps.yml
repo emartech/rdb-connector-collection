@@ -34,13 +34,13 @@
       steps:
       - name: MySql 8
         service: rdb-mysql-connector-8
-        command: ./run_mysql_it_tests.sh
+        command: sbt mysql/it:test
       - name: MySql 5.6
         service: rdb-mysql-connector-56
-        command: ./run_mysql_it_tests.sh
+        command: sbt mysql/it:test
       - name: MySql 5.7
         service: rdb-mysql-connector-57
-        command: ./run_mysql_it_tests.sh
+        command: sbt mysql/it:test
   - name: Publish connectors
     tag: ^(master|v\d+\.\d+\.\d+)$
     service: rdb-publisher

@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
+count=0
 function test_mysql {
-    mysqladmin ping -h ${MYSQL_HOST} --silent
+  echo "Pinged mysql (${count})"
+  mysqladmin ping -h "${DATABASE_HOST}" --silent
 }
 
-echo "Waiting for ${MYSQL_HOST} to become ready"
+echo "Waiting for ${DATABASE_HOST} to become ready"
 
-count=0
 until ( test_mysql )
 do
     ((count++))

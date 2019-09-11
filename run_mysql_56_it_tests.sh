@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
+count=0
+
 function test_mysql {
+  echo "Pinged mysql (${count +1 })"
   mysqladmin ping -h mysql-db-56 --silent
 }
 
-count=0
 until ( test_mysql )
 do
   ((count++))

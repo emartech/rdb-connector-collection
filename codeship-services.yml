@@ -2,134 +2,113 @@ version: '3'
 
 services:
   rdb-allconnector:
+    cached: true
+    encrypted_env_file: itenv.encrypted
     build:
       context: .
       dockerfile: Dockerfile
-    cached: true
-    encrypted_env_file: itenv.encrypted
 
   rdb-mysql-connector-56:
+    cached: true
+    encrypted_env_file: itenv.encrypted
     build:
       context: .
       dockerfile: Dockerfile
-    cached: true
     depends_on:
       - mysql-db-56
-    encrypted_env_file: itenv.encrypted
-    networks:
-      - mysql56
     environment:
-      DATABASE_HOST: "database"
+      DATABASE_HOST: "mysql-db-56"
 
   rdb-mysql-connector-57:
+    cached: true
+    encrypted_env_file: itenv.encrypted
     build:
       context: .
       dockerfile: Dockerfile
-    cached: true
     depends_on:
       - mysql-db-57
-    encrypted_env_file: itenv.encrypted
-    networks:
-      - mysql57
     environment:
-      DATABASE_HOST: "database"
+      DATABASE_HOST: "mysql-db-57"
 
   rdb-mysql-connector-8:
+    cached: true
+    encrypted_env_file: itenv.encrypted
     build:
       context: .
       dockerfile: Dockerfile
-    cached: true
     depends_on:
       - mysql-db-8
-    encrypted_env_file: itenv.encrypted
-    networks:
-      - mysql8
     environment:
-      DATABASE_HOST: "database"
+      DATABASE_HOST: "mysql-db-8"
 
   rdb-mssql-connector:
+    cached: true
+    encrypted_env_file: itenv.encrypted
     build:
       context: .
       dockerfile: Dockerfile
-    cached: true
     depends_on:
       - mssql-db
-    encrypted_env_file: itenv.encrypted
-    networks:
-      - mssql
     environment:
-      DATABASE_HOST: "database"
+      DATABASE_HOST: "mssql-db"
 
   rdb-postgresql-connector:
+    cached: true
+    encrypted_env_file: itenv.encrypted
     build:
       context: .
       dockerfile: Dockerfile
-    cached: true
     depends_on:
       - postgresql-db
-    encrypted_env_file: itenv.encrypted
-    networks:
-      - postgres
     environment:
-      DATABASE_HOST: "database"
+      DATABASE_HOST: "postgresql-db"
 
   rdb-publisher:
+    cached: true
+    encrypted_env_file: publisher.encrypted
     build:
       context: .
       dockerfile: Dockerfile
-    cached: true
-    encrypted_env_file: publisher.encrypted
 
   mysql-db-56:
+    cached: true
     image: mysql/mysql-server:5.6
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"
       MYSQL_DATABASE: "it-test-db"
       MYSQL_ROOT_PASSWORD: "it-test-root-pw"
-    cached: true
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
-    networks:
-      mysql56:
-        aliases:
-          - database
 
   mysql-db-57:
+    cached: true
     image: mysql/mysql-server:5.7
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"
       MYSQL_DATABASE: "it-test-db"
       MYSQL_ROOT_PASSWORD: "it-test-root-pw"
-    cached: true
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
-    networks:
-      mysql57:
-        aliases:
-          - database
 
   mysql-db-8:
+    cached: true
     image: mysql/mysql-server:8.0.14
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"
       MYSQL_DATABASE: "it-test-db"
       MYSQL_ROOT_PASSWORD: "it-test-root-pw"
-    cached: true
     entrypoint: ['/entrypoint.sh', '--default-authentication-plugin=mysql_native_password']
     volumes:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
-    networks:
-      mysql8:
-        aliases:
-          - database
 
   mssql-db:
+    cached: true
     image: mcmoe/mssqldocker
     environment:
       ACCEPT_EULA: Y
@@ -137,32 +116,16 @@ services:
       MSSQL_DB: "it_test_db"
       MSSQL_USER: "it_test_user"
       MSSQL_PASSWORD: "it_test_PW_1!"
-    cached: true
     volumes:
     - ./mssql/mssql/mssql.conf:/var/opt/mssql/mssql.conf:ro
     - ./mssql/mssql/mssql_db.key:/etc/ssl/private/mssql.key:ro
     - ./mssql/mssql/mssql_db.pem:/etc/ssl/certs/mssql.pem:ro
     - ./mssql/mssql/setup.sql:/usr/config/setup.sql
-    networks:
-      mssql:
-        aliases:
-          - database
 
   postgresql-db:
+    cached: true
     build: ./postgresql/postgresql
     environment:
       POSTGRES_PASSWORD: "it-test-pw"
       POSTGRES_USER: "it-test-user"
       POSTGRES_DB: "it-test-db"
-    cached: true
-    networks:
-      postgres:
-        aliases:
-          - database
-
-networks:
-  mysql56:
-  mysql57:
-  mysql8:
-  mssql:
-  postgres:

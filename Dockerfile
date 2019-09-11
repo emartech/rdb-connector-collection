@@ -4,7 +4,7 @@ ENV SBT_OPTS="${SBT_OPTS} -Dsbt.io.jdktimestamps=true -Xmx2G -XX:+UseConcMarkSwe
 
 WORKDIR /rdb-allconnector
 
-RUN apk --no-cache add mysql-client
+RUN apk --no-cache add mysql-client openssl gnupg
 ADD . .
 
 RUN sbt clean compile test:compile it:compile

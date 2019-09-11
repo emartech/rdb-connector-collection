@@ -12,7 +12,7 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
+import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, BeforeAndAfterEach, EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -22,7 +22,12 @@ For positive results use the A table definition and preloaded data defined in th
 Make sure you have index on A3.
  */
 
-trait UpdateItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
+trait UpdateItSpec
+    extends AsyncWordSpecLike
+    with Matchers
+    with BeforeAndAfterEach
+    with BeforeAndAfterAll
+    with EitherValues {
   val connector: Connector
   def initDb(): Unit
   def cleanUpDb(): Unit
@@ -51,26 +56,25 @@ trait UpdateItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach wi
     "#update" should {
 
       "validation error" in {
-        val updateData = Seq(UpdateDefinition(Map("a" -> StringValue("1")), Map("a" -> StringValue("2"))))
-        Await.result(connector.update(tableName, updateData), awaitTimeout) shouldBe Left(
-          DatabaseError.validation(ErrorName.MissingFields, Some(Fields(List("a"))))
-        )
+        val validationError = DatabaseError.validation(ErrorName.MissingFields, Some(Fields(List("a"))))
+        val updateData      = Seq(UpdateDefinition(Map("a" -> StringValue("1")), Map("a" -> StringValue("2"))))
+
+        connector.update(tableName, updateData).map { result =>
+          result.left.value shouldBe validationError
+        }
       }
 
       "update successfully one definition" in {
-        val updateData = Seq(UpdateDefinition(Map("A3" -> BooleanValue(true)), Map("A2" -> IntValue(800))))
-        val simpleSelect = SimpleSelect(
-          AllField,
-          TableName(tableName),
-          where = Some(
-            EqualToValue(FieldName("A2"), Value("800"))
-          )
-        )
+        val updateData   = Seq(UpdateDefinition(Map("A3" -> BooleanValue(true)), Map("A2" -> IntValue(800))))
+        val whereClause  = Some(EqualToValue(FieldName("A2"), Value("800")))
+        val simpleSelect = SimpleSelect(AllField, TableName(tableName), where = whereClause)
 
-        Await.result(connector.update(tableName, updateData), awaitTimeout) shouldBe Right(2)
-        Await
-          .result(connector.simpleSelect(simpleSelect, queryTimeout), awaitTimeout)
-          .map(stream => Await.result(stream.runWith(Sink.seq), awaitTimeout).size) shouldBe Right(2 + 1)
+        connector.update(tableName, updateData).map(result => result.right.value shouldBe 2)
+
+        for {
+          stream <- connector.simpleSelect(simpleSelect, queryTimeout)
+          result <- stream.right.value.runWith(Sink.seq)
+        } yield result should have size 3
       }
 
       "update successfully more definition" in {

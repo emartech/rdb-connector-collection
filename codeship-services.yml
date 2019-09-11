@@ -82,7 +82,11 @@ services:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
     networks:
-      - mysql56
+      mysql56:
+        aliases:
+          - database
+    environment:
+      DATABASE_HOST: "database"
 
   mysql-db-57:
     image: mysql/mysql-server:5.7
@@ -96,7 +100,11 @@ services:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
     networks:
-      - mysql57
+      mysql57:
+        aliases:
+          - database
+    environment:
+      DATABASE_HOST: "database"
 
   mysql-db-8:
     image: mysql/mysql-server:8.0.14
@@ -111,7 +119,11 @@ services:
       - ./mysql/mysql/ssl:/etc/mysql
       - ./mysql/mysql/my.cnf:/etc/my.cnf
     networks:
-      - mysql8
+      mysql8:
+        aliases:
+          - database
+    environment:
+      DATABASE_HOST: "database"
 
   mssql-db:
     image: mcmoe/mssqldocker
@@ -128,7 +140,11 @@ services:
     - ./mssql/mssql/mssql_db.pem:/etc/ssl/certs/mssql.pem:ro
     - ./mssql/mssql/setup.sql:/usr/config/setup.sql
     networks:
-      - mssql
+      mssql:
+        aliases:
+          - database
+    environment:
+      DATABASE_HOST: "database"
 
   postgresql-db:
     build: ./postgresql/postgresql
@@ -138,7 +154,11 @@ services:
       POSTGRES_DB: "it-test-db"
     cached: true
     networks:
-      - postgres
+      postgres:
+        aliases:
+          - database
+    environment:
+      DATABASE_HOST: "database"
 
 networks:
   mysql56:

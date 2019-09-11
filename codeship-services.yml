@@ -13,6 +13,8 @@ services:
       context: .
       dockerfile: Dockerfile
     cached: true
+    depends_on:
+      - mysql-db-56
     encrypted_env_file: itenv.encrypted
 
   rdb-mysql-connector-57:
@@ -20,6 +22,8 @@ services:
       context: .
       dockerfile: Dockerfile
     cached: true
+    depends_on:
+      - mysql-db-57
     encrypted_env_file: itenv.encrypted
 
   rdb-mysql-connector-8:
@@ -27,6 +31,8 @@ services:
       context: .
       dockerfile: Dockerfile
     cached: true
+    depends_on:
+      - mysql-db-8
     encrypted_env_file: itenv.encrypted
 
   rdb-mssql-connector:
@@ -34,6 +40,8 @@ services:
       context: .
       dockerfile: Dockerfile
     cached: true
+    depends_on:
+      - mssql-db
     encrypted_env_file: itenv.encrypted
 
   rdb-postgresql-connector:
@@ -41,6 +49,8 @@ services:
       context: .
       dockerfile: Dockerfile
     cached: true
+    depends_on:
+      - postgresql-db
     encrypted_env_file: itenv.encrypted
 
   rdb-publisher:

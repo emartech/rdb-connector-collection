@@ -3,14 +3,14 @@
   - name: Unit test all
     service: rdb-allconnector
     command: sbt test
-    tag: master-no
+    tag: master
   - type: parallel
     name: It tests
-    tag: master-no
+    tag: master
     steps:
     - type: serial
       name: It tests (1/2)
-      tag: master-no
+      tag: master
       steps:
       - name: Redshift
         service: rdb-allconnector
@@ -23,7 +23,7 @@
         command: sbt mssql/it:test
     - type: serial
       name: It tests (2/2)
-      tag: master-no
+      tag: master
       steps:
       - name: MySql 8
         service: rdb-mysql-connector-8

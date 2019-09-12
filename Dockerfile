@@ -9,6 +9,6 @@ WORKDIR /rdb-allconnector
 # Git is need for dynver for proper versoning.
 RUN apk --no-cache add openssl gnupg git
 ADD . .
-RUN chmod +x run_mysql_it_tests.sh publish.sh
+RUN chmod +x publish.sh
 
 RUN sbt clean compile test:compile it:compile

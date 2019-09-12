@@ -23,3 +23,25 @@ Contains general test implementations, that may be used in connectors to test co
 Implements the general database connector trait, and contains bigquery/mssql/mysql/postgresql/redshift
  specific implementation.
 
+## Creating a release
+
+Every push will be released to internal Nexus, see the [sbt-dynver] documentation on the versioning schema.
+
+### To cut a final release:
+
+Choose the appropriate version number according to [semver] then create and push a tag with it, prefixed with `v`.
+For example:
+```
+$ git tag -s v1.0.3
+$ git push --tag
+```
+or
+```
+$ git tag -a v1.0.3
+$ git push --tag
+```
+After pushing the tag, while it is not strictly necessary, please [draft a release on github] with this tag too.
+
+[sbt-dynver]: https://github.com/dwijnand/sbt-dynver
+[semver]: https://semver.org
+[draft a release on github]: https://github.com/emartech/db-router-client/releases/new

@@ -1,9 +1,6 @@
 package com.emarsys.rdb.connector.bigquery.stream
 
-import java.net.URLEncoder
-
 import akka.NotUsed
-import akka.actor.ActorSystem
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model._
 import akka.stream._
@@ -14,30 +11,11 @@ import com.emarsys.rdb.connector.bigquery.stream.pagetoken.{AddPageToken, EndOfS
 import com.emarsys.rdb.connector.bigquery.stream.parser.{PagingInfo, Parser}
 import com.emarsys.rdb.connector.bigquery.stream.sendrequest.SendRequestWithOauthHandling
 import com.emarsys.rdb.connector.bigquery.stream.util.{Delay, FlowInitializer}
-import com.emarsys.rdb.connector.bigquery.util.AkkaHttpPimps._
 import spray.json.JsObject
 
 import scala.concurrent.ExecutionContext
 
 object BigQueryStreamSource {
-  private def addPageToken(request: HttpRequest, pagingInfo: PagingInfo, retry: Boolean): HttpRequest = {
-    val req = if (retry) {
-      request
-    } else {
-      request.copy(
-        uri = request.uri
-          .withQuery(Uri.Query(pagingInfo.pageToken.map(token => s"pageToken=${URLEncoder.encode(token, "utf-8")}")))
-      )
-    }
-
-    pagingInfo.jobId match {
-      case Some(id) =>
-        val getReq = req.copy(method = HttpMethods.GET, entity = HttpEntity.Empty)
-        getReq.copy(uri = req.uri.withPath(req.uri.path ?/ id))
-      case None => req
-    }
-  }
-
   def apply[T](
       httpRequest: HttpRequest,
       parserFn: JsObject => Option[T],
@@ -50,7 +28,6 @@ object BigQueryStreamSource {
     Source.fromGraph(GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
 
-      implicit val system: ActorSystem  = mat.system
       implicit val ec: ExecutionContext = mat.executionContext
 
       val in                   = builder.add(Source.repeat(httpRequest))

@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.bigquery.stream.sendrequest
 
 import akka.NotUsed
-import akka.actor.ActorSystem
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
@@ -15,7 +14,6 @@ import scala.concurrent.{ExecutionContext, Future}
 object SendRequestWithOauthHandling {
   def apply(googleSession: GoogleSession, http: HttpExt)(
       implicit ec: ExecutionContext,
-      system: ActorSystem,
       mat: ActorMaterializer
   ): Graph[FlowShape[HttpRequest, HttpResponse], NotUsed] = {
     GraphDSL.create() { implicit builder =>

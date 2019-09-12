@@ -55,4 +55,43 @@ class ErrorConverterSpec extends WordSpecLike with Matchers with PartialFunction
 
     testConverter(sqlErrorCases, ErrorConverter.sql)
   }
+
+  "getCauseMessages" should {
+    "return empty list if there is no cause" in {
+      val e = new Exception("exception1")
+      ErrorConverter.getCauseMessages(e) shouldBe List()
+    }
+
+    "return list with a single element if there is a cause without cause" in {
+      val cause1 = new Exception("cause1")
+      val e      = new Exception("exception1", cause1)
+      ErrorConverter.getCauseMessages(e) shouldBe List("cause1")
+    }
+
+    "return list with multiple element if there is a cause with cause" in {
+      val cause2 = new Exception("cause2")
+      val cause1 = new Exception("cause1", cause2)
+      val e      = new Exception("exception1", cause1)
+      ErrorConverter.getCauseMessages(e) shouldBe List("cause1", "cause2")
+    }
+
+    "not stop collect causes if a repeated cause appears based on message only" in {
+      val cause4 = new Exception("cause4")
+      val cause3 = new Exception("cause1", cause4)
+      val cause2 = new Exception("cause2", cause3)
+      val cause1 = new Exception("cause1", cause2)
+      val e      = new Exception("exception1", cause1)
+      ErrorConverter.getCauseMessages(e) shouldBe List("cause1", "cause2", "cause1", "cause4")
+    }
+
+    "avoid infinite loop when exception cause is cyclic" in {
+      val cause3 = new Exception("cause1")
+      val cause2 = new Exception("cause2", cause3)
+      val cause1 = new Exception("cause1", cause2)
+      cause3.initCause(cause1)
+      val e = new Exception("exception1", cause1)
+      ErrorConverter.getCauseMessages(e) shouldBe List("cause1", "cause2", "cause1")
+    }
+  }
+
 }

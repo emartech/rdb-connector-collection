@@ -60,6 +60,7 @@ services:
     cached: true
     build:
       context: ./mysql/docker
+      dockerfile: Dockerfile
       args:
         MYSQL_VERSION: 5.6
     environment:
@@ -72,6 +73,7 @@ services:
     cached: true
     build:
       context: ./mysql/docker
+      dockerfile: Dockerfile
       args:
         MYSQL_VERSION: 5.7
     environment:
@@ -84,6 +86,7 @@ services:
     cached: true
     build:
       context: ./mysql/docker
+      dockerfile: Dockerfile
       args:
         MYSQL_VERSION: 8.0.14
     environment:

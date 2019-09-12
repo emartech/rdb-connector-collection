@@ -4,16 +4,12 @@ services:
   rdb-allconnector:
     cached: true
     encrypted_env_file: itenv.encrypted
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
 
   rdb-mysql-connector-56:
     cached: true
     encrypted_env_file: itenv.encrypted
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     depends_on:
       - mysql-db-56
     environment:
@@ -22,9 +18,7 @@ services:
   rdb-mysql-connector-57:
     cached: true
     encrypted_env_file: itenv.encrypted
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     depends_on:
       - mysql-db-57
     environment:
@@ -33,9 +27,7 @@ services:
   rdb-mysql-connector-8:
     cached: true
     encrypted_env_file: itenv.encrypted
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     depends_on:
       - mysql-db-8
     environment:
@@ -44,9 +36,7 @@ services:
   rdb-mssql-connector:
     cached: true
     encrypted_env_file: itenv.encrypted
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     depends_on:
       - mssql-db
     environment:
@@ -55,9 +45,7 @@ services:
   rdb-postgresql-connector:
     cached: true
     encrypted_env_file: itenv.encrypted
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     depends_on:
       - postgresql-db
     environment:
@@ -66,55 +54,44 @@ services:
   rdb-publisher:
     cached: true
     encrypted_env_file: publisher.encrypted
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
 
   mysql-db-56:
     cached: true
-    image: mysql/mysql-server:5.6
+    build:
+      context: ./mysql/docker
+      args:
+        MYSQL_VERSION: 5.6
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"
       MYSQL_DATABASE: "it-test-db"
       MYSQL_ROOT_PASSWORD: "it-test-root-pw"
-    volumes:
-      - ./mysql/mysql/ssl:/etc/mysql
-      - ./mysql/mysql/my.cnf:/etc/my.cnf
-    healthcheck:
-      interval: 1s
-      timeout: 120s
 
   mysql-db-57:
     cached: true
-    image: mysql/mysql-server:5.7
+    build:
+      context: ./mysql/docker
+      args:
+        MYSQL_VERSION: 5.7
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"
       MYSQL_DATABASE: "it-test-db"
       MYSQL_ROOT_PASSWORD: "it-test-root-pw"
-    volumes:
-      - ./mysql/mysql/ssl:/etc/mysql
-      - ./mysql/mysql/my.cnf:/etc/my.cnf
-    healthcheck:
-      interval: 1s
-      timeout: 120s
 
   mysql-db-8:
     cached: true
-    image: mysql/mysql-server:8.0.14
+    build:
+      context: ./mysql/docker
+      args:
+        MYSQL_VERSION: 8.0.14
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"
       MYSQL_DATABASE: "it-test-db"
       MYSQL_ROOT_PASSWORD: "it-test-root-pw"
     entrypoint: ['/entrypoint.sh', '--default-authentication-plugin=mysql_native_password']
-    volumes:
-      - ./mysql/mysql/ssl:/etc/mysql
-      - ./mysql/mysql/my.cnf:/etc/my.cnf
-    healthcheck:
-      interval: 1s
-      timeout: 120s
 
   mssql-db:
     cached: true
@@ -126,17 +103,14 @@ services:
       MSSQL_USER: "it_test_user"
       MSSQL_PASSWORD: "it_test_PW_1!"
     volumes:
-    - ./mssql/mssql/mssql.conf:/var/opt/mssql/mssql.conf:ro
-    - ./mssql/mssql/mssql_db.key:/etc/ssl/private/mssql.key:ro
-    - ./mssql/mssql/mssql_db.pem:/etc/ssl/certs/mssql.pem:ro
-    - ./mssql/mssql/setup.sql:/usr/config/setup.sql
-    healthcheck:
-      interval: 1s
-      timeout: 120s
+    - ./mssql/docker/mssql.conf:/var/opt/mssql/mssql.conf:ro
+    - ./mssql/docker/mssql_db.key:/etc/ssl/private/mssql.key:ro
+    - ./mssql/docker/mssql_db.pem:/etc/ssl/certs/mssql.pem:ro
+    - ./mssql/docker/setup.sql:/usr/config/setup.sql
 
   postgresql-db:
     cached: true
-    build: ./postgresql/postgresql
+    build: ./postgresql/docker
     environment:
       POSTGRES_PASSWORD: "it-test-pw"
       POSTGRES_USER: "it-test-user"

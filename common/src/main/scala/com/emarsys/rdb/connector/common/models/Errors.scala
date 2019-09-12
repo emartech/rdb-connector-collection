@@ -122,19 +122,26 @@ object Errors {
         cause: Option[Throwable],
         context: Option[Context]
     ): ErrorPayload = {
-      val causes = cause.map(ErrorConverter.getCauseMessages).getOrElse(List.empty).map(Cause)
-      ErrorPayload(errorCategory, error.entryName, message, causes, context)
+      ErrorPayload(errorCategory, error.entryName, message, getCauseMessages(cause), context)
     }
 
     def fromDatabaseError(databaseError: DatabaseError): ErrorPayload = {
-      val causes = databaseError.cause.map(ErrorConverter.getCauseMessages).getOrElse(List.empty).map(Cause)
       ErrorPayload(
         databaseError.errorCategory,
-        databaseError.error.entryName,
+        databaseError.error,
         databaseError.message,
-        causes,
+        databaseError.cause,
         databaseError.context
       )
+    }
+
+    private def getCauseMessages(cause: Option[Throwable]): List[Cause] = {
+      cause match {
+        case None =>
+          List()
+        case Some(_cause) =>
+          (_cause.getMessage +: ErrorConverter.getCauseMessages(_cause)).map(Cause)
+      }
     }
   }
 

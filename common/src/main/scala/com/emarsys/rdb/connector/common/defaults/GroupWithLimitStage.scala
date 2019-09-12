@@ -20,7 +20,7 @@ object GroupWithLimitStage {
           }
       }
       .groupBy(1024, groupKey)
-      .take(groupLimit)
+      .take(groupLimit.toLong)
       .mergeSubstreams
       .statefulMapConcat(flattenBackToCsvStyle)
   }

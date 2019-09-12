@@ -2,7 +2,10 @@ version: '3'
 
 services:
   mysql-db:
-    image: mysql/mysql-server:5.7
+    build:
+      context: ./mysql/docker
+      args:
+        MYSQL_VERSION: 5.7
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"
@@ -10,11 +13,12 @@ services:
       MYSQL_ROOT_PASSWORD: "it-test-root-pw"
     ports:
       - "3306:3306"
-    volumes:
-      - ./mysql/mysql/ssl:/etc/mysql
-      - ./mysql/mysql/my.cnf:/etc/my.cnf
+
   mysql-db-8:
-    image: mysql/mysql-server:8.0.14
+    build:
+      context: ./mysql/docker
+      args:
+        MYSQL_VERSION: 8.0.14
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"
@@ -22,9 +26,7 @@ services:
       MYSQL_ROOT_PASSWORD: "it-test-root-pw"
     ports:
       - "3307:3306"
-    volumes:
-      - ./mysql/mysql/ssl:/etc/mysql
-      - ./mysql/mysql/my.cnf:/etc/my.cnf
+
   mssql-db:
     image: mcmoe/mssqldocker
     environment:
@@ -36,12 +38,13 @@ services:
     ports:
     - "1433:1433"
     volumes:
-    - ./mssql/mssql/mssql.conf:/var/opt/mssql/mssql.conf:ro
-    - ./mssql/mssql/mssql_db.key:/etc/ssl/private/mssql.key:ro
-    - ./mssql/mssql/mssql_db.pem:/etc/ssl/certs/mssql.pem:ro
-    - ./mssql/mssql/setup.sql:/usr/config/setup.sql
+    - ./mssql/docker/mssql.conf:/var/opt/mssql/mssql.conf:ro
+    - ./mssql/docker/mssql_db.key:/etc/ssl/private/mssql.key:ro
+    - ./mssql/docker/mssql_db.pem:/etc/ssl/certs/mssql.pem:ro
+    - ./mssql/docker/setup.sql:/usr/config/setup.sql
+
   postgresql-db:
-    build: ./postgresql/postgresql
+    build: ./postgresql/docker
     ports:
     - "5432:5432"
     environment:

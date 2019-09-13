@@ -49,7 +49,7 @@ object Errors {
   sealed trait ValidationError
 
   sealed trait ErrorName extends EnumEntry {
-    def unapply(payload: ErrorPayload): Boolean = ErrorName.withNameOption(payload.error).contains(this)
+    def unapply(payload: ErrorPayload): Boolean = ErrorName.withNameOption(payload.errorName).contains(this)
   }
   object ErrorName extends Enum[ErrorName] {
     // ======================================
@@ -105,7 +105,7 @@ object Errors {
   case class Cause(message: String)
   case class ErrorPayload(
       errorCategory: ErrorCategory,
-      error: String,
+      errorName: String,
       message: String,
       causes: List[Cause],
       context: Option[Context]
@@ -117,20 +117,20 @@ object Errors {
   object ErrorPayload {
     def apply(
         errorCategory: ErrorCategory,
-        error: ErrorName,
+        errorName: ErrorName,
         message: String,
         cause: Option[Throwable],
         context: Option[Context]
     ): ErrorPayload = {
       val causes = cause.map(ErrorConverter.getCauseMessages).getOrElse(List.empty).map(Cause)
-      ErrorPayload(errorCategory, error.entryName, message, causes, context)
+      ErrorPayload(errorCategory, errorName.entryName, message, causes, context)
     }
 
     def fromDatabaseError(databaseError: DatabaseError): ErrorPayload = {
       val causes = databaseError.cause.map(ErrorConverter.getCauseMessages).getOrElse(List.empty).map(Cause)
       ErrorPayload(
         databaseError.errorCategory,
-        databaseError.error.entryName,
+        databaseError.errorName.entryName,
         databaseError.message,
         causes,
         databaseError.context
@@ -140,7 +140,7 @@ object Errors {
 
   case class DatabaseError(
       errorCategory: ErrorCategory,
-      error: ErrorName,
+      errorName: ErrorName,
       message: String,
       cause: Option[Throwable] = None,
       context: Option[Context] = None

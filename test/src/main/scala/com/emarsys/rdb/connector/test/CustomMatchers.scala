@@ -11,9 +11,9 @@ trait CustomMatchers {
       actual match {
         case DatabaseError(errorCategory, error, message, _, context) =>
           MatchResult(
-            errorCategory == expected.errorCategory && error == expected.error && message
+            errorCategory == expected.errorCategory && error == expected.errorName && message
               .contains(expected.message) && context == expected.context,
-            s"\nActual DatabaseError: $errorCategory, $error, $message, $context\nExpected DatabaseError: ${expected.errorCategory}, ${expected.error}, ${expected.message}, ${expected.context}\n",
+            s"\nActual DatabaseError: $errorCategory, $error, $message, $context\nExpected DatabaseError: ${expected.errorCategory}, ${expected.errorName}, ${expected.message}, ${expected.context}\n",
             "Actual and expected DatabaseErrors are equal (except for cause, it is not checked for equality)"
           )
         case ee =>

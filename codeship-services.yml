@@ -62,7 +62,7 @@ services:
       context: ./mysql/docker
       dockerfile: Dockerfile
       args:
-        MYSQL_VERSION: 5.6
+        MYSQL_VERSION: 5.6.45
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"
@@ -75,7 +75,7 @@ services:
       context: ./mysql/docker
       dockerfile: Dockerfile
       args:
-        MYSQL_VERSION: 5.7
+        MYSQL_VERSION: 5.7.23
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"

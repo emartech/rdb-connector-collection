@@ -5,7 +5,7 @@ services:
     build:
       context: ./mysql/docker
       args:
-        MYSQL_VERSION: 5.7
+        MYSQL_VERSION: 5.7.23
     environment:
       MYSQL_USER: "it-test-user"
       MYSQL_PASSWORD: "it-test-pw"

@@ -1,13 +1,13 @@
 package com.emarsys.rdb.connector.test
 
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import org.scalatest.matchers.{MatchResult, Matcher}
 
 object CustomMatchers extends CustomMatchers
 trait CustomMatchers {
 
-  class DatabaseErrorMatcher(expected: DatabaseError) extends Matcher[ConnectorError] {
-    override def apply(actual: ConnectorError): MatchResult =
+  class DatabaseErrorMatcher(expected: DatabaseError) extends Matcher[DatabaseError] {
+    override def apply(actual: DatabaseError): MatchResult =
       actual match {
         case DatabaseError(errorCategory, error, message, _, context) =>
           MatchResult(
@@ -24,8 +24,8 @@ trait CustomMatchers {
   def beDatabaseErrorEqualWithoutCause(expected: DatabaseError) = new DatabaseErrorMatcher(expected)
 
   class ErrorCategoryAndErrorNameMatcher(errorCategory: ErrorCategory, errorName: ErrorName)
-      extends Matcher[ConnectorError] {
-    override def apply(actual: ConnectorError): MatchResult =
+      extends Matcher[DatabaseError] {
+    override def apply(actual: DatabaseError): MatchResult =
       actual match {
         case DatabaseError(actualErrorCategory, actualErrorName, _, _, _) =>
           MatchResult(

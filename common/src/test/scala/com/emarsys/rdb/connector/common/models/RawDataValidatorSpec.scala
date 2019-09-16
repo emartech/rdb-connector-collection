@@ -390,8 +390,8 @@ class RawDataValidatorSpec
 
 trait ValidationMatchers {
 
-  class ValidMatcher extends Matcher[Either[ConnectorError, Unit]] {
-    override def apply(result: Either[ConnectorError, Unit]): MatchResult = MatchResult(
+  class ValidMatcher extends Matcher[Either[DatabaseError, Unit]] {
+    override def apply(result: Either[DatabaseError, Unit]): MatchResult = MatchResult(
       result.isRight,
       s"Expected to pass validation, failed with $result",
       s"Passed validation"
@@ -400,8 +400,8 @@ trait ValidationMatchers {
 
   def beValid = new ValidMatcher
 
-  class InvalidMatcher(reason: ErrorName) extends Matcher[Either[ConnectorError, Unit]] {
-    override def apply(result: Either[ConnectorError, Unit]): MatchResult = MatchResult(
+  class InvalidMatcher(reason: ErrorName) extends Matcher[Either[DatabaseError, Unit]] {
+    override def apply(result: Either[DatabaseError, Unit]): MatchResult = MatchResult(
       result match {
         case Left(DatabaseError(ErrorCategory.Validation, `reason`, _, _, _)) => true
         case _                                                                => false
@@ -413,8 +413,8 @@ trait ValidationMatchers {
 
   def failWith(reason: ErrorName) = new InvalidMatcher(reason)
 
-  class ValidationContextMatcher(context: Context) extends Matcher[Either[ConnectorError, Unit]] {
-    override def apply(result: Either[ConnectorError, Unit]): MatchResult = MatchResult(
+  class ValidationContextMatcher(context: Context) extends Matcher[Either[DatabaseError, Unit]] {
+    override def apply(result: Either[DatabaseError, Unit]): MatchResult = MatchResult(
       result match {
         case Left(DatabaseError(ErrorCategory.Validation, _, _, _, Some(context))) => true
         case _                                                                     => false

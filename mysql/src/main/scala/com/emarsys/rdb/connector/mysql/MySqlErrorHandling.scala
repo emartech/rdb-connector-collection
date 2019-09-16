@@ -26,12 +26,12 @@ trait MySqlErrorHandling {
   // TODO undo this one
   protected def handleNotExistingTable[T](
       table: String
-  ): PartialFunction[Throwable, Either[ConnectorError, T]] = {
+  ): PartialFunction[Throwable, Either[DatabaseError, T]] = {
     case e: Exception if e.getMessage.contains("doesn't exist") =>
       Left(DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, e))
   }
 
-  private def errorHandler: PartialFunction[Throwable, ConnectorError] = {
+  private def errorHandler: PartialFunction[Throwable, DatabaseError] = {
     case ex: slick.SlickException if selectQueryWasGivenAsUpdate(ex.getMessage) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
     case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied") =>
@@ -65,7 +65,7 @@ trait MySqlErrorHandling {
     (message.startsWith(MYSQL_VIEW_INVALID_REFERENCE_BEG) && message.endsWith(MYSQL_VIEW_INVALID_REFERENCE_END))
   }
 
-  protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
+  protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[DatabaseError, T]] =
     (errorHandler orElse default) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =

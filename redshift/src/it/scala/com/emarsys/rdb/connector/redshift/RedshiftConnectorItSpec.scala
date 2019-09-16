@@ -7,7 +7,7 @@ import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.redshift.utils.TestHelper
-import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName, ConnectorError}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 import com.emarsys.rdb.connector.test.CustomMatchers._
 
@@ -87,9 +87,9 @@ class RedshiftConnectorItSpec
       def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =
         source
           .runWith(Sink.ignore)
-          .map[Either[ConnectorError, Unit]](_ => Right(()))
+          .map[Either[DatabaseError, Unit]](_ => Right(()))
           .recover {
-            case e: ConnectorError => Left[ConnectorError, Unit](e)
+            case e: DatabaseError => Left[DatabaseError, Unit](e)
           }
     }
 

@@ -6,7 +6,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.microsoft.sqlserver.jdbc.SQLServerException
 import com.emarsys.rdb.connector.common.defaults.ErrorConverter.default
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 
 trait MsSqlErrorHandling {
 
@@ -19,7 +19,7 @@ trait MsSqlErrorHandling {
 
   val MSSQL_EXPLAIN_PERMISSION_DENIED = "lacking privileges"
 
-  protected def errorHandler(): PartialFunction[Throwable, ConnectorError] = {
+  protected def errorHandler(): PartialFunction[Throwable, DatabaseError] = {
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_QUERY_CANCELLED =>
       DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, ex)
     case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SYNTAX_ERROR =>
@@ -40,7 +40,7 @@ trait MsSqlErrorHandling {
     case ex: SQLServerException if ex.getSQLState == MSSQL_DUPLICATE_PRIMARY_KEY => default
   }
 
-  protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
+  protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[DatabaseError, T]] =
     (errorHandler orElse default) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =

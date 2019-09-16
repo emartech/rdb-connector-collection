@@ -8,7 +8,7 @@ import akka.testkit.TestKit
 import com.emarsys.rbd.connector.bigquery.utils.TestHelper
 import com.emarsys.rdb.connector.bigquery.BigQueryConnector
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.test.CustomMatchers.haveErrorCategoryAndErrorName
 import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}
 
@@ -108,9 +108,9 @@ class BigQueryConnectorItSpec
     def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =
       source
         .runWith(Sink.ignore)
-        .map[Either[ConnectorError, Unit]](_ => Right(()))
+        .map[Either[DatabaseError, Unit]](_ => Right(()))
         .recover {
-          case e: ConnectorError => Left[ConnectorError, Unit](e)
+          case e: DatabaseError => Left[DatabaseError, Unit](e)
         }
   }
 }

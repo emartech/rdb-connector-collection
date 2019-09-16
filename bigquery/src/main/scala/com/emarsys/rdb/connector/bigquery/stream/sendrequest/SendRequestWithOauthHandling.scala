@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.scaladsl.{Flow, GraphDSL}
 import akka.stream.{ActorMaterializer, FlowShape, Graph, Materializer}
 import com.emarsys.rdb.connector.bigquery.GoogleSession
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -41,7 +41,7 @@ object SendRequestWithOauthHandling {
 
   import errors._
 
-  private def errorFor(response: HttpResponse, body: String): ConnectorError = (response, body) match {
+  private def errorFor(response: HttpResponse, body: String): DatabaseError = (response, body) match {
     case SyntaxError(msg)     => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, msg)
     case NotFoundTable(msg)   => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, msg)
     case RateLimit(msg)       => DatabaseError(ErrorCategory.RateLimit, ErrorName.TooManyQueries, msg)

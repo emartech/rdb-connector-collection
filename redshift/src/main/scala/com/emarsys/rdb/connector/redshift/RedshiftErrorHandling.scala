@@ -5,7 +5,7 @@ import java.sql.SQLException
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.defaults.ErrorConverter
-import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName, ConnectorError}
+import com.emarsys.rdb.connector.common.models.Errors.{ErrorCategory, ErrorName, DatabaseError}
 
 trait RedshiftErrorHandling {
 
@@ -31,7 +31,7 @@ trait RedshiftErrorHandling {
     REDSHIFT_INVALID_PASSWORD
   )
 
-  private def errorHandler: PartialFunction[Throwable, ConnectorError] = {
+  private def errorHandler: PartialFunction[Throwable, DatabaseError] = {
     case ex: SQLException if isConnectionTimeout(ex) =>
       DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, ex)
     case ex: SQLException if isTcpSocketTimeout(ex) =>
@@ -60,7 +60,7 @@ trait RedshiftErrorHandling {
     ex.getMessage.contains(REDSHIFT_MESSAGE_TCP_SOCKET_TIMEOUT)
   }
 
-  protected def eitherErrorHandler[T]: PartialFunction[Throwable, Either[ConnectorError, T]] =
+  protected def eitherErrorHandler[T]: PartialFunction[Throwable, Either[DatabaseError, T]] =
     (errorHandler orElse ErrorConverter.default) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =

@@ -4,7 +4,7 @@ import cats.data.EitherT
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.StringValue
 import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
 import com.emarsys.rdb.connector.common.models.Errors.ErrorName.NoIndexOnFields
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.TableModel
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
@@ -31,10 +31,10 @@ class DataManipulationValidatorSpec
   val validationError = DatabaseError.validation(NoIndexOnFields)
   val valid           = Right(())
 
-  val validResult: EitherT[Future, ConnectorError, Unit]   = EitherT.rightT(())
-  val invalidResult: EitherT[Future, ConnectorError, Unit] = EitherT.leftT(validationError)
-  val failedResult: EitherT[Future, ConnectorError, Unit]  = EitherT.leftT(failure)
-  val emptyData: EitherT[Future, ConnectorError, Unit] =
+  val validResult: EitherT[Future, DatabaseError, Unit]   = EitherT.rightT(())
+  val invalidResult: EitherT[Future, DatabaseError, Unit] = EitherT.leftT(validationError)
+  val failedResult: EitherT[Future, DatabaseError, Unit]  = EitherT.leftT(failure)
+  val emptyData: EitherT[Future, DatabaseError, Unit] =
     EitherT.leftT(DatabaseError.validation(ErrorName.EmptyData))
 
   class ValidatorScope {

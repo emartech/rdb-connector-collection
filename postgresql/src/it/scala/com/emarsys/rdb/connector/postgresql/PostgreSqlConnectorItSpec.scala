@@ -138,9 +138,9 @@ class PostgreSqlConnectorItSpec
     def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =
       source
         .runWith(Sink.ignore)
-        .map[Either[ConnectorError, Unit]](_ => Right(()))
+        .map[Either[DatabaseError, Unit]](_ => Right(()))
         .recover {
-          case e: ConnectorError => Left[ConnectorError, Unit](e)
+          case e: DatabaseError => Left[DatabaseError, Unit](e)
         }
 
     "custom error handling" should {

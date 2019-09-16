@@ -6,7 +6,7 @@ import akka.stream.scaladsl.{Sink, Source}
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, StringValue}
 import com.emarsys.rdb.connector.common.models.DataManipulation.Record
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError, ErrorName, Fields}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
@@ -81,7 +81,7 @@ trait ReplaceItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach w
     Await.result(f, awaitTimeout)
   }
 
-  private def awaitStream(f: ConnectorResponse[Source[Seq[String], NotUsed]]): Either[ConnectorError, Int] = {
+  private def awaitStream(f: ConnectorResponse[Source[Seq[String], NotUsed]]): Either[DatabaseError, Int] = {
     Await.result(f, awaitTimeout).map(stream => await(stream.runWith(Sink.seq)).size)
   }
 

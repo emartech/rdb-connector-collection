@@ -6,7 +6,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mssql.utils.TestHelper
 import com.emarsys.rdb.connector.test.CustomMatchers._
 import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
@@ -136,9 +136,9 @@ class MsSqlConnectorItSpec
       private def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =
         source
           .runWith(Sink.ignore)
-          .map[Either[ConnectorError, Unit]](_ => Right(()))
+          .map[Either[DatabaseError, Unit]](_ => Right(()))
           .recover {
-            case e: ConnectorError => Left[ConnectorError, Unit](e)
+            case e: DatabaseError => Left[DatabaseError, Unit](e)
           }
     }
 

@@ -5,7 +5,7 @@ import java.util.UUID
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
-import com.emarsys.rdb.connector.common.models.Errors.{ConnectorError, DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.redshift.RedshiftConnector.{RedshiftConnectionConfig, RedshiftConnectorConfig}
@@ -129,7 +129,7 @@ trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandli
       poolName: String,
       db: Database,
       currentSchema: String
-  )(implicit ec: ExecutionContext): EitherT[Future, ConnectorError, RedshiftConnector] = {
+  )(implicit ec: ExecutionContext): EitherT[Future, DatabaseError, RedshiftConnector] = {
     EitherT(
       checkConnection(db)
         .as(Right(new RedshiftConnector(db, connectorConfig, poolName, currentSchema)))

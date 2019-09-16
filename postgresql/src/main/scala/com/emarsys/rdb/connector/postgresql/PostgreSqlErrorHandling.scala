@@ -24,7 +24,7 @@ trait PostgreSqlErrorHandling {
   private val accessDeniedErrors =
     Seq(PSQL_INSUFFICIENT_PRIVILEGE, PSQL_AUTHORIZATION_NAME_IS_INVALID, PSQL_INVALID_PASSWORD)
 
-  private def errorHandler(): PartialFunction[Throwable, ConnectorError] = {
+  private def errorHandler(): PartialFunction[Throwable, DatabaseError] = {
     case ex: slick.SlickException if selectQueryWasGivenAsUpdate(ex.getMessage) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
     case ex: SQLException if ex.getSQLState == PSQL_STATE_QUERY_CANCELLED =>
@@ -40,7 +40,7 @@ trait PostgreSqlErrorHandling {
   private def selectQueryWasGivenAsUpdate(message: String) =
     "Update statements should not return a ResultSet" == message
 
-  protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[ConnectorError, T]] =
+  protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[DatabaseError, T]] =
     (errorHandler orElse default) andThen Left.apply
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =

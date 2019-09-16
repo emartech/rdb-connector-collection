@@ -36,7 +36,7 @@ class ErrorConverterSpec extends WordSpecLike with Matchers with PartialFunction
   }
 
   "The default common error converter" should {
-    "not touch ConnectorErrors" in {
+    "not touch DatabaseErrors" in {
       val error = DatabaseError(C.RateLimit, N.TooManyQueries, "hohohooo")
       ErrorConverter.common(error) shouldBe error
     }

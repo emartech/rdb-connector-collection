@@ -1,5 +1,7 @@
 import org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings
 
+mappings in (Compile, packageDoc) := Seq() // disable javadoc generation to speedup stage
+
 lazy val connectors: Seq[ProjectReference] = Seq(
   bigQuery,
   mssql,

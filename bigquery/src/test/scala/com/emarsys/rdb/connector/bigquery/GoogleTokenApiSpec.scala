@@ -65,7 +65,7 @@ class GoogleTokenApiSpec
           any[HttpsConnectionContext](),
           any[ConnectionPoolSettings](),
           any[LoggingAdapter]()
-        )(any[ActorMaterializer])
+        )
       ).thenReturn(
         Future.successful(
           HttpResponse(
@@ -86,7 +86,7 @@ class GoogleTokenApiSpec
         any[HttpsConnectionContext](),
         any[ConnectionPoolSettings](),
         any[LoggingAdapter]()
-      )(any[ActorMaterializer])
+      )
       val request: HttpRequest = captor.getValue
       request.uri.toString shouldBe "https://www.googleapis.com/oauth2/v4/token"
       val data = Unmarshal(request.entity).to[String].futureValue
@@ -108,7 +108,7 @@ class GoogleTokenApiSpec
           any[HttpsConnectionContext](),
           any[ConnectionPoolSettings](),
           any[LoggingAdapter]()
-        )(any[ActorMaterializer])
+        )
       ).thenReturn(
         Future.successful(
           HttpResponse(

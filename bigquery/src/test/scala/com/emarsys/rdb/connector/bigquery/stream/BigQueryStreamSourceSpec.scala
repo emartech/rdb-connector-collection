@@ -1,24 +1,23 @@
 package com.emarsys.rdb.connector.bigquery.stream
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, ExtendedActorSystem}
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.{HttpExt, HttpsConnectionContext}
+import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.bigquery.stream.parser.PagingInfo
-import org.mockito.Mockito.{when, _}
-import org.scalatest.mockito.MockitoSugar
+import org.mockito.captor.ArgCaptor
+import org.mockito.{ArgumentMatchersSugar, IdiomaticMockito}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import spray.json.JsObject
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.language.reflectiveCalls
 import scala.util.Try
 
 class BigQueryStreamSourceSpec
@@ -26,7 +25,8 @@ class BigQueryStreamSourceSpec
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll
-    with MockitoSugar {
+    with ArgumentMatchersSugar
+    with IdiomaticMockito {
 
   override def afterAll(): Unit = {
     shutdown()
@@ -38,110 +38,108 @@ class BigQueryStreamSourceSpec
 
   trait Scope {
     val session = mock[GoogleSession]
-    when(session.getToken()) thenReturn Future.successful("TOKEN")
+    session.getToken() returns Future.successful("TOKEN")
+
+    val mockHttp = mock[HttpExt]
+    mockHttp.system returns mock[ExtendedActorSystem]
+
+    def mockSingleRequest =
+      mockHttp.singleRequest(
+        any[HttpRequest],
+        any[HttpsConnectionContext],
+        any[ConnectionPoolSettings],
+        any[LoggingAdapter]
+      )
   }
 
-  var responseFnSlow: HttpRequest => Future[HttpResponse] = { _ =>
-    Future({
-      Thread.sleep(700)
-      HttpResponse(entity = HttpEntity("{}"))
-    })
+  def getToken(request: HttpRequest): String = {
+    request.getHeader("Authorization").get().value().stripPrefix("Bearer ")
   }
-
-  var responseFnQuick: HttpRequest => Future[HttpResponse] = { _ =>
-    Future.successful(HttpResponse(entity = HttpEntity("{}")))
-  }
-
-  val mockHttp =
-    new HttpExt(null) {
-      var usedToken                                       = ""
-      var responseFn: HttpRequest => Future[HttpResponse] = responseFnQuick
-
-      override def singleRequest(
-          request: HttpRequest,
-          connectionContext: HttpsConnectionContext,
-          settings: ConnectionPoolSettings,
-          log: LoggingAdapter
-      )(implicit fm: Materializer): Future[HttpResponse] = {
-        usedToken = request.headers.head.value().stripPrefix("Bearer ")
-        responseFn(request)
-      }
-    }
 
   "BigQueryStreamSource" should {
 
     "return single page request" in new Scope {
+      mockSingleRequest returns Future.successful(
+        HttpResponse(entity = HttpEntity("{}"))
+      )
 
-      var isDummyHandlerCallbackCalled = false
-
-      val dummyHandlerCallback = (x: (Boolean, PagingInfo)) => isDummyHandlerCallbackCalled = true
+      val callback = spyLambda((x: (Boolean, PagingInfo)) => ())
 
       val bigQuerySource =
-        BigQueryStreamSource(HttpRequest(), _ => "success".some, session, mockHttp, dummyHandlerCallback)
+        BigQueryStreamSource(HttpRequest(), _ => "success".some, session, mockHttp, callback)
 
       val resultF = Source.fromGraph(bigQuerySource).runWith(Sink.head)
 
       Await.result(resultF, timeout) shouldBe "success"
-      verify(session).getToken()
-      mockHttp.usedToken shouldBe "TOKEN"
-
-      Await.result(Future(Thread.sleep(500)), timeout)
-
-      isDummyHandlerCallbackCalled shouldBe false
+      session.getToken() was called
+      val captor = ArgCaptor[HttpRequest]
+      mockHttp.singleRequest(captor, any[HttpsConnectionContext], any[ConnectionPoolSettings], any[LoggingAdapter]) was called
+      getToken(captor.value) shouldBe "TOKEN"
+      callback.apply(any[(Boolean, PagingInfo)]) wasNever called
     }
 
     "return two page request" in new Scope {
+      mockSingleRequest answers (
+          (request: HttpRequest) =>
+            request.uri.toString() match {
+              case "/" =>
+                Future.successful(
+                  HttpResponse(
+                    entity = HttpEntity("""{ "pageToken": "nextPage", "jobReference": { "jobId": "job123"} }""")
+                  )
+                )
+              case "/job123?pageToken=nextPage" =>
+                Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
+            }
+        )
 
-      mockHttp.responseFn = { request =>
-        request.uri.toString() match {
-          case "/" =>
-            Future.successful(
-              HttpResponse(entity = HttpEntity("""{ "pageToken": "nextPage", "jobReference": { "jobId": "job123"} }"""))
-            )
-          case "/job123?pageToken=nextPage" =>
-            Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
-        }
-      }
       val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success".some, session, mockHttp)
 
       val resultF = bigQuerySource.runWith(Sink.seq)
 
       Await.result(resultF, timeout) shouldBe Seq("success", "success")
-      verify(session, times(2)).getToken()
-      mockHttp.usedToken shouldBe "TOKEN"
+      session.getToken() wasCalled 2.times
+      val captor = ArgCaptor[HttpRequest]
+      mockHttp.singleRequest(captor, any[HttpsConnectionContext], any[ConnectionPoolSettings], any[LoggingAdapter]) wasCalled 2.times
+      captor.values.map(getToken) shouldBe List("TOKEN", "TOKEN")
     }
 
     "url encode page token" in new Scope {
-
       val bigQuerySource = BigQueryStreamSource(HttpRequest(), _ => "success".some, session, mockHttp, x => ())
-      mockHttp.responseFn = { request =>
-        request.uri.toString() match {
-          case "/" =>
-            Future.successful(
-              HttpResponse(entity = HttpEntity("""{ "pageToken": "===", "jobReference": { "jobId": "job123"} }"""))
-            )
-          case "/job123?pageToken=%3D%3D%3D" => Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
-        }
-      }
+      mockSingleRequest answers (
+          (request: HttpRequest) =>
+            request.uri.toString() match {
+              case "/" =>
+                Future.successful(
+                  HttpResponse(entity = HttpEntity("""{ "pageToken": "===", "jobReference": { "jobId": "job123"} }"""))
+                )
+              case "/job123?pageToken=%3D%3D%3D" => Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
+            }
+        )
 
       val resultF = bigQuerySource.runWith(Sink.seq)
 
       Await.result(resultF, timeout) shouldBe Seq("success", "success")
-      verify(session, times(2)).getToken()
-      mockHttp.usedToken shouldBe "TOKEN"
+      session.getToken() wasCalled 2.times
+      val captor = ArgCaptor[HttpRequest]
+      mockHttp.singleRequest(captor, any[HttpsConnectionContext], any[ConnectionPoolSettings], any[LoggingAdapter]) wasCalled 2.times
+      captor.values.map(getToken) shouldBe List("TOKEN", "TOKEN")
     }
 
     "get first page again when parsing returns None" in new Scope {
-      mockHttp.responseFn = { request =>
-        request.uri.toString() match {
-          case "/" =>
-            Future.successful(
-              HttpResponse(entity = HttpEntity("""{ "pageToken": "nextPage", "jobReference": { "jobId": "job123"} }"""))
-            )
-          case "/job123" =>
-            Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
-        }
-      }
+      mockSingleRequest answers (
+          (request: HttpRequest) =>
+            request.uri.toString() match {
+              case "/" =>
+                Future.successful(
+                  HttpResponse(
+                    entity = HttpEntity("""{ "pageToken": "nextPage", "jobReference": { "jobId": "job123"} }""")
+                  )
+                )
+              case "/job123" =>
+                Future.successful(HttpResponse(entity = HttpEntity("""{ }""")))
+            }
+        )
       val parseFn: JsObject => Option[String] = {
         var firstCall = true
         _ => {
@@ -159,13 +157,17 @@ class BigQueryStreamSourceSpec
       val resultF = bigQuerySource.runWith(Sink.seq)
 
       Await.result(resultF, timeout) shouldBe Seq("success")
-      verify(session, times(2)).getToken()
-      mockHttp.usedToken shouldBe "TOKEN"
+      session.getToken() wasCalled 2.times
+      val captor = ArgCaptor[HttpRequest]
+      mockHttp.singleRequest(captor, any[HttpsConnectionContext], any[ConnectionPoolSettings], any[LoggingAdapter]) wasCalled 2.times
+      captor.values.map(getToken) shouldBe List("TOKEN", "TOKEN")
     }
 
     "call upstreamFinishHandler function when stream is cancelled" in new Scope {
-
-      mockHttp.responseFn = responseFnSlow
+      mockSingleRequest answers Future({
+        Thread.sleep(700)
+        HttpResponse(entity = HttpEntity("{}"))
+      })
 
       var isDummyHandlerCallbackCalled = false
 

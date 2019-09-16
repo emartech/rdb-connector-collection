@@ -6,7 +6,6 @@ import akka.NotUsed
 import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, Uri}
 import akka.stream.scaladsl.Flow
 import com.emarsys.rdb.connector.bigquery.stream.parser.PagingInfo
-import com.emarsys.rdb.connector.bigquery.util.AkkaHttpPimps._
 
 object AddPageToken {
   def apply(): Flow[(HttpRequest, (Boolean, PagingInfo)), HttpRequest, NotUsed] = {

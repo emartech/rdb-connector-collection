@@ -5,10 +5,11 @@ object Dependencies {
 
   val ScalaVersion = "2.12.8"
 
-  val akkaVersion     = "2.5.6"
-  val slickVersion    = "3.3.2"
-  val akkaHttpVersion = "10.0.7"
-  val catsCoreVersion = "2.0.0"
+  val akkaVersion      = "2.5.25"
+  val slickVersion     = "3.3.2"
+  val akkaHttpVersion  = "10.1.9"
+  val catsCoreVersion  = "2.0.0"
+  val scalatestVersion = "3.0.8"
 
   val scala = Seq(
     scalaVersion := ScalaVersion,
@@ -34,9 +35,9 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-stream"          % akkaVersion,
       "org.typelevel"     %% "cats-core"            % catsCoreVersion,
       "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion % Test,
-      "org.scalatest"     %% "scalatest"            % "3.0.1" % Test,
-      "org.mockito"       % "mockito-core"          % "2.28.2" % Test,
-      "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.7" % Test,
+      "org.scalatest"     %% "scalatest"            % scalatestVersion % Test,
+      "org.mockito"       %% "mockito-scala"        % "1.5.16" % Test,
+      "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion % Test,
       "com.beachape"      %% "enumeratum"           % "1.5.13"
     )
   )
@@ -44,9 +45,9 @@ object Dependencies {
   val ConnectorTest = scala ++ Seq(
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion,
-      "org.scalatest"     %% "scalatest"            % "3.0.1",
+      "org.scalatest"     %% "scalatest"            % scalatestVersion,
       "org.mockito"       % "mockito-core"          % "2.28.2",
-      "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.7"
+      "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion
     )
   )
 
@@ -55,9 +56,9 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-http-core"       % akkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
       "com.pauldijou"     %% "jwt-core"             % "0.14.1",
-      "com.github.fommil" %% "spray-json-shapeless" % "1.3.0",
+      "com.github.fommil" %% "spray-json-shapeless" % "1.4.0",
       "org.typelevel"     %% "cats-core"            % catsCoreVersion,
-      "com.typesafe.akka" %% "akka-stream-contrib"  % "0.9"
+      "com.typesafe.akka" %% "akka-stream-contrib"  % "0.10"
     )
   )
 

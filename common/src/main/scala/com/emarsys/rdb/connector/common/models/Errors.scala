@@ -110,6 +110,11 @@ object Errors {
       causes: List[Cause],
       context: Option[Context]
   ) extends ConnectorError(message) {
+
+    override def toString: String = {
+      s"ErrorPayload($errorCategory,$errorName,$message,$causes,$context)"
+    }
+
     def maybeContext[C <: Context: ClassTag]: Option[C] = context collect { case c: C => c }
     def ensureContext[C <: Context: ClassTag]: C        = maybeContext[C].getOrElse(throw new ContextMismatch[C](context))
   }
@@ -144,7 +149,12 @@ object Errors {
       message: String,
       cause: Option[Throwable] = None,
       context: Option[Context] = None
-  ) extends ConnectorError(message)
+  ) extends ConnectorError(message) {
+    override def toString: String = {
+      s"DatabaseError($errorCategory,$errorName,$message,$cause,$context)"
+    }
+  }
+
   object DatabaseError {
     def apply(errorCategory: ErrorCategory, errorName: ErrorName, cause: Throwable): DatabaseError = DatabaseError(
       errorCategory,

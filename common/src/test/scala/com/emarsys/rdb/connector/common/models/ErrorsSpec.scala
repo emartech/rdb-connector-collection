@@ -1,8 +1,8 @@
 package com.emarsys.rdb.connector.common.models
 
-import org.scalatest.{Matchers, WordSpecLike}
 import com.emarsys.rdb.connector.common.models.Errors.ErrorCategory.Timeout
-import com.emarsys.rdb.connector.common.models.Errors.{ErrorName, ErrorPayload}
+import com.emarsys.rdb.connector.common.models.Errors._
+import org.scalatest.{Matchers, WordSpecLike}
 
 class ErrorsSpec extends WordSpecLike with Matchers {
   "ErrorNames" should {
@@ -15,6 +15,32 @@ class ErrorsSpec extends WordSpecLike with Matchers {
       } yield selfIsMatched && othersAreNot
 
       results should contain only true
+    }
+  }
+
+  "ErrorPayload" should {
+    "return informative toString" in {
+      val errorPayload = ErrorPayload(
+        errorCategory = ErrorCategory.Timeout,
+        errorName = ErrorName.QueryTimeout.toString,
+        message = "msg1",
+        causes = List(Cause("cause1"), Cause("cause2")),
+        context = Some(Fields(List("field1", "field2")))
+      )
+      errorPayload.toString shouldBe "ErrorPayload(Timeout,QueryTimeout,msg1,List(Cause(cause1), Cause(cause2)),Some(Fields(List(field1, field2))))"
+    }
+  }
+
+  "DatabaseError" should {
+    "return informative toString" in {
+      val databaseError = DatabaseError(
+        errorCategory = ErrorCategory.Timeout,
+        errorName = ErrorName.QueryTimeout,
+        message = "msg1",
+        cause = Some(new Exception("cause1", new Exception("cause2"))),
+        context = Some(Fields(List("field1", "field2")))
+      )
+      databaseError.toString shouldBe "DatabaseError(Timeout,QueryTimeout,msg1,Some(java.lang.Exception: cause1),Some(Fields(List(field1, field2))))"
     }
   }
 }

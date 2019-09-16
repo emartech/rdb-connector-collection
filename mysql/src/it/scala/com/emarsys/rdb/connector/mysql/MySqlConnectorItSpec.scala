@@ -49,7 +49,7 @@ class MySqlConnectorItSpec
       "connect fail when wrong certificate" in {
         val conn = testConnection.copy(certificate = "")
         val expectedError =
-          DatabaseError(ErrorCategory.Internal, ErrorName.ConnectionConfigError, "Wrong SSL cert format", None, None)
+          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "Wrong SSL cert format", None, None)
 
         MySqlConnector.create(conn).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)

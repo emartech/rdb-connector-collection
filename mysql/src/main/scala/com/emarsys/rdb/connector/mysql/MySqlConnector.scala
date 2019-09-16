@@ -124,8 +124,8 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
       .leftMap(
         ex =>
           DatabaseError(
-            ErrorCategory.Internal,
-            ErrorName.ConnectionConfigError,
+            ErrorCategory.FatalQueryExecution,
+            ErrorName.SSLError,
             "Wrong SSL cert format",
             Some(ex),
             None

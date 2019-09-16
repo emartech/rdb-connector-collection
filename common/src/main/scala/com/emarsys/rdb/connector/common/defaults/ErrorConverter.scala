@@ -50,6 +50,6 @@ object ErrorConverter {
       }
     }
 
-    impl(ex, Set.empty, Chain.empty).toList
+    impl(ex, Set.empty, Chain.empty).toList.distinct
   }
 }

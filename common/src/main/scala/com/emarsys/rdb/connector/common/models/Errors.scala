@@ -1,38 +1,10 @@
 package com.emarsys.rdb.connector.common.models
 
-import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import enumeratum._
 
 import scala.collection.immutable
-import scala.reflect._
 
 object Errors {
-
-  sealed abstract class ConnectorError(message: String = "") extends Exception(message) {
-    def withCause(cause: Throwable): ConnectorError = {
-      this.initCause(cause)
-      this
-    }
-  }
-
-  case class ConnectionError(error: Throwable)                 extends ConnectorError(error.toString)
-  case class ConnectionConfigError(message: String)            extends ConnectorError(message)
-  case class ErrorWithMessage(message: String)                 extends ConnectorError(message)
-  case class CommunicationsLinkFailure(message: String)        extends ConnectorError(message)
-  case class TableNotFound(table: String)                      extends ConnectorError(s"Table not found: $table")
-  case class SqlSyntaxError(message: String)                   extends ConnectorError(message)
-  case class AccessDeniedError(message: String)                extends ConnectorError(message)
-  case class ConnectionTimeout(message: String)                extends ConnectorError(message)
-  case class CompletionTimeout(message: String)                extends ConnectorError(message)
-  case class QueryTimeout(message: String)                     extends ConnectorError(message)
-  case class NotImplementedOperation(message: String)          extends ConnectorError(message)
-  case class SimpleSelectIsNotGroupableFormat(message: String) extends ConnectorError(message)
-  case class TooManyQueries(message: String)                   extends ConnectorError(message)
-  case class StuckPool(message: String)                        extends ConnectorError(message)
-  case class TransientDbError(message: String)                 extends ConnectorError(message)
-  case class FailedValidation(validationResult: ValidationResult)
-      extends ConnectorError(s"Validation failed: $validationResult")
-
   sealed trait ErrorCategory extends EnumEntry
   object ErrorCategory extends Enum[ErrorCategory] {
     case object Validation          extends ErrorCategory
@@ -49,8 +21,7 @@ object Errors {
   sealed trait ValidationError
 
   sealed trait ErrorName extends EnumEntry {
-    def unapply(payload: ErrorPayload): Boolean = unapply(payload.errorName)
-    def unapply(errorName: String): Boolean     = ErrorName.withNameOption(errorName).contains(this)
+    def unapply(errorName: String): Boolean = ErrorName.withNameOption(errorName).contains(this)
   }
   object ErrorName extends Enum[ErrorName] {
     // ======================================
@@ -103,59 +74,17 @@ object Errors {
     override def values: immutable.IndexedSeq[ErrorName] = findValues
   }
 
-  case class Cause(message: String)
-  case class ErrorPayload(
-      errorCategory: ErrorCategory,
-      errorName: String,
-      message: String,
-      causes: List[Cause],
-      context: Option[Context]
-  ) extends ConnectorError(message) {
-
-    override def toString: String = {
-      s"ErrorPayload($errorCategory,$errorName,$message,$causes,$context)"
-    }
-
-    def maybeContext[C <: Context: ClassTag]: Option[C] = context collect { case c: C => c }
-    def ensureContext[C <: Context: ClassTag]: C        = maybeContext[C].getOrElse(throw new ContextMismatch[C](context))
-  }
-
-  object ErrorPayload {
-    def apply(
-        errorCategory: ErrorCategory,
-        errorName: ErrorName,
-        message: String,
-        cause: Option[Throwable],
-        context: Option[Context]
-    ): ErrorPayload = {
-      val causes = cause.map(ErrorConverter.getCauseMessages).getOrElse(List.empty).map(Cause)
-      ErrorPayload(errorCategory, errorName.entryName, message, causes, context)
-    }
-
-    def fromDatabaseError(databaseError: DatabaseError): ErrorPayload = {
-      val causes = databaseError.cause.map(ErrorConverter.getCauseMessages).getOrElse(List.empty).map(Cause)
-      ErrorPayload(
-        databaseError.errorCategory,
-        databaseError.errorName.entryName,
-        databaseError.message,
-        causes,
-        databaseError.context
-      )
-    }
-  }
-
   case class DatabaseError(
       errorCategory: ErrorCategory,
       errorName: ErrorName,
       message: String,
       cause: Option[Throwable] = None,
       context: Option[Context] = None
-  ) extends ConnectorError(message) {
+  ) extends Exception(message) {
     override def toString: String = {
       s"DatabaseError($errorCategory,$errorName,$message,$cause,$context)"
     }
   }
-
   object DatabaseError {
     def apply(errorCategory: ErrorCategory, errorName: ErrorName, cause: Throwable): DatabaseError = DatabaseError(
       errorCategory,
@@ -172,11 +101,4 @@ object Errors {
 
   sealed trait Context
   case class Fields(fields: List[String]) extends Context
-
-  case class ContextMismatch[C <: Context: ClassTag](context: Option[Context]) extends Throwable {
-    val expected = classTag[C].runtimeClass.getSimpleName
-    val actual   = context.map(_.getClass().getSimpleName).getOrElse("None")
-
-    override def getMessage(): String = s"Expected `$expected`, found `$actual`"
-  }
 }

@@ -16,6 +16,16 @@ class ErrorsSpec extends WordSpecLike with Matchers {
 
       results should contain only true
     }
+
+    "have a nice unapply for strings" in {
+      val results = for {
+        error <- ErrorName.values
+        selfIsMatched = error.unapply(error.entryName)
+        othersAreNot  = ErrorName.values.filterNot(_ == error).forall(_.unapply(error.entryName) == false)
+      } yield selfIsMatched && othersAreNot
+
+      results should contain only true
+    }
   }
 
   "ErrorPayload" should {

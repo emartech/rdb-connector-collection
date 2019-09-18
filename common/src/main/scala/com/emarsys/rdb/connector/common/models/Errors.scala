@@ -49,7 +49,8 @@ object Errors {
   sealed trait ValidationError
 
   sealed trait ErrorName extends EnumEntry {
-    def unapply(payload: ErrorPayload): Boolean = ErrorName.withNameOption(payload.errorName).contains(this)
+    def unapply(payload: ErrorPayload): Boolean = unapply(payload.errorName)
+    def unapply(errorName: String): Boolean     = ErrorName.withNameOption(errorName).contains(this)
   }
   object ErrorName extends Enum[ErrorName] {
     // ======================================

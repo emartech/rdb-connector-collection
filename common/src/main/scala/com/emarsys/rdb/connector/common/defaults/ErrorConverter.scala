@@ -36,20 +36,4 @@ object ErrorConverter {
   }
 
   val default: PartialFunction[Throwable, DatabaseError] = sql orElse common
-
-  def getCauseMessages(ex: Throwable): List[String] = {
-    @tailrec
-    def impl(currentEx: Throwable, seenErrors: Set[Throwable], messages: Chain[String]): Chain[String] = {
-      val cause = currentEx.getCause
-      if (cause != null && !seenErrors.contains(cause)) {
-        val msg              = cause.getMessage
-        val expandedMessages = if (msg != null) messages :+ msg else messages
-        impl(cause, seenErrors + cause, expandedMessages)
-      } else {
-        messages
-      }
-    }
-
-    impl(ex, Set.empty, Chain.empty).toList.distinct
-  }
 }

@@ -23,7 +23,6 @@ lazy val connectorCollection = project
     publishArtifact := false,
     publishTo := Some(Resolver.file("Unused repository", file("target/unused")))
   )
-  .settings(scalafmtOnCompile := true)
 
 lazy val common = Project(id = "common", base = file("common"))
   .settings(
@@ -33,7 +32,6 @@ lazy val common = Project(id = "common", base = file("common"))
   .settings(Dependencies.Common: _*)
   .settings(meta: _*)
   .settings(publishSettings: _*)
-  .settings(scalafmtOnCompile := true)
 
 lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(
@@ -44,7 +42,6 @@ lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(Dependencies.ConnectorTest: _*)
   .settings(meta: _*)
   .settings(publishSettings: _*)
-  .settings(scalafmtOnCompile := true)
 
 lazy val bigQuery = connector("bigquery", Dependencies.BigQuery)
 lazy val mssql    = connector("mssql", Dependencies.Mssql)
@@ -73,7 +70,6 @@ def connector(projectId: String, additionalSettings: sbt.Def.SettingsDefinition*
     .settings(additionalSettings: _*)
     .settings(meta: _*)
     .settings(publishSettings: _*)
-    .settings(scalafmtOnCompile := true)
 
 lazy val meta =
   Seq(

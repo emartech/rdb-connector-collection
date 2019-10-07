@@ -3,10 +3,7 @@ package com.emarsys.rdb.connector.common.defaults
 import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionException}
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
-import cats.data.Chain
 import com.emarsys.rdb.connector.common.models.Errors._
-
-import scala.annotation.tailrec
 
 object ErrorConverter {
   val common: PartialFunction[Throwable, DatabaseError] = {

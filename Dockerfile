@@ -8,7 +8,21 @@ WORKDIR /rdb-allconnector
 # Gnupg is needed for signing.
 # Git is need for dynver for proper versoning.
 RUN apk --no-cache add openssl gnupg git
-ADD . .
+
+COPY ci/secrets.tar.enc ci/secrets.tar.enc
+COPY publish.sh publish.sh
 RUN chmod +x publish.sh
+
+COPY build.sbt build.sbt
+ADD project project
+RUN sbt update
+
+ADD bigquery bigquery
+ADD mssql mssql
+ADD redshift redshift
+ADD test test
+ADD common common
+ADD postgresql postgresql
+ADD mysql mysql
 
 RUN sbt clean compile test:compile it:compile

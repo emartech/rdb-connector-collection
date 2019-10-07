@@ -34,7 +34,7 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar with Sc
 
     override val validator = mock[DataManipulationValidator](Answers.RETURNS_SMART_NULLS)
 
-    override implicit val executionContext: ExecutionContext = global
+    implicit override val executionContext: ExecutionContext = global
 
     override def close() = ???
 
@@ -241,7 +241,7 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar with Sc
         ): ValidateGroupLimitableQuery.GroupLimitValidationResult =
           ValidateGroupLimitableQuery.GroupLimitValidationResult.NotGroupable
       }
-      override implicit val executionContext: ExecutionContext = global
+      implicit override val executionContext: ExecutionContext = global
       override val groupLimitValidator                         = stubbedGroupLimitValidator
 
       selectWithGroupLimit(select, 5, 10.minutes).futureValue shouldBe Left(

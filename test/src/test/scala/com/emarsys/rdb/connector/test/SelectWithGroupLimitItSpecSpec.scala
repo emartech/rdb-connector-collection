@@ -24,7 +24,7 @@ class SelectWithGroupLimitItSpecSpec
   implicit val executionContext = system.dispatcher
 
   override val connector = new Connector {
-    override implicit val executionContext: ExecutionContext = system.dispatcher
+    implicit override val executionContext: ExecutionContext = system.dispatcher
 
     override def simpleSelect(
         select: SimpleSelect,

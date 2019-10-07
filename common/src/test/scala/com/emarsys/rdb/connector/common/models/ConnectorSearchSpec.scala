@@ -37,7 +37,7 @@ class ConnectorSearchSpec extends WordSpecLike with Matchers with MockitoSugar {
   }
 
   class TestConnector(override val validator: DataManipulationValidator) extends Connector {
-    override implicit val executionContext: ExecutionContext = global
+    implicit override val executionContext: ExecutionContext = global
 
     override def close() = ???
 

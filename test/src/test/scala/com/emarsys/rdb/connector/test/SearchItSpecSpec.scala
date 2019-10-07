@@ -13,7 +13,7 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrappe
 }
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Future
 

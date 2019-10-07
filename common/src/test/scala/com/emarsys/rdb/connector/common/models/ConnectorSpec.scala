@@ -11,7 +11,7 @@ import com.emarsys.rdb.connector.common.models.SimpleSelect.{AllField, TableName
 import org.mockito.Answers
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.ExecutionContext.Implicits.global

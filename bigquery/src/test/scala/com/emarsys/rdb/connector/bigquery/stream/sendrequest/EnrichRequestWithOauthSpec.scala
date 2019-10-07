@@ -9,7 +9,7 @@ import akka.util.Timeout
 import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.bigquery.stream.sendrequest.EnrichRequestWithOauth.TokenErrorException
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._

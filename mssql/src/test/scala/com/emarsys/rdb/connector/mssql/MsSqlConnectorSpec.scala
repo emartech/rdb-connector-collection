@@ -6,7 +6,7 @@ import java.util.UUID
 import com.emarsys.rdb.connector.common.Models.MetaData
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{Matchers, WordSpecLike}
 import slick.jdbc.SQLServerProfile.api._
 import spray.json._

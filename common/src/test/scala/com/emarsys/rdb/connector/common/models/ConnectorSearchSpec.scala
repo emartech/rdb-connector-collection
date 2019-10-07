@@ -10,7 +10,7 @@ import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import org.mockito.Answers
 import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito.{never, spy, verify, when}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{Matchers, WordSpecLike}
 
 import scala.concurrent.ExecutionContext.Implicits.global

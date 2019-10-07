@@ -8,7 +8,7 @@ import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCateg
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.TableModel
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.{ExecutionContext, Future}

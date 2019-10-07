@@ -13,7 +13,7 @@ import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
 import com.emarsys.rdb.connector.test.CustomMatchers._
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 

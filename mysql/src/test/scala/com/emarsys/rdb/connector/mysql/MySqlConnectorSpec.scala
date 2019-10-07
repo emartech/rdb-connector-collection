@@ -9,7 +9,7 @@ import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCateg
 import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectionConfig
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{Matchers, WordSpec}
 import slick.jdbc.MySQLProfile.api._
 import spray.json._

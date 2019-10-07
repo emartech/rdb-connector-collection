@@ -7,7 +7,7 @@ import com.emarsys.rdb.connector.common.Models.MetaData
 import com.emarsys.rdb.connector.redshift.RedshiftConnector.RedshiftConnectionConfig
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{Matchers, WordSpecLike}
 import slick.jdbc.PostgresProfile.api._
 import spray.json._

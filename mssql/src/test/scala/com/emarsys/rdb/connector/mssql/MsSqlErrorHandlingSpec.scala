@@ -4,7 +4,7 @@ import java.sql.{SQLException, SQLTransientConnectionException}
 
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.microsoft.sqlserver.jdbc.SQLServerException
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{EitherValues, Matchers, PrivateMethodTester, WordSpecLike}
 import com.emarsys.rdb.connector.test.CustomMatchers._
 

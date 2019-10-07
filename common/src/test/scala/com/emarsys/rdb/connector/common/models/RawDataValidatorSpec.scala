@@ -6,7 +6,7 @@ import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, TableModel}
 import org.mockito.Mockito._
 import org.scalatest.matchers.{MatchResult, Matcher}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{AsyncWordSpecLike, EitherValues, Matchers}
 
 import scala.concurrent.Future

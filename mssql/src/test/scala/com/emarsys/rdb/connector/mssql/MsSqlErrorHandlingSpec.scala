@@ -7,7 +7,6 @@ import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCateg
 import com.microsoft.sqlserver.jdbc.SQLServerException
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor4}
 import org.scalatest.{EitherValues, Matchers, PartialFunctionValues, WordSpecLike}
-import org.scalatestplus.mockito.MockitoSugar
 
 class MsSqlErrorHandlingSpec
     extends WordSpecLike

@@ -4,6 +4,7 @@ import java.sql.SQLException
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
+import com.microsoft.sqlserver.jdbc.SQLServerException
 import com.emarsys.rdb.connector.common.defaults.ErrorConverter.default
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 
@@ -19,24 +20,24 @@ trait MsSqlErrorHandling {
   val MSSQL_EXPLAIN_PERMISSION_DENIED = "lacking privileges"
 
   protected def errorHandler(): PartialFunction[Throwable, DatabaseError] = {
-    case ex: SQLException if ex.getSQLState == MSSQL_STATE_QUERY_CANCELLED =>
+    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_QUERY_CANCELLED =>
       DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, ex)
-    case ex: SQLException if ex.getSQLState == MSSQL_STATE_SYNTAX_ERROR =>
+    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SYNTAX_ERROR =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
-    case ex: SQLException if ex.getSQLState == MSSQL_DUPLICATE_PRIMARY_KEY =>
+    case ex: SQLServerException if ex.getSQLState == MSSQL_DUPLICATE_PRIMARY_KEY =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
-    case ex: SQLException if ex.getSQLState == MSSQL_STATE_INVALID_OBJECT_NAME =>
+    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_INVALID_OBJECT_NAME =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, ex)
-    case ex: SQLException if ex.getSQLState == MSSQL_STATE_PERMISSION_DENIED =>
+    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_PERMISSION_DENIED =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, ex)
-    case ex: SQLException if ex.getSQLState == MSSQL_STATE_SHOWPLAN_PERMISSION_DENIED =>
+    case ex: SQLServerException if ex.getSQLState == MSSQL_STATE_SHOWPLAN_PERMISSION_DENIED =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, ex)
     case ex: SQLException if ex.getMessage.contains(MSSQL_EXPLAIN_PERMISSION_DENIED) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, ex)
   }
 
   protected def onDuplicateKey[T](default: => T): PartialFunction[Throwable, T] = {
-    case ex: SQLException if ex.getSQLState == MSSQL_DUPLICATE_PRIMARY_KEY => default
+    case ex: SQLServerException if ex.getSQLState == MSSQL_DUPLICATE_PRIMARY_KEY => default
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[DatabaseError, T]] =

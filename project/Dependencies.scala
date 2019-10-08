@@ -5,11 +5,23 @@ object Dependencies {
 
   val ScalaVersion = "2.12.10"
 
-  val akkaVersion      = "2.5.25"
-  val slickVersion     = "3.3.2"
-  val akkaHttpVersion  = "10.1.9"
-  val catsCoreVersion  = "2.0.0"
-  val scalatestVersion = "3.0.8"
+  val mssqlVersion    = "6.4.0.jre8"
+  val mysqlVersion    = "8.0.16"
+  val postgresVersion = "42.1.4"
+  val redshiftVersion = "1.2.8.1005"
+
+  val akkaVersion               = "2.5.25"
+  val akkaHttpVersion           = "10.1.9"
+  val akkaStreamContribVersion  = "0.10"
+  val slickVersion              = "3.3.2"
+  val catsCoreVersion           = "2.0.0"
+  val jwtVersion                = "0.14.1"
+  val enumeratumVersion         = "1.5.13"
+  val sprayJsonShapelessVersion = "1.4.0"
+
+  val scalatestVersion    = "3.0.8"
+  val mockitoScalaVersion = "1.5.16"
+  val mockitoVersion      = "2.28.2"
 
   val scala = Seq(
     scalaVersion := ScalaVersion,
@@ -36,9 +48,9 @@ object Dependencies {
       "org.typelevel"     %% "cats-core"            % catsCoreVersion,
       "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion % Test,
       "org.scalatest"     %% "scalatest"            % scalatestVersion % Test,
-      "org.mockito"       %% "mockito-scala"        % "1.5.16" % Test,
+      "org.mockito"       %% "mockito-scala"        % mockitoScalaVersion % Test,
       "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion % Test,
-      "com.beachape"      %% "enumeratum"           % "1.5.13"
+      "com.beachape"      %% "enumeratum"           % enumeratumVersion
     )
   )
 
@@ -46,7 +58,7 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion,
       "org.scalatest"     %% "scalatest"            % scalatestVersion,
-      "org.mockito"       % "mockito-core"          % "2.28.2",
+      "org.mockito"       % "mockito-core"          % mockitoVersion,
       "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion
     )
   )
@@ -55,10 +67,10 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-http-core"       % akkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
-      "com.pauldijou"     %% "jwt-core"             % "0.14.1",
-      "com.github.fommil" %% "spray-json-shapeless" % "1.4.0",
+      "com.pauldijou"     %% "jwt-core"             % jwtVersion,
+      "com.github.fommil" %% "spray-json-shapeless" % sprayJsonShapelessVersion,
       "org.typelevel"     %% "cats-core"            % catsCoreVersion,
-      "com.typesafe.akka" %% "akka-stream-contrib"  % "0.10"
+      "com.typesafe.akka" %% "akka-stream-contrib"  % akkaStreamContribVersion
     )
   )
 
@@ -66,7 +78,7 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.slick"      %% "slick"          % slickVersion,
       "com.typesafe.slick"      %% "slick-hikaricp" % slickVersion,
-      "com.microsoft.sqlserver" % "mssql-jdbc"      % "6.4.0.jre8",
+      "com.microsoft.sqlserver" % "mssql-jdbc"      % mssqlVersion,
       "org.typelevel"           %% "cats-core"      % catsCoreVersion
     )
   )
@@ -75,7 +87,7 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.slick" %% "slick"               % slickVersion,
       "com.typesafe.slick" %% "slick-hikaricp"      % slickVersion,
-      "mysql"              % "mysql-connector-java" % "8.0.16",
+      "mysql"              % "mysql-connector-java" % mysqlVersion,
       "org.typelevel"      %% "cats-core"           % catsCoreVersion
     )
   )
@@ -84,7 +96,7 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.slick" %% "slick"          % slickVersion,
       "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
-      "org.postgresql"     % "postgresql"      % "42.1.4",
+      "org.postgresql"     % "postgresql"      % postgresVersion,
       "org.typelevel"      %% "cats-core"      % catsCoreVersion
     )
   )
@@ -94,7 +106,7 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.slick"  %% "slick"          % slickVersion,
       "com.typesafe.slick"  %% "slick-hikaricp" % slickVersion,
-      "com.amazon.redshift" % "redshift-jdbc42" % "1.2.8.1005",
+      "com.amazon.redshift" % "redshift-jdbc42" % redshiftVersion,
       "org.typelevel"       %% "cats-core"      % catsCoreVersion
     )
   )

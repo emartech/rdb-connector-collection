@@ -38,6 +38,6 @@
         service: rdb-postgresql-connector
         command: sbt postgresql/it:test
   - name: Publish connectors
-    tag: ^(master|v\d+\.\d+\.\d+)$
+    tag: ^(v\d+\.\d+\.\d+)$
     service: rdb-publisher
     command: ./publish.sh

@@ -58,7 +58,7 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers with EitherVa
           val thrownError = new SQLException(message, sqlState, 999)
           val result      = eitherErrorHandler.apply(thrownError)
           result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
-          result.left.value.asInstanceOf[DatabaseError].cause shouldBe Some(thrownError)
+          result.left.value.cause shouldBe Some(thrownError)
         }
     }
 
@@ -69,7 +69,7 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers with EitherVa
           val result        = eitherErrorHandler.apply(thrownError)
           val expectedError = DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "", None, None)
           result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
-          result.left.value.asInstanceOf[DatabaseError].cause shouldBe Some(thrownError)
+          result.left.value.cause shouldBe Some(thrownError)
         }
     }
 
@@ -78,7 +78,7 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers with EitherVa
       val thrownError = new SQLTransientConnectionException(msg)
       val result      = eitherErrorHandler.apply(thrownError)
       result.left.value should haveErrorCategoryAndErrorName(ErrorCategory.Timeout, ErrorName.ConnectionTimeout)
-      result.left.value.asInstanceOf[DatabaseError].cause shouldBe Some(thrownError)
+      result.left.value.cause shouldBe Some(thrownError)
     }
 
     "convert sql error to error with message and state if not timeout" in new RedshiftErrorHandling {
@@ -86,7 +86,7 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers with EitherVa
       val thrownError = new SQLTransientConnectionException(msg, "not-handled-sql-state", 999)
       val result      = eitherErrorHandler.apply(thrownError)
       result.left.value should haveErrorCategoryAndErrorName(ErrorCategory.Unknown, ErrorName.Unknown)
-      result.left.value.asInstanceOf[DatabaseError].cause shouldBe Some(thrownError)
+      result.left.value.cause shouldBe Some(thrownError)
     }
   }
 }

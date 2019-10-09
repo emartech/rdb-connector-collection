@@ -29,6 +29,9 @@ class MsSqlErrorHandlingSpec
   private val sqlSyntaxError         = new SQLServerException("Error1", "S0001", 0, new Exception())
   private val queryCancelledError    = new SQLServerException("Error1", "HY008", 0, new Exception())
   private val lackingPrivilegesError = new SQLException("lacking privileges")
+  private val invalidUserOrPassword = new SQLException(
+    new SQLServerException("Login failed for user", "S0001", 18456, new Exception())
+  )
 
   val mssqlErrorCases: TableFor4[String, Exception, C, N] = Table(
     ("error", "exception", "errorCategory", "errorName"),
@@ -39,7 +42,8 @@ class MsSqlErrorHandlingSpec
     ("permission denied", permissionDenied, C.FatalQueryExecution, N.AccessDeniedError),
     ("showplan permission denied", showplanException, C.FatalQueryExecution, N.AccessDeniedError),
     ("explain permission denied", explainPermissionDenied, C.FatalQueryExecution, N.AccessDeniedError),
-    ("lacking privileges error", lackingPrivilegesError, C.FatalQueryExecution, N.AccessDeniedError)
+    ("lacking privileges error", lackingPrivilegesError, C.FatalQueryExecution, N.AccessDeniedError),
+    ("invalid user or password used", invalidUserOrPassword, C.FatalQueryExecution, N.AccessDeniedError)
   )
 
   val sqlErrorCases = Table(

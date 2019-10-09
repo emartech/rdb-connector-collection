@@ -56,8 +56,8 @@ class MsSqlConnectorItSpec
         val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
-          ErrorCategory.Timeout,
-          ErrorName.ConnectionTimeout
+          ErrorCategory.FatalQueryExecution,
+          ErrorName.AccessDeniedError
         )
       }
 
@@ -66,8 +66,8 @@ class MsSqlConnectorItSpec
         val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
-          ErrorCategory.Timeout,
-          ErrorName.ConnectionTimeout
+          ErrorCategory.FatalQueryExecution,
+          ErrorName.AccessDeniedError
         )
       }
 

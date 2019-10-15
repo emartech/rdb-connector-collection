@@ -8,27 +8,39 @@
     name: It tests
     tag: master
     steps:
-    - name: Redshift
-      service: rdb-allconnector
-      command: sbt redshift/it:test
-    - name: MS SQL
-      service: rdb-mssql-connector
-      command: sbt mssql/it:test
-    - name: MySql 8
-      service: rdb-mysql-connector-8
-      command: sbt mysql/it:test
-    - name: MySql 5.6
-      service: rdb-mysql-connector-56
-      command: sbt mysql/it:test
-    - name: MySql 5.7
-      service: rdb-mysql-connector-57
-      command: sbt mysql/it:test
-    - name: PostgreSQL 9.5
-      service: rdb-postgresql-connector
-      command: sbt postgresql/it:test
-    - name: BigQuery
-      service: rdb-allconnector
-      command: sbt bigquery/it:test
+    - type: serial
+      name: It tests (1/3)
+      tag: master
+      steps:
+      - name: Redshift
+        service: rdb-allconnector
+        command: sbt redshift/it:test
+    - type: serial
+      name: It tests (2/3)
+      tag: master
+      steps:
+      - name: MySql 8
+        service: rdb-mysql-connector-8
+        command: sbt mysql/it:test
+      - name: MySql 5.6
+        service: rdb-mysql-connector-56
+        command: sbt mysql/it:test
+      - name: MySql 5.7
+        service: rdb-mysql-connector-57
+        command: sbt mysql/it:test
+      - name: PostgreSQL 9.5
+        service: rdb-postgresql-connector
+        command: sbt postgresql/it:test
+    - type: serial
+      name: It tests (3/3)
+      tag: master
+      steps:
+      - name: MS SQL
+        service: rdb-mssql-connector
+        command: sbt mssql/it:test
+      - name: BigQuery
+        service: rdb-allconnector
+        command: sbt bigquery/it:test
   - name: Publish connectors
     tag: ^(v\d+\.\d+\.\d+)$
     service: rdb-publisher

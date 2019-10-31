@@ -21,6 +21,10 @@ COPY build.sbt build.sbt
 ADD project project
 RUN sbt update
 
+# These are needed for dynver to create proper versioning
+ADD .git .git
+COPY .gitignore .gitignore
+
 ADD bigquery bigquery
 ADD mssql mssql
 ADD redshift redshift

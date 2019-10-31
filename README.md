@@ -20,12 +20,12 @@ Implements the general database connector trait, and contains bigquery/mssql/mys
 ## Creating a release
 
 Choose the appropriate version number (you can list the tags with `git tag -l`), then create and push a git tag, prefixed with `v`.
-To create an unsigned, ful tag object:
+To create a signed, ful tag object:
 ```
 $ git tag -s v1.2.0
 $ git push --tag
 ```
-To create a signed, ful tag object:
+To create an unsigned, ful tag object:
 ```
 $ git tag -a v1.2.0
 $ git push --tag

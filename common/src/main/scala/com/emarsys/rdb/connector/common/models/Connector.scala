@@ -25,7 +25,7 @@ trait Connector {
   protected val fieldValueConverters: FieldValueConverters       = DefaultFieldValueConverters
   protected val groupLimitValidator: ValidateGroupLimitableQuery = ValidateGroupLimitableQuery
 
-  val isErrorRetryable: PartialFunction[Throwable, Boolean] = {
+  val isErrorRetryable: PartialFunction[DatabaseError, Boolean] = {
     case _ => false
   }
 

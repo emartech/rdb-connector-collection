@@ -1,6 +1,5 @@
 package com.emarsys.rdb.connector.mysql
 
-import java.sql.SQLTransientException
 import java.util.UUID
 
 import cats.data.EitherT
@@ -34,11 +33,10 @@ class MySqlConnector(
 
   override protected val fieldValueConverters = MysqlFieldValueConverters
 
-  override val isErrorRetryable: PartialFunction[Throwable, Boolean] = {
+  override val isErrorRetryable: PartialFunction[DatabaseError, Boolean] = {
     case DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, _, _, _)                             => true
     case DatabaseError(ErrorCategory.Transient, _, message, _, _) if !isBad(message)                            => true
     case DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, message, _, _) if message.contains("Deadlock") => true
-    case _: SQLTransientException                                                                               => true
     case _                                                                                                      => false
   }
 

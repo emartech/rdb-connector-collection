@@ -178,7 +178,8 @@ class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar with Sc
 
   "#isErrorRetryable" should {
     "return false for any input" in new TestScope {
-      isErrorRetryable(new Exception()) shouldBe false
+      val databaseError = DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, "")
+      isErrorRetryable(databaseError) shouldBe false
     }
   }
 

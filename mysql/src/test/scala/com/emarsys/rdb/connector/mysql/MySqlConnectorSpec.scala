@@ -30,7 +30,6 @@ class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
     )
 
     "#isErrorRetryable" should {
-
       Seq(
         DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, "whatever", None, None) -> true,
         DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, "whatever", None, None)  -> true,
@@ -43,18 +42,6 @@ class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
       ).foreach {
         case (e @ DatabaseError(errorCategory, errorName, message, _, _), expected) =>
           s"return $expected for ${errorCategory}#$errorName - $message" in {
-            val connector = new MySqlConnector(null, null, null)(null)
-
-            connector.isErrorRetryable(e) shouldBe expected
-          }
-      }
-
-      Seq(
-        new SQLTransientException()    -> true,
-        new Exception("whatever else") -> false
-      ).foreach {
-        case (e, expected) =>
-          s"return $expected for ${e.getClass.getSimpleName}" in {
             val connector = new MySqlConnector(null, null, null)(null)
 
             connector.isErrorRetryable(e) shouldBe expected

@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.mysql
 
 import java.lang.management.ManagementFactory
-import java.sql.SQLTransientException
+import java.sql.{SQLException, SQLTransientException}
 import java.util.UUID
 
 import com.emarsys.rdb.connector.common.Models.MetaData
@@ -37,7 +37,9 @@ class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
         DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, "whatever", None, None)       -> false,
         DatabaseError(ErrorCategory.Timeout, ErrorName.CompletionTimeout, "whatever", None, None)  -> false,
         DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "Deadlock detected", None, None)   -> true,
-        DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "whatever else", None, None)       -> false
+        DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "whatever else", None, None)       -> false,
+        DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, "No operations allowed after connection closed.", None, None)       -> false,
+        DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, "No operations allowed after statement closed.", None, None)       -> false
       ).foreach {
         case (e @ DatabaseError(errorCategory, errorName, message, _, _), expected) =>
           s"return $expected for ${errorCategory}#$errorName - $message" in {

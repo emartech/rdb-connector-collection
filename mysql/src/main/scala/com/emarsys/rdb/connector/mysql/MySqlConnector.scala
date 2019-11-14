@@ -36,10 +36,16 @@ class MySqlConnector(
 
   override val isErrorRetryable: PartialFunction[Throwable, Boolean] = {
     case DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, _, _, _)                             => true
-    case DatabaseError(ErrorCategory.Transient, _, _, _, _)                                                     => true
+    case DatabaseError(ErrorCategory.Transient, _, message, _, _) if !isBad(message)                            => true
     case DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, message, _, _) if message.contains("Deadlock") => true
     case _: SQLTransientException                                                                               => true
     case _                                                                                                      => false
+  }
+
+  private def isBad(message: String): Boolean = {
+    List(MYSQL_STATEMENT_CLOSED, MYSQL_CONNECTION_CLOSED).exists(
+      message.contains
+    )
   }
 
   override def close(): Future[Unit] = {
@@ -62,7 +68,7 @@ class MySqlConnector(
          |"threadAwaitingConnections": ${poolProxy.getThreadsAwaitingConnection},
          |"totalConnections": ${poolProxy.getTotalConnections}
          |}""".stripMargin
-    }.getOrElse(super.innerMetrics)
+    }.getOrElse(super.innerMetrics())
   }
 }
 

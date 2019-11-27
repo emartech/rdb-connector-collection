@@ -118,10 +118,9 @@ trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandli
       .withValue("poolName", ConfigValueFactory.fromAnyRef(poolName))
       .withValue("connectionInitSql", ConfigValueFactory.fromAnyRef(setSchemaQuery))
       .withValue("registerMbeans", ConfigValueFactory.fromAnyRef(true))
-      .withValue("properties.url", ConfigValueFactory.fromAnyRef(createUrl(config)))
-      .withValue("properties.user", ConfigValueFactory.fromAnyRef(config.dbUser))
-      .withValue("properties.password", ConfigValueFactory.fromAnyRef(config.dbPassword))
-      .withValue("properties.driver", ConfigValueFactory.fromAnyRef("com.amazon.redshift.jdbc42.Driver"))
+      .withValue("jdbcUrl", ConfigValueFactory.fromAnyRef(createUrl(config)))
+      .withValue("username", ConfigValueFactory.fromAnyRef(config.dbUser))
+      .withValue("password", ConfigValueFactory.fromAnyRef(config.dbPassword))
   }
 
   private def createMsSqlConnector(

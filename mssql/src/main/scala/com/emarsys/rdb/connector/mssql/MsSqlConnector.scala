@@ -151,10 +151,9 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
       .getConfig(connectorConfig.configPath)
       .withValue("poolName", fromAnyRef(poolName))
       .withValue("registerMbeans", fromAnyRef(true))
-      .withValue("properties.url", fromAnyRef(jdbcUrl))
-      .withValue("properties.user", fromAnyRef(config.dbUser))
-      .withValue("properties.password", fromAnyRef(config.dbPassword))
-      .withValue("properties.driver", fromAnyRef("slick.jdbc.SQLServerProfile"))
+      .withValue("jdbcUrl", fromAnyRef(jdbcUrl))
+      .withValue("username", fromAnyRef(config.dbUser))
+      .withValue("password", fromAnyRef(config.dbPassword))
       .withValue("properties.properties.encrypt", fromAnyRef(true))
       .withValue(
         "properties.properties.trustServerCertificate",

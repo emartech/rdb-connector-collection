@@ -115,6 +115,7 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
       trustStoreUrl <- createTrustStoreUrl(config.certificate)
       poolName = UUID.randomUUID.toString
       dbConfig = createDbConfig(config, poolName, connectorConfig, trustStoreUrl)
+      _ = println(dbConfig)
       database = Database.forConfig("", dbConfig)
       mySqlConnector <- createMySqlConnector(connectorConfig, poolName, database)
     } yield mySqlConnector).value
@@ -176,10 +177,9 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
       .getConfig(connectorConfig.configPath)
       .withValue("poolName", fromAnyRef(poolName))
       .withValue("registerMbeans", fromAnyRef(true))
-      .withValue("properties.url", fromAnyRef(jdbcUrl))
-      .withValue("properties.user", fromAnyRef(config.dbUser))
-      .withValue("properties.password", fromAnyRef(config.dbPassword))
-      .withValue("properties.driver", fromAnyRef("slick.jdbc.MySQLProfile"))
+      .withValue("jdbcUrl", fromAnyRef(jdbcUrl))
+      .withValue("username", fromAnyRef(config.dbUser))
+      .withValue("password", fromAnyRef(config.dbPassword))
       .withValue("properties.properties.useSSL", fromAnyRef(true))
       .withValue("properties.properties.verifyServerCertificate", fromAnyRef(connectorConfig.verifyServerCertificate))
       .withValue("properties.properties.trustCertificateKeyStoreUrl", fromAnyRef(trustStoreUrl))

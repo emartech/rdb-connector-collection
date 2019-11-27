@@ -154,11 +154,11 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
       .withValue("jdbcUrl", fromAnyRef(jdbcUrl))
       .withValue("username", fromAnyRef(config.dbUser))
       .withValue("password", fromAnyRef(config.dbPassword))
-      .withValue("properties.properties.encrypt", fromAnyRef(true))
+      .withValue("properties.encrypt", fromAnyRef(true))
       .withValue(
-        "properties.properties.trustServerCertificate",
+        "properties.trustServerCertificate",
         fromAnyRef(connectorConfig.trustServerCertificate)
       )
-      .withValue("properties.properties.trustStore", fromAnyRef(trustStorePath))
+      .withValue("properties.trustStore", fromAnyRef(trustStorePath))
   }
 }

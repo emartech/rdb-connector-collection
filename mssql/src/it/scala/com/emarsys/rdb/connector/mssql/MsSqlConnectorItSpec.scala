@@ -71,7 +71,7 @@ class MsSqlConnectorItSpec
         )
       }
 
-      "connect fail when wrong certificate" in {
+      "connect fail when wrong certificate format" in {
         val conn = testConnection.copy(certificate = "")
 
         val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
@@ -79,6 +79,35 @@ class MsSqlConnectorItSpec
         connectorEither.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,
           ErrorName.SSLError
+        )
+      }
+
+      "connect fail when wrong certificate" ignore {
+        val conn = testConnection.copy(certificate = """
+         |-----BEGIN CERTIFICATE-----
+         |MIICljCCAX4CCQDTYHFbvff7nTANBgkqhkiG9w0BAQsFADANMQswCQYDVQQGEwJh
+         |czAeFw0xOTExMjcxMDIxMjlaFw0yMDExMjYxMDIxMjlaMA0xCzAJBgNVBAYTAmFz
+         |MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyqr8x+Rc+utk9P/0SUHB
+         |D5GX3CGRo9OMNUZfCsrNSSTkqXA0ZgQEdIci6tztCbewDLtBLAAXB3EvfoO67V53
+         |c8PAfmQklnNvmoWfq4mFTuzoYzhQZZg76yywOAFuTC9gWw5LJVpuB9q9enEl2w+5
+         |a4fLTtloc1h3zanEfihZc/a3uJG8zQ2pH1OzejstnLSASNJ20g8KwLu8jqgsMl69
+         |6ld6iUsj6zkwS3uQo13yqzu6IcQOEdfpTyi/nIlGT+yL2EKSWeQG78+0TBGLdZfG
+         |JDECrW40qgH1jW20/v75hVu4YAnZfnXZuGTFL+IKzB4UjYZ//0qhC88MZQm6y4b3
+         |/QIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBI2QI++k11eopoMg7tW0WbSkr35aJS
+         |THXODnnr40qe3z+ReHNhVTQThScLCYiVNGNW+LzuguDY2zuw0Luwamhlhtn2Uwz5
+         |saU74Nnk8v8jGThUYpZ7y9T4uMXaa5dS/Z8b9XBaYnE8cKhrYEIsvNNni7qqoov0
+         |EqjKvCPOMnPy8VeIqMuapLWIWn9uVBIZwN43Qth1XAk4j8gTi6s3xOz2/mD22I58
+         |fSrBLxB1fBi2XlvwYCwUOgGiF4WzW/LaJO86J+Itdp3/GEpHnpsEFFyg2gdXipqo
+         |ZgLlwzUQOYs5tY4CpL544CEzls2ClM3zuIRvobJdQ2YUhvFhQbAYhrfY
+         |-----END CERTIFICATE-----
+         |
+         |""".stripMargin)
+
+        val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
+
+        connectorEither.left.value should haveErrorCategoryAndErrorName(
+          ErrorCategory.Timeout,
+          ErrorName.ConnectionTimeout
         )
       }
 

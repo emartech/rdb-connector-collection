@@ -8,6 +8,7 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mssql.utils.TestHelper
+import com.emarsys.rdb.connector.mssql.MsSqlConnector.MsSqlConnectorConfig
 import com.emarsys.rdb.connector.test.CustomMatchers._
 import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
@@ -82,7 +83,7 @@ class MsSqlConnectorItSpec
         )
       }
 
-      "connect fail when wrong certificate" ignore {
+      "connect fail when wrong certificate" in {
         val conn = testConnection.copy(certificate = """
          |-----BEGIN CERTIFICATE-----
          |MIICljCCAX4CCQDTYHFbvff7nTANBgkqhkiG9w0BAQsFADANMQswCQYDVQQGEwJh
@@ -103,7 +104,7 @@ class MsSqlConnectorItSpec
          |
          |""".stripMargin)
 
-        val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
+        val connectorEither = Await.result(MsSqlConnector.create(conn, MsSqlConnectorConfig("mssqldb", false)), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.Timeout,

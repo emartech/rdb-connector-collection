@@ -10,7 +10,7 @@ object Dependencies {
   val postgresVersion = "42.2.8"
   val redshiftVersion = "1.2.36.1060"
 
-  val akkaVersion               = "2.5.25"
+  val akkaVersion               = "2.5.26"
   val akkaHttpVersion           = "10.1.9"
   val akkaStreamContribVersion  = "0.10"
   val slickVersion              = "3.3.2"

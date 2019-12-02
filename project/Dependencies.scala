@@ -11,7 +11,7 @@ object Dependencies {
   val redshiftVersion = "1.2.36.1060"
 
   val akkaVersion               = "2.5.25"
-  val akkaHttpVersion           = "10.1.9"
+  val akkaHttpVersion           = "10.1.10"
   val akkaStreamContribVersion  = "0.10"
   val slickVersion              = "3.3.2"
   val catsCoreVersion           = "2.0.0"

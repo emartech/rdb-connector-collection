@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.mysql
 
 import java.lang.management.ManagementFactory
-import java.sql.{SQLException, SQLTransientException}
 import java.util.UUID
 
 import com.emarsys.rdb.connector.common.Models.MetaData

@@ -326,6 +326,15 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
       }
     }
 
+    "SortCriteria" should {
+      "serialize to valid sql" in {
+        import DefaultSqlWriters._
+
+        SortCriteria(FieldName("name"), Direction.Ascending).toSql shouldEqual """"name" ASC"""
+        SortCriteria(FieldName("name"), Direction.Descending).toSql shouldEqual """"name" DESC"""
+      }
+    }
+
     "SimpleSelect" should {
 
       "use default writer - minimal" in {
@@ -425,6 +434,18 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
         select.toSql shouldEqual """SELECT * FROM "TABLE1" WHERE ("FIELD1" IS NULL AND ("FIELD2" IS NULL AND "FIELD3"='VALUE3')) LIMIT 100"""
       }
 
+      "use default writer - sort" in {
+        import DefaultSqlWriters._
+
+        val select = SimpleSelect(
+          fields = AllField,
+          table = TableName("TABLE1"),
+          orderBy = List(SortCriteria(FieldName("name"), Direction.Ascending), SortCriteria(FieldName("age"), Direction.Descending))
+        )
+
+        select.toSql shouldEqual """SELECT * FROM "TABLE1" ORDER BY "name" ASC, "age" DESC"""
+      }
+
       "use default writer - full" in {
         import DefaultSqlWriters._
 
@@ -440,10 +461,11 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
             )
           ),
           limit = Some(100),
-          distinct = Some(true)
+          distinct = Some(true),
+          orderBy = List(SortCriteria(FieldName("FIELD1"), Direction.Descending), SortCriteria(FieldName("FIELD2"), Direction.Ascending))
         )
 
-        select.toSql shouldEqual """SELECT DISTINCT "FIELD1","FIELD2","FIELD3" FROM "TABLE1" WHERE ("FIELD1" IS NULL AND ("FIELD2" IS NULL AND "FIELD3"='VALUE3')) LIMIT 100"""
+        select.toSql shouldEqual """SELECT DISTINCT "FIELD1","FIELD2","FIELD3" FROM "TABLE1" WHERE ("FIELD1" IS NULL AND ("FIELD2" IS NULL AND "FIELD3"='VALUE3')) ORDER BY "FIELD1" DESC, "FIELD2" ASC LIMIT 100"""
       }
     }
 

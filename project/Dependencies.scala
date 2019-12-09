@@ -20,7 +20,7 @@ object Dependencies {
   val sprayJsonShapelessVersion = "1.4.0"
 
   val scalatestVersion    = "3.0.8"
-  val mockitoScalaVersion = "1.5.16"
+  val mockitoScalaVersion = "1.5.18"
   val mockitoVersion      = "2.28.2"
 
   val scala = Seq(

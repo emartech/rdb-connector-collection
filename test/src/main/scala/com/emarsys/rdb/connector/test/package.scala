@@ -23,6 +23,16 @@ package object test extends Matchers {
     }
   }
 
+  def checkResultWithRowOrder(result: Seq[Seq[String]], expected: Seq[Seq[String]]): Unit = {
+    result.size shouldEqual expected.size
+    result.head.map(_.toUpperCase) shouldEqual expected.head.map(_.toUpperCase)
+    if (result.size > 1) {
+      result.tail shouldEqual expected.tail
+      expected.tail shouldEqual  result.tail
+    }
+  }
+
+
   def getConnectorResult(connRes: ConnectorResponse[Source[Seq[String], NotUsed]], awaitTimeout: Duration)(
       implicit mat: Materializer
   ): Seq[Seq[String]] = {

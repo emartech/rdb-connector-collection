@@ -382,5 +382,78 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
 
     }
 
+    "#simpleSelect ORDER BY" should {
+      "order results in descending order" in {
+        val simpleSelect = SimpleSelect(
+          AllField,
+          TableName(aTableName),
+          orderBy = List(SortCriteria(FieldName("A1"), Direction.Descending))
+        )
+
+        val result = getSimpleSelectResult(simpleSelect)
+
+        checkResultWithRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v7", null, null),
+            Seq("v6", "6", null),
+            Seq("v5", null, "0"),
+            Seq("v4", "-4", "0"),
+            Seq("v3", "3", "1"),
+            Seq("v2", "2", "0"),
+            Seq("v1", "1", "1")
+          )
+        )
+      }
+
+      "order results in ascending order" in {
+        val simpleSelect = SimpleSelect(
+          AllField,
+          TableName(aTableName),
+          orderBy = List(SortCriteria(FieldName("A1"), Direction.Ascending))
+        )
+
+        val result = getSimpleSelectResult(simpleSelect)
+
+        checkResultWithRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v1", "1", "1"),
+            Seq("v2", "2", "0"),
+            Seq("v3", "3", "1"),
+            Seq("v4", "-4", "0"),
+            Seq("v5", null, "0"),
+            Seq("v6", "6", null),
+            Seq("v7", null, null)
+          )
+        )
+      }
+
+      "order results based on multiple columns" in {
+        val simpleSelect = SimpleSelect(
+          AllField,
+          TableName(aTableName),
+          where = Some(NotNull(FieldName("A3"))),
+          orderBy = List(SortCriteria(FieldName("A3"), Direction.Ascending), SortCriteria(FieldName("A1"), Direction.Descending))
+        )
+
+        val result = getSimpleSelectResult(simpleSelect)
+
+        checkResultWithRowOrder(
+          result,
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v5", null, "0"),
+            Seq("v4", "-4", "0"),
+            Seq("v2", "2", "0"),
+            Seq("v3", "3", "1"),
+            Seq("v1", "1", "1")
+          )
+        )
+      }
+
+    }
   }
 }

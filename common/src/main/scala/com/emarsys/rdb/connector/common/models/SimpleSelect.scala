@@ -1,13 +1,15 @@
 package com.emarsys.rdb.connector.common.models
 
-import com.emarsys.rdb.connector.common.models.SimpleSelect.{Fields, TableName, WhereCondition}
+import com.emarsys.rdb.connector.common.models.SimpleSelect.{Fields, SortCriteria, TableName, WhereCondition}
+import enumeratum.{Enum, EnumEntry}
 
 case class SimpleSelect(
     fields: Fields,
     table: TableName,
     where: Option[WhereCondition] = None,
     limit: Option[Int] = None,
-    distinct: Option[Boolean] = None
+    distinct: Option[Boolean] = None,
+    orderBy: List[SortCriteria] = List.empty
 )
 
 object SimpleSelect {
@@ -56,5 +58,15 @@ object SimpleSelect {
   case class NotNull(field: FieldName) extends WhereCondition
 
   case class IsNull(field: FieldName) extends WhereCondition
+
+  case class SortCriteria(field: FieldName, direction: Direction)
+
+  sealed trait Direction extends EnumEntry
+  object Direction extends Enum[Direction] {
+    val values = findValues
+
+    case object Ascending  extends Direction
+    case object Descending extends Direction
+  }
 
 }

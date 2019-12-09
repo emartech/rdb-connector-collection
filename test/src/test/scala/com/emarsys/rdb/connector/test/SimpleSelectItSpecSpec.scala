@@ -368,4 +368,89 @@ class SimpleSelectItSpecSpec
       )
     )
   )
+
+  when(
+    connector.simpleSelect(
+      SimpleSelect(
+        AllField,
+        TableName(aTableName),
+        orderBy = List(SortCriteria(FieldName("A1"), Direction.Descending))
+      ),
+      queryTimeout
+    )
+  ).thenReturn(
+    Future(
+      Right(
+        Source(
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v7", null, null),
+            Seq("v6", "6", null),
+            Seq("v5", null, "0"),
+            Seq("v4", "-4", "0"),
+            Seq("v3", "3", "1"),
+            Seq("v2", "2", "0"),
+            Seq("v1", "1", "1")
+          ).to[scala.collection.immutable.Seq]
+        )
+      )
+    )
+  )
+
+  when(
+    connector.simpleSelect(
+      SimpleSelect(
+        AllField,
+        TableName(aTableName),
+        orderBy = List(SortCriteria(FieldName("A1"), Direction.Ascending))
+      ),
+      queryTimeout
+    )
+  ).thenReturn(
+    Future(
+      Right(
+        Source(
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v1", "1", "1"),
+            Seq("v2", "2", "0"),
+            Seq("v3", "3", "1"),
+            Seq("v4", "-4", "0"),
+            Seq("v5", null, "0"),
+            Seq("v6", "6", null),
+            Seq("v7", null, null)
+          ).to[scala.collection.immutable.Seq]
+        )
+      )
+    )
+  )
+
+  when(
+    connector.simpleSelect(
+      SimpleSelect(
+        AllField,
+        TableName(aTableName),
+        where = Some(NotNull(FieldName("A3"))),
+        orderBy = List(SortCriteria(FieldName("A3"), Direction.Ascending), SortCriteria(FieldName("A1"), Direction.Descending))
+      ),
+      queryTimeout
+    )
+  ).thenReturn(
+    Future(
+      Right(
+        Source(
+          Seq(
+            Seq("A1", "A2", "A3"),
+            Seq("v5", null, "0"),
+            Seq("v4", "-4", "0"),
+            Seq("v2", "2", "0"),
+            Seq("v3", "3", "1"),
+            Seq("v1", "1", "1")
+          ).to[scala.collection.immutable.Seq]
+        )
+      )
+    )
+  )
+
+
 }

@@ -170,5 +170,50 @@ trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeA
       val result = getConnectorResult(connector.selectWithGroupLimit(simpleSelect, 2, queryTimeout), awaitTimeout)
       result.size shouldBe 0
     }
+
+    "gets a select with order by" in {
+      val simpleSelect = SimpleSelect(
+        AllField,
+        TableName(tableName),
+        where = Some(
+          Or(
+            Seq(
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("1")),
+                  EqualToValue(FieldName("NAME"), Value("test1"))
+                )
+              ),
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("2")),
+                  EqualToValue(FieldName("NAME"), Value("test2"))
+                )
+              ),
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("2")),
+                  EqualToValue(FieldName("NAME"), Value("test3"))
+                )
+              ),
+              And(
+                Seq(
+                  EqualToValue(FieldName("ID"), Value("7")),
+                  EqualToValue(FieldName("NAME"), Value("test123"))
+                )
+              )
+            )
+          )
+        ),
+        orderBy = List(SortCriteria(FieldName("NAME"), Direction.Descending))
+      )
+
+      val result = getConnectorResult(connector.selectWithGroupLimit(simpleSelect, 2, queryTimeout), awaitTimeout)
+      result.size shouldBe 6
+      result.head.map(_.toUpperCase) shouldBe Seq("ID", "NAME", "DATA")
+      val grouped = result.tail.groupBy(s => (s(0), s(1)))
+      grouped.size shouldBe 3
+      grouped.keys shouldBe Set(("2", "test3"), ("2", "test2"),("1", "test1"))
+    }
   }
 }

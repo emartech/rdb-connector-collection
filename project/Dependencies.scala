@@ -6,8 +6,8 @@ object Dependencies {
   val ScalaVersion = "2.12.10"
 
   val mssqlVersion    = "6.4.0.jre8"
-  val mysqlVersion    = "8.0.18"
-  val postgresVersion = "42.2.8"
+  val mysqlVersion    = "8.0.17"
+  val postgresVersion = "42.2.9"
   val redshiftVersion = "1.2.36.1060"
 
   val akkaVersion               = "2.5.25"
@@ -20,7 +20,7 @@ object Dependencies {
   val sprayJsonShapelessVersion = "1.4.0"
 
   val scalatestVersion    = "3.0.8"
-  val mockitoScalaVersion = "1.5.16"
+  val mockitoScalaVersion = "1.5.18"
   val mockitoVersion      = "2.28.2"
 
   val scala = Seq(

@@ -1,4 +1,4 @@
-addSbtPlugin("au.com.onegeek" %% "sbt-dotenv"  % "2.1.151")
+addSbtPlugin("au.com.onegeek" %% "sbt-dotenv"  % "2.1.153")
 addSbtPlugin("com.jsuereth"   % "sbt-pgp"      % "1.1.2")
 addSbtPlugin("com.dwijnand"   % "sbt-dynver"   % "4.0.0")
 addSbtPlugin("org.scalameta"  % "sbt-scalafmt" % "2.3.0")

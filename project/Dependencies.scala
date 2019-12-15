@@ -16,12 +16,12 @@ object Dependencies {
   val slickVersion              = "3.3.2"
   val catsCoreVersion           = "2.0.0"
   val jwtVersion                = "0.14.1"
-  val enumeratumVersion         = "1.5.13"
+  val enumeratumVersion         = "1.5.14"
   val sprayJsonShapelessVersion = "1.4.0"
 
   val scalatestVersion    = "3.0.8"
   val mockitoScalaVersion = "1.10.0"
-  val mockitoVersion      = "2.28.2"
+  val mockitoVersion      = "3.2.0"
 
   val scala = Seq(
     scalaVersion := ScalaVersion,

@@ -14,8 +14,9 @@ trait MsSqlWriters extends DefaultSqlWriters {
     val head     = s"SELECT $distinct$limit${ss.fields.toSql} FROM ${ss.table.toSql}"
 
     val where = ss.where.map(_.toSql).map(" WHERE " + _).getOrElse("")
+    val orderBy = ss.orderBy.toSql
 
-    s"$head$where"
+    s"$head$where$orderBy"
   }
 
   protected def msSqlValueQuoter(text: Option[String]): String = {

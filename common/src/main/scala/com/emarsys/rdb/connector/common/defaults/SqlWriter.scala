@@ -106,13 +106,32 @@ trait DefaultSqlWriters {
     case x: SpecificFields => x.toSql
   }
 
+  implicit lazy val directionCriteriaWriter: SqlWriter[Direction] = {
+    case Direction.Ascending  => "ASC"
+    case Direction.Descending => "DESC"
+  }
+
+  implicit lazy val sortCriteriaWriter: SqlWriter[SortCriteria] =
+    (obj: SortCriteria) => s"${obj.field.toSql} ${obj.direction.toSql}"
+
+  implicit lazy val sortCriteriaListWriter: SqlWriter[List[SortCriteria]] = (obj: List[SortCriteria]) => {
+    val sortCriteriaStrings = obj.map(_.toSql)
+
+    if (sortCriteriaStrings.nonEmpty) {
+      sortCriteriaStrings.mkString(" ORDER BY ", ", ", "")
+    } else {
+      ""
+    }
+  }
+
   implicit lazy val simpleSelectWriter: SqlWriter[SimpleSelect] = (ss: SimpleSelect) => {
     val distinct = if (ss.distinct.getOrElse(false)) "DISTINCT " else ""
     val head     = s"SELECT $distinct${ss.fields.toSql} FROM ${ss.table.toSql}"
     val where    = ss.where.map(_.toSql).map(" WHERE " + _).getOrElse("")
     val limit    = ss.limit.map(" LIMIT " + _).getOrElse("")
+    val orderBy  = ss.orderBy.toSql
 
-    s"$head$where$limit"
+    s"$head$where$orderBy$limit"
   }
 }
 

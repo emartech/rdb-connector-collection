@@ -41,7 +41,7 @@
         service: rdb-mssql-connector
         command: sbt mssql/it:test
       - name: BigQuery
-        tag: ^(master|update/akka-stream-contrib|update/jwt-core)
+        tag: ^(master|update/akka-stream-contrib|update/jwt-core|update/akka-http-core)
         service: rdb-allconnector
         command: sbt bigquery/it:test
   - name: Publish connectors

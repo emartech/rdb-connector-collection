@@ -16,7 +16,7 @@ object Dependencies {
   val slickVersion              = "3.3.2"
   val catsCoreVersion           = "2.0.0"
   val jwtVersion                = "0.19.0"
-  val enumeratumVersion         = "1.5.14"
+  val enumeratumVersion         = "1.5.15"
   val sprayJsonShapelessVersion = "1.4.0"
 
   val scalatestVersion    = "3.0.8"

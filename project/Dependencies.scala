@@ -6,22 +6,22 @@ object Dependencies {
   val ScalaVersion = "2.12.10"
 
   val mssqlVersion    = "6.4.0.jre8"
-  val mysqlVersion    = "8.0.17"
+  val mysqlVersion    = "8.0.18"
   val postgresVersion = "42.2.9"
-  val redshiftVersion = "1.2.36.1060"
+  val redshiftVersion = "1.2.37.1061"
 
-  val akkaVersion               = "2.5.25"
-  val akkaHttpVersion           = "10.1.9"
+  val akkaVersion               = "2.5.27"
+  val akkaHttpVersion           = "10.1.11"
   val akkaStreamContribVersion  = "0.10"
   val slickVersion              = "3.3.2"
   val catsCoreVersion           = "2.0.0"
   val jwtVersion                = "0.19.0"
-  val enumeratumVersion         = "1.5.14"
+  val enumeratumVersion         = "1.5.15"
   val sprayJsonShapelessVersion = "1.4.0"
 
   val scalatestVersion    = "3.0.8"
-  val mockitoScalaVersion = "1.10.0"
-  val mockitoVersion      = "3.2.0"
+  val mockitoScalaVersion = "1.10.2"
+  val mockitoVersion      = "3.2.4"
 
   val scala = Seq(
     scalaVersion := ScalaVersion,

@@ -9,7 +9,6 @@ WORKDIR /rdb-allconnector
 # Git is need for dynver for proper versoning.
 RUN apk --no-cache add openssl gnupg git
 
-COPY ci/secrets.tar.enc ci/secrets.tar.enc
 COPY publish.sh publish.sh
 RUN chmod +x publish.sh
 

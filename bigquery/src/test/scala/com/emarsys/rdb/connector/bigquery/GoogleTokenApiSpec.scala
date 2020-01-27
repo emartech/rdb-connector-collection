@@ -123,7 +123,7 @@ class GoogleTokenApiSpec
       decoded.isSuccess shouldBe true
       decoded.get.content should include(""""aud":"https://www.googleapis.com/oauth2/v4/token"""")
       decoded.get.content should include(""""scope":"https://www.googleapis.com/auth/bigquery"""")
-      decoded.get.content should include(""""iss":"email"""")
+      decoded.get.content should include(""""iss":"test@example.com"""")
 
     }
 

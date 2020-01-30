@@ -87,7 +87,7 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
 
   val defaultConfig = MsSqlConnectorConfig(
     configPath = "mssqldb",
-    trustServerCertificate = true
+    trustServerCertificate = false
   )
 
   override def meta(): MetaData = MetaData("\"", "'", "'")

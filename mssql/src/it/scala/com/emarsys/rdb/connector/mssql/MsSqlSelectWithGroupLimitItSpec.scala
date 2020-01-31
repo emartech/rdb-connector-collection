@@ -17,8 +17,9 @@ class MsSqlSelectWithGroupLimitItSpec
 
   override implicit val materializer: Materializer = ActorMaterializer()
 
+  override val awaitTimeout: FiniteDuration = 30.seconds
   val connector: Connector =
-    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
+    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), awaitTimeout).right.get
 
   override def afterAll(): Unit = {
     system.terminate()
@@ -49,11 +50,11 @@ class MsSqlSelectWithGroupLimitItSpec
     Await.result(for {
       _ <- TestHelper.executeQuery(createTableSql)
       _ <- TestHelper.executeQuery(insertDataSql)
-    } yield (), 5.seconds)
+    } yield (), awaitTimeout)
   }
 
   override def cleanUpDb(): Unit = {
     val dropCTableSql = s"""DROP TABLE [$tableName];"""
-    Await.result(TestHelper.executeQuery(dropCTableSql), 5.seconds)
+    Await.result(TestHelper.executeQuery(dropCTableSql), awaitTimeout)
   }
 }

@@ -13,12 +13,12 @@ import scala.concurrent.Await
 class MsSqlSearchItSpec extends TestKit(ActorSystem("MsSqlSearchItSpec")) with SearchItSpec {
   import scala.concurrent.ExecutionContext.Implicits.global
 
+  override val awaitTimeout = 30.seconds
   val connector: Connector =
-    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
+    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), awaitTimeout).right.get
 
   override implicit val materializer: Materializer = ActorMaterializer()
 
-  override val awaitTimeout = 15.seconds
 
   override def afterAll(): Unit = {
     system.terminate()
@@ -57,7 +57,7 @@ class MsSqlSearchItSpec extends TestKit(ActorSystem("MsSqlSearchItSpec")) with S
         _ <- TestHelper.executeQuery(addIndex1)
         _ <- TestHelper.executeQuery(addIndex2)
       } yield (),
-      15.seconds
+      awaitTimeout
     )
   }
 
@@ -65,6 +65,6 @@ class MsSqlSearchItSpec extends TestKit(ActorSystem("MsSqlSearchItSpec")) with S
     val dropZTableSql = s"""DROP TABLE [$tableName];"""
     Await.result(for {
       _ <- TestHelper.executeQuery(dropZTableSql)
-    } yield (), 15.seconds)
+    } yield (), awaitTimeout)
   }
 }

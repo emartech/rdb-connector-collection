@@ -14,7 +14,7 @@ trait SelectDbInitHelper {
   val bTableName: String
 
   val connector: Connector =
-    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
+    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 10.seconds).right.get
 
   def initDb(): Unit = {
     val createATableSql =
@@ -67,7 +67,7 @@ trait SelectDbInitHelper {
         _ <- TestHelper.executeQuery(addIndex1)
         _ <- TestHelper.executeQuery(addIndex2)
       } yield (),
-      5.seconds
+      10.seconds
     )
   }
 
@@ -77,6 +77,6 @@ trait SelectDbInitHelper {
     Await.result(for {
       _ <- TestHelper.executeQuery(dropATableSql)
       _ <- TestHelper.executeQuery(dropBTableSql)
-    } yield (), 5.seconds)
+    } yield (), 10.seconds)
   }
 }

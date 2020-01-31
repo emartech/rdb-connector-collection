@@ -76,25 +76,25 @@ class MsSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
       "if simple index exists in its own" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A0")), 5.seconds)
 
-        resultE.right.value shouldBe true
+        resultE shouldBe Right(true)
       }
 
       "if simple index exists in complex index as first member" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A1")), 5.seconds)
 
-        resultE.right.value shouldBe true
+        resultE shouldBe Right(true)
       }
 
       "if complex index exists" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A1", "A2")), 5.seconds)
 
-        resultE.right.value shouldBe true
+        resultE shouldBe Right(true)
       }
 
       "if complex index exists but in different order" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A2", "A1")), 5.seconds)
 
-        resultE.right.value shouldBe true
+        resultE shouldBe Right(true)
       }
     }
 
@@ -103,19 +103,19 @@ class MsSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
       "if simple index does not exists at all" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A3")), 5.seconds)
 
-        resultE.right.value shouldBe false
+        resultE shouldBe Right(false)
       }
 
       "if simple index exists in complex index but not as first member" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A2")), 5.seconds)
 
-        resultE.right.value shouldBe false
+        resultE shouldBe Right(false)
       }
 
       "if complex index exists only as part of another complex index" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A4", "A5")), 5.seconds)
 
-        resultE.right.value shouldBe false
+        resultE shouldBe Right(false)
       }
     }
 

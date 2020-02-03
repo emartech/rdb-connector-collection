@@ -93,6 +93,7 @@ lazy val meta =
   )
 
 lazy val publishSettings = Seq(
+  useGpgPinentry := true,
   publishTo := Some("releases" at "https://nexus.service.emarsys.net/repository/emartech/"),
   credentials += Credentials(
     "Sonatype Nexus Repository Manager",
@@ -100,9 +101,6 @@ lazy val publishSettings = Seq(
     sys.env.getOrElse("NEXUS_USERNAME", ""),
     sys.env.getOrElse("NEXUS_PASSWORD", "")
   ),
-  pgpPublicRing := file("./ci/pubring.asc"),
-  pgpSecretRing := file("./ci/secring.asc"),
-  pgpPassphrase := Some(sys.env.getOrElse("PGP_PASS", "").toArray),
   publish := {
     sys.error("Skipping unsigned publishing, use publishSigned instead!")
   }

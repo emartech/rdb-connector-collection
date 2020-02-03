@@ -18,7 +18,7 @@ object CertificateUtil {
         val keyStore = createKeystoreWithCertificate(cert)
         val filePath = createKeystoreTempFile(keyStore)
 
-        val path = s"file:$filePath"
+        val path = s"$filePath"
         certPool.put(certificate, path)
         path
       }

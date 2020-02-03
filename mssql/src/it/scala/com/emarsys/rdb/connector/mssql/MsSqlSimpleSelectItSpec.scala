@@ -16,6 +16,7 @@ class MsSqlSimpleSelectItSpec
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
+  override val awaitTimeout: FiniteDuration = 30.seconds
   override implicit val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
@@ -41,12 +42,12 @@ class MsSqlSimpleSelectItSpec
     Await.result(for {
       _ <- TestHelper.executeQuery(createCTableSql)
       _ <- TestHelper.executeQuery(insertCDataSql)
-    } yield (), 5.seconds)
+    } yield (), awaitTimeout)
   }
 
   override def cleanUpDb(): Unit = {
     val dropCTableSql = s"""DROP TABLE [$cTableName];"""
-    Await.result(TestHelper.executeQuery(dropCTableSql), 5.seconds)
+    Await.result(TestHelper.executeQuery(dropCTableSql), awaitTimeout)
     super.cleanUpDb()
   }
 }

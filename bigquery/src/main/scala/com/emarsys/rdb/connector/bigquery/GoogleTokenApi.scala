@@ -1,5 +1,7 @@
 package com.emarsys.rdb.connector.bigquery
 
+import java.time.Clock
+
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.{FormData, HttpMethods, HttpRequest}
@@ -11,7 +13,7 @@ import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 import scala.concurrent.Future
 
-class GoogleTokenApi(http: => HttpExt) {
+class GoogleTokenApi(http: => HttpExt)(implicit val clock: Clock) {
   protected val encodingAlgorithm: JwtAlgorithm.RS256.type = JwtAlgorithm.RS256
 
   private val googleTokenUrl = GoogleApi.googleTokenUrl

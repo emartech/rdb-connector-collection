@@ -18,7 +18,7 @@ trait MsSqlConnectorHelper {
 
   private[mssql] def isSslDisabledOrTamperedWith(connectionParams: String): Boolean = {
     connectionParams.matches(".*encrypt=false.*") ||
-    connectionParams.matches(".*trustServerCertificate=false.*") ||
+    connectionParams.matches(".*trustServerCertificate=true.*") ||
     connectionParams.matches(".*trustStore=.*")
   }
 

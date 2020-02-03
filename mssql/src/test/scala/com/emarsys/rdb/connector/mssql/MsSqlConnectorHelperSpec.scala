@@ -38,7 +38,7 @@ class MsSqlConnectorHelperSpec extends WordSpec with Matchers {
       }
 
       "return true if contains trustServerCertificate=true" in {
-        MsSqlConnectorHelper.isSslDisabledOrTamperedWith("?param1=param&trustServerCertificate=false&param2=param2") shouldBe true
+        MsSqlConnectorHelper.isSslDisabledOrTamperedWith("?param1=param&trustServerCertificate=true&param2=param2") shouldBe true
       }
 
       "return true if contains trustStore=" in {

@@ -21,7 +21,7 @@ trait InsertItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach wi
   val uuid      = uuidGenerate
   val tableName = s"insert_tables_table_$uuid"
 
-  val awaitTimeout = 5.seconds
+  val awaitTimeout = 10.seconds
   val queryTimeout = 5.seconds
 
   override def beforeEach(): Unit = {

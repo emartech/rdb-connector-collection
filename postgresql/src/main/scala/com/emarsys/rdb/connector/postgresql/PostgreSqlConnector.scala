@@ -124,6 +124,7 @@ trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHa
       .withValue("jdbcUrl", fromAnyRef(jdbcUrl))
       .withValue("username", fromAnyRef(config.dbUser))
       .withValue("password", fromAnyRef(config.dbPassword))
+      .withValue("driver", fromAnyRef("org.postgresql.Driver"))
       .withValue("properties.ssl", fromAnyRef("true"))
       .withValue("properties.sslmode", fromAnyRef(connectorConfig.sslMode))
       .withValue("properties.loggerLevel", fromAnyRef("OFF"))

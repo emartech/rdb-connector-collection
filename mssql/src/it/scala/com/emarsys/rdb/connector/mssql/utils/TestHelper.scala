@@ -23,13 +23,9 @@ object TestHelper {
   )
 
   private lazy val db: Database = {
-
-    val certPath = CertificateUtil.createTrustStoreTempFile(TEST_CONNECTION_CONFIG.certificate)
-
     val prop = new Properties()
-    prop.setProperty("encrypt", "true")
+    prop.setProperty("encrypt", "false")
     prop.setProperty("trustServerCertificate", "false")
-    prop.setProperty("trustStore", certPath.get)
 
     val url = createUrl(
       TEST_CONNECTION_CONFIG.host,

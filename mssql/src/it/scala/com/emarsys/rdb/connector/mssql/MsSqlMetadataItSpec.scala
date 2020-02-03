@@ -11,8 +11,9 @@ import scala.concurrent.Await
 
 class MsSqlMetadataItSpec extends MetadataItSpec {
 
+  override val awaitTimeout: FiniteDuration = 30.seconds
   val connector: Connector =
-    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
+    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), awaitTimeout).right.get
 
   def initDb(): Unit = {
     val createTableSql = s"""CREATE TABLE [$tableName] (
@@ -29,7 +30,7 @@ class MsSqlMetadataItSpec extends MetadataItSpec {
     Await.result(for {
       _ <- TestHelper.executeQuery(createTableSql)
       _ <- TestHelper.executeQuery(createViewSql)
-    } yield (), 5.seconds)
+    } yield (), awaitTimeout)
   }
 
   def cleanUpDb(): Unit = {
@@ -44,7 +45,7 @@ class MsSqlMetadataItSpec extends MetadataItSpec {
         _ <- TestHelper.executeQuery(dropViewSql2)
         _ <- TestHelper.executeQuery(dropTableSql2)
       } yield (),
-      5.seconds
+      awaitTimeout
     )
   }
 }

@@ -26,7 +26,7 @@ class MsSqlConnectorItSpec
   implicit val mat      = ActorMaterializer()
   override def afterAll = TestKit.shutdownActorSystem(system)
 
-  private val timeout = 10.seconds
+  private val timeout = 30.seconds
 
   "MsSqlConnectorItSpec" when {
 
@@ -165,13 +165,13 @@ class MsSqlConnectorItSpec
 
     "Custom error handling" should {
       "recognize query timeouts" in new QueryRunnerScope {
-        val result = Await.result(runQuery("waitfor delay '00:00:06.000'; select 1"), 6.second)
+        val result = Await.result(runQuery("waitfor delay '00:00:08.000'; select 1"), timeout)
 
         result.left.value should haveErrorCategoryAndErrorName(ErrorCategory.Timeout, ErrorName.QueryTimeout)
       }
 
       "recognize syntax errors" in new QueryRunnerScope {
-        val result = Await.result(runQuery("select from table"), 1.second)
+        val result = Await.result(runQuery("select from table"), timeout)
 
         result.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,
@@ -185,7 +185,7 @@ class MsSqlConnectorItSpec
           dbPassword = "unprivileged1!"
         )
 
-        val result = Await.result(runQuery("select * from access_denied"), 1.second)
+        val result = Await.result(runQuery("select * from access_denied"), timeout)
 
         result.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,
@@ -194,7 +194,7 @@ class MsSqlConnectorItSpec
       }
 
       "recognize if a table is not found" in new QueryRunnerScope {
-        val result = Await.result(runQuery("select * from a_non_existing_table"), 1.second)
+        val result = Await.result(runQuery("select * from a_non_existing_table"), timeout)
 
         result.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,

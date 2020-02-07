@@ -8,9 +8,11 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrappe
   NullValue,
   StringValue
 }
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 /*
 For positive test results you need to implement an initDb function which creates two tables with the given names and
@@ -32,7 +34,7 @@ Z:
   ("r4", 45, true, "s4")
   ("r5", 45, true, "s5")
  */
-trait SearchItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
+trait SearchItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAll {
   val uuid = uuidGenerate
 
   val tableName = s"search_table_$uuid"

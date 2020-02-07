@@ -19,7 +19,7 @@ object Dependencies {
   val enumeratumVersion         = "1.5.15"
   val sprayJsonShapelessVersion = "1.4.0"
 
-  val scalatestVersion    = "3.0.8"
+  val scalatestVersion    = "3.1.0"
   val mockitoScalaVersion = "1.10.2"
   val mockitoVersion      = "3.2.4"
 

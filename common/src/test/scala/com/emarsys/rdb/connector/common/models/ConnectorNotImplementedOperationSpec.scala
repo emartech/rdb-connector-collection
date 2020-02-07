@@ -6,12 +6,13 @@ import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCateg
 
 import com.emarsys.rdb.connector.common.models.SimpleSelect.{AllField, TableName}
 
-import org.scalatest.{Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class ConnectorNotImplementedOperationSpec extends WordSpecLike with Matchers {
+class ConnectorNotImplementedOperationSpec extends AnyWordSpecLike with Matchers {
 
   implicit val executionCtx: ExecutionContext = ExecutionContext.global
 

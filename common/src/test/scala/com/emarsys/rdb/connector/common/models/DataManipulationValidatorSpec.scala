@@ -9,12 +9,14 @@ import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.TableModel
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest.{EitherValues, Matchers, WordSpecLike}
+import org.scalatest.EitherValues
 
 import scala.concurrent.{ExecutionContext, Future}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 class DataManipulationValidatorSpec
-    extends WordSpecLike
+    extends AnyWordSpecLike
     with Matchers
     with MockitoSugar
     with EitherValues

@@ -6,10 +6,10 @@ import akka.NotUsed
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import org.scalatest.Matchers
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import org.scalatest.matchers.should.Matchers
 
 package object test extends Matchers {
   def uuidGenerate = UUID.randomUUID().toString.replace("-", "")

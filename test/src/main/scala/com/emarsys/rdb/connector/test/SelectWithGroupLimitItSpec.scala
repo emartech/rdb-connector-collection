@@ -4,10 +4,12 @@ import akka.stream.Materializer
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 /*
 For positive test results you need to implement an initDb function which creates a table with the given name and
 columns and must insert the sample data.
@@ -31,7 +33,7 @@ D:
 
 
  */
-trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
+trait SelectWithGroupLimitItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAll {
   val uuid = uuidGenerate
 
   val postfixTableName = s"_select_w_grouplimit_table_$uuid"

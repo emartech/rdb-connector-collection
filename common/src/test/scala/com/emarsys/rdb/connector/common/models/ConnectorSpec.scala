@@ -12,13 +12,15 @@ import org.mockito.Answers
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest.{EitherValues, Matchers, WordSpecLike}
+import org.scalatest.EitherValues
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar with ScalaFutures with EitherValues {
+class ConnectorSpec extends AnyWordSpecLike with Matchers with MockitoSugar with ScalaFutures with EitherValues {
 
   val tableName                      = "tableName"
   val viewName                       = "viewName"

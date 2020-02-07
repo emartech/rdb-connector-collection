@@ -7,9 +7,11 @@ import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldMode
 import org.mockito.Mockito._
 import org.scalatest.matchers.{MatchResult, Matcher}
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest.{AsyncWordSpecLike, EitherValues, Matchers}
+import org.scalatest.EitherValues
 
 import scala.concurrent.Future
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpecLike
 
 class RawDataValidatorSpec
     extends AsyncWordSpecLike

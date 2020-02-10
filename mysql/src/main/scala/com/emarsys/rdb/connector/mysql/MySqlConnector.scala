@@ -82,6 +82,11 @@ object MySqlConnector extends MySqlConnectorTrait {
       connectionParams: String,
       replicaConfig: Option[MySqlConnectionConfig] = None
   ) extends ConnectionConfig {
+
+    protected def getPublicFieldsForId =
+      List(host, port.toString, dbName, dbUser, connectionParams, replicaConfig.map(_.getId).getOrElse("_"))
+    protected def getSecretFieldsForId = List(dbPassword, certificate)
+
     override def replica[C <: MySqlConnectionConfig]: Option[C] = replicaConfig.map(_.asInstanceOf[C])
 
     override def toCommonFormat: CommonConnectionReadableData = {
@@ -125,15 +130,14 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
   )(implicit e: ExecutionContext): ConnectorResponseET[String] = {
     EitherT
       .fromEither[Future](createTrustStoreTempUrl(cert).toEither)
-      .leftMap(
-        ex =>
-          DatabaseError(
-            ErrorCategory.FatalQueryExecution,
-            ErrorName.SSLError,
-            "Wrong SSL cert format",
-            Some(ex),
-            None
-          )
+      .leftMap(ex =>
+        DatabaseError(
+          ErrorCategory.FatalQueryExecution,
+          ErrorName.SSLError,
+          "Wrong SSL cert format",
+          Some(ex),
+          None
+        )
       )
   }
 

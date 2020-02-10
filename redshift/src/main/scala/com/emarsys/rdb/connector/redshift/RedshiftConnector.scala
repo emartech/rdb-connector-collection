@@ -64,6 +64,10 @@ object RedshiftConnector extends RedshiftConnectorTrait {
       dbPassword: String,
       connectionParams: String
   ) extends ConnectionConfig {
+
+    protected def getPublicFieldsForId = List(host, port.toString, dbName, dbUser, connectionParams)
+    protected def getSecretFieldsForId = List(dbPassword)
+
     override def toCommonFormat: CommonConnectionReadableData = {
       CommonConnectionReadableData("redshift", s"$host:$port", dbName, dbUser)
     }

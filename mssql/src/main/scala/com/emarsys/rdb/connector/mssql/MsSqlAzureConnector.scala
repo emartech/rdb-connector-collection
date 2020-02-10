@@ -30,6 +30,10 @@ object MsSqlAzureConnector extends MsSqlAzureConnectorTrait {
       dbPassword: String,
       connectionParams: String
   ) extends ConnectionConfig {
+
+    protected def getPublicFieldsForId = List(host, dbName, dbUser, connectionParams)
+    protected def getSecretFieldsForId = List(dbPassword)
+
     override def toCommonFormat: CommonConnectionReadableData = {
       CommonConnectionReadableData("mssql-azure", s"$host:$AzureMsSqlPort", dbName, dbUser)
     }

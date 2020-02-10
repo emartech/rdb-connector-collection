@@ -52,6 +52,9 @@ object BigQueryConnector extends BigQueryConnectorTrait {
   case class BigQueryConnectionConfig(projectId: String, dataset: String, clientEmail: String, privateKey: String)
       extends ConnectionConfig {
 
+    protected def getPublicFieldsForId = List(projectId, dataset, clientEmail)
+    protected def getSecretFieldsForId = List(privateKey)
+
     def toCommonFormat: CommonConnectionReadableData =
       CommonConnectionReadableData("bigquery", projectId, dataset, clientEmail)
 

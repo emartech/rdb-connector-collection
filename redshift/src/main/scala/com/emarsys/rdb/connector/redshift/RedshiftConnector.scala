@@ -4,7 +4,7 @@ import java.util.UUID
 
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
+import com.emarsys.rdb.connector.common.Models._
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
@@ -62,7 +62,8 @@ object RedshiftConnector extends RedshiftConnectorTrait {
       dbName: String,
       dbUser: String,
       dbPassword: String,
-      connectionParams: String
+      connectionParams: String,
+      connectorConfig: ConnectorConfig
   ) extends ConnectionConfig {
 
     protected def getPublicFieldsForId = List(host, port.toString, dbName, dbUser, connectionParams)

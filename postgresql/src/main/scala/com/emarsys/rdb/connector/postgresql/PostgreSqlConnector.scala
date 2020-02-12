@@ -5,7 +5,7 @@ import java.util.UUID
 
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
-import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
+import com.emarsys.rdb.connector.common.Models._
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.{PostgreSqlConnectionConfig, PostgreSqlConnectorConfig}
@@ -65,7 +65,8 @@ object PostgreSqlConnector extends PostgreSqlConnectorTrait {
       dbUser: String,
       dbPassword: String,
       certificate: String,
-      connectionParams: String
+      connectionParams: String,
+      connectorConfig: ConnectorConfig
   ) extends ConnectionConfig {
 
     protected def getPublicFieldsForId = List(host, port.toString, dbName, dbUser, connectionParams)

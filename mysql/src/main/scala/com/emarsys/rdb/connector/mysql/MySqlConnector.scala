@@ -4,7 +4,7 @@ import java.util.UUID
 
 import cats.data.EitherT
 import cats.syntax.applicativeError._
-import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
+import com.emarsys.rdb.connector.common.Models._
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
@@ -80,6 +80,7 @@ object MySqlConnector extends MySqlConnectorTrait {
       dbPassword: String,
       certificate: String,
       connectionParams: String,
+      connectorConfig: ConnectorConfig,
       replicaConfig: Option[MySqlConnectionConfig] = None
   ) extends ConnectionConfig {
 

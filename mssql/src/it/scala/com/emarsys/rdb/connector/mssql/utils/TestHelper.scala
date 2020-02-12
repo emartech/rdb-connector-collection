@@ -1,6 +1,7 @@
 package com.emarsys.rdb.connector.mssql.utils
 import java.util.Properties
 
+import com.emarsys.rdb.connector.common.Models._
 import com.emarsys.rdb.connector.mssql.CertificateUtil
 import com.emarsys.rdb.connector.mssql.MsSqlConnector.{MsSqlConnectionConfig, createUrl}
 import slick.jdbc.MySQLProfile.api._
@@ -19,7 +20,14 @@ object TestHelper {
     dbUser = config.getString("dbconf.user"),
     dbPassword = config.getString("dbconf.password"),
     certificate = config.getString("dbconf.certificate"),
-    connectionParams = config.getString("dbconf.connectionParams")
+    connectionParams = config.getString("dbconf.connectionParams"),
+    connectorConfig = ConnectorConfig(
+      select = PoolConfig(1, 1),
+      update = PoolConfig(1, 1),
+      segment = PoolConfig(1, 1),
+      meta = PoolConfig(1, 1),
+      test = PoolConfig(1, 1)
+    )
   )
 
   private lazy val db: Database = {

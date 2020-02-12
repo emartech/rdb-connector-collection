@@ -22,13 +22,7 @@ object TestHelper {
     dbUser = ConfigFactory.load().getString("dbconf.user"),
     dbPassword = ConfigFactory.load().getString("dbconf.password"),
     connectionParams = ConfigFactory.load().getString("dbconf.connectionParams"),
-    connectorConfig = ConnectorConfig(
-      select = PoolConfig(1, 1),
-      update = PoolConfig(1, 1),
-      segment = PoolConfig(1, 1),
-      meta = PoolConfig(1, 1),
-      test = PoolConfig(1, 1)
-    )
+    poolConfigs = PoolConfigs.empty
   )
 
   private lazy val db: Database = {
@@ -40,7 +34,6 @@ object TestHelper {
       prop = new Properties(),
       executor = AsyncExecutor.default()
     )
-
   }
 
   def executeQuery(sql: String): Future[Int] = {

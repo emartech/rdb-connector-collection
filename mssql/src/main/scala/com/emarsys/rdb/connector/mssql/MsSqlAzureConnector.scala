@@ -29,7 +29,7 @@ object MsSqlAzureConnector extends MsSqlAzureConnectorTrait {
       dbUser: String,
       dbPassword: String,
       connectionParams: String,
-      connectorConfig: ConnectorConfig
+      poolConfigs: PoolConfigs
   ) extends ConnectionConfig {
 
     protected def getPublicFieldsForId = List(host, dbName, dbUser, connectionParams)

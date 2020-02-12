@@ -63,7 +63,7 @@ object RedshiftConnector extends RedshiftConnectorTrait {
       dbUser: String,
       dbPassword: String,
       connectionParams: String,
-      connectorConfig: ConnectorConfig
+      poolConfigs: PoolConfigs
   ) extends ConnectionConfig {
 
     protected def getPublicFieldsForId = List(host, port.toString, dbName, dbUser, connectionParams)

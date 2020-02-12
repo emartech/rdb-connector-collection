@@ -25,13 +25,7 @@ class RedshiftConnectorSpec extends WordSpecLike with Matchers with MockitoSugar
         dbUser = "me",
         dbPassword = "secret",
         connectionParams = "?param1=asd",
-        connectorConfig = ConnectorConfig(
-          select = PoolConfig(1, 1),
-          update = PoolConfig(1, 1),
-          segment = PoolConfig(1, 1),
-          meta = PoolConfig(1, 1),
-          test = PoolConfig(1, 1)
-        )
+        poolConfigs = PoolConfigs.empty
       )
 
       "creates url from config" in {

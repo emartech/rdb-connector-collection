@@ -3,7 +3,7 @@ package com.emarsys.rdb.connector.mssql
 import java.lang.management.ManagementFactory
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.Models.MetaData
+import com.emarsys.rdb.connector.common.Models._
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
 import org.scalatestplus.mockito.MockitoSugar

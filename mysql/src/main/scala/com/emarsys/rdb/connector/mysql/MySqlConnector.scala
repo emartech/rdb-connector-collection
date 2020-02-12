@@ -80,7 +80,7 @@ object MySqlConnector extends MySqlConnectorTrait {
       dbPassword: String,
       certificate: String,
       connectionParams: String,
-      connectorConfig: ConnectorConfig,
+      poolConfigs: PoolConfigs,
       replicaConfig: Option[MySqlConnectionConfig] = None
   ) extends ConnectionConfig {
 

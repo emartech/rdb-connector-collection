@@ -33,6 +33,7 @@ object Models {
     }
   }
 
-  case class MetaData(nameQuoter: String, valueQuoter: String, escape: String)
+  case class PoolConfig(maxPoolSize: Int, queueSize: Int)
 
+  case class MetaData(nameQuoter: String, valueQuoter: String, escape: String)
 }

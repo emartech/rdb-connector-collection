@@ -81,13 +81,13 @@ object MySqlConnector extends MySqlConnectorTrait {
       certificate: String,
       connectionParams: String,
       replicaConfig: Option[MySqlConnectionConfig] = None
-  ) extends ConnectionConfig {
+  ) extends ConnectionConfig[MySqlConnectionConfig] {
 
     protected def getPublicFieldsForId =
       List(host, port.toString, dbName, dbUser, connectionParams, replicaConfig.map(_.getId).getOrElse("_"))
     protected def getSecretFieldsForId = List(dbPassword, certificate)
 
-    override def replica[C <: MySqlConnectionConfig]: Option[C] = replicaConfig.map(_.asInstanceOf[C])
+    override def replica: Option[MySqlConnectionConfig] = replicaConfig
 
     override def toCommonFormat: CommonConnectionReadableData = {
       CommonConnectionReadableData("mysql", s"$host:$port", dbName, dbUser)

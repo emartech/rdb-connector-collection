@@ -4,7 +4,7 @@ import java.util.Properties
 
 import com.emarsys.rdb.connector.common.Models._
 import com.emarsys.rdb.connector.mysql.CertificateUtil
-import com.emarsys.rdb.connector.mysql.MySqlConnector.{createJdbcUrl, MySqlConnectionConfig}
+import com.emarsys.rdb.connector.mysql.MySqlConnector.{MySqlConnectionConfig, createJdbcUrl}
 import slick.jdbc.MySQLProfile.api._
 import slick.util.AsyncExecutor
 
@@ -22,7 +22,13 @@ object TestHelper {
     dbPassword = config.getString("dbconf.password"),
     certificate = config.getString("dbconf.certificate"),
     connectionParams = config.getString("dbconf.connectionParams"),
-    poolConfigs = PoolConfigs.empty
+    connectorConfig = ConnectorConfig(
+      select = PoolConfig(1, 1),
+      update = PoolConfig(1, 1),
+      segment = PoolConfig(1, 1),
+      meta = PoolConfig(1, 1),
+      test = PoolConfig(1, 1)
+    )
   )
 
   private lazy val db: Database = {

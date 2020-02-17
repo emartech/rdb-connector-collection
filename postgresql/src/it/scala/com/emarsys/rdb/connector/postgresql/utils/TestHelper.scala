@@ -22,7 +22,13 @@ object TestHelper {
     dbPassword = config.getString("dbconf.password"),
     certificate = config.getString("dbconf.certificate"),
     connectionParams = config.getString("dbconf.connectionParams"),
-    poolConfigs = PoolConfigs.empty
+    connectorConfig = ConnectorConfig(
+      select = PoolConfig(1, 1),
+      update = PoolConfig(1, 1),
+      segment = PoolConfig(1, 1),
+      meta = PoolConfig(1, 1),
+      test = PoolConfig(1, 1)
+    )
   )
 
   private lazy val db: Database = {

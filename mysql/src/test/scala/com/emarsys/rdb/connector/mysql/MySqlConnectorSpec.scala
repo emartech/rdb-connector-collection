@@ -25,7 +25,13 @@ class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
       dbPassword = "secret",
       certificate = "cert",
       connectionParams = "?param1=asd",
-      poolConfigs = PoolConfigs.empty,
+      connectorConfig = ConnectorConfig(
+        select = PoolConfig(1, 1),
+        update = PoolConfig(1, 1),
+        segment = PoolConfig(1, 1),
+        meta = PoolConfig(1, 1),
+        test = PoolConfig(1, 1)
+      ),
       replicaConfig = None
     )
 

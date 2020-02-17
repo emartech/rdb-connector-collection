@@ -67,7 +67,7 @@ object MsSqlConnector extends MsSqlConnectorTrait {
       dbPassword: String,
       certificate: String,
       connectionParams: String,
-      poolConfigs: PoolConfigs
+      connectorConfig: ConnectorConfig
   ) extends ConnectionConfig {
 
     protected def getPublicFieldsForId = List(host, port.toString, dbName, dbUser, connectionParams)

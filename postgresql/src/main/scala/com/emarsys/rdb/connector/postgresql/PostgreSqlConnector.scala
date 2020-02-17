@@ -66,7 +66,7 @@ object PostgreSqlConnector extends PostgreSqlConnectorTrait {
       dbPassword: String,
       certificate: String,
       connectionParams: String,
-      poolConfigs: PoolConfigs
+      connectorConfig: ConnectorConfig
   ) extends ConnectionConfig {
 
     protected def getPublicFieldsForId = List(host, port.toString, dbName, dbUser, connectionParams)

@@ -2,8 +2,7 @@ package com.emarsys.rdb.connector.redshift.utils
 
 import java.util.Properties
 
-import com.emarsys.rdb.connector.common.Models._
-import com.emarsys.rdb.connector.redshift.RedshiftConnector.{createUrl, RedshiftConnectionConfig}
+import com.emarsys.rdb.connector.redshift.RedshiftConnector.{RedshiftConnectionConfig, createUrl}
 import slick.jdbc.PostgresProfile.api._
 import slick.util.AsyncExecutor
 
@@ -21,14 +20,7 @@ object TestHelper {
     dbName = ConfigFactory.load().getString("dbconf.dbName"),
     dbUser = ConfigFactory.load().getString("dbconf.user"),
     dbPassword = ConfigFactory.load().getString("dbconf.password"),
-    connectionParams = ConfigFactory.load().getString("dbconf.connectionParams"),
-    connectorConfig = ConnectorConfig(
-      select = PoolConfig(1, 1),
-      update = PoolConfig(1, 1),
-      segment = PoolConfig(1, 1),
-      meta = PoolConfig(1, 1),
-      test = PoolConfig(1, 1)
-    )
+    connectionParams = ConfigFactory.load().getString("dbconf.connectionParams")
   )
 
   private lazy val db: Database = {

@@ -3,7 +3,7 @@ package com.emarsys.rdb.connector.redshift
 import java.lang.management.ManagementFactory
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.Models._
+import com.emarsys.rdb.connector.common.Models.MetaData
 import com.emarsys.rdb.connector.redshift.RedshiftConnector.RedshiftConnectionConfig
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
@@ -24,14 +24,7 @@ class RedshiftConnectorSpec extends WordSpecLike with Matchers with MockitoSugar
         dbName = "database",
         dbUser = "me",
         dbPassword = "secret",
-        connectionParams = "?param1=asd",
-        connectorConfig = ConnectorConfig(
-          select = PoolConfig(1, 1),
-          update = PoolConfig(1, 1),
-          segment = PoolConfig(1, 1),
-          meta = PoolConfig(1, 1),
-          test = PoolConfig(1, 1)
-        )
+        connectionParams = "?param1=asd"
       )
 
       "creates url from config" in {

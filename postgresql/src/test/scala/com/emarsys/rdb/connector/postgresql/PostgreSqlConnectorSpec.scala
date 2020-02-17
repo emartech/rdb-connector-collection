@@ -3,7 +3,7 @@ package com.emarsys.rdb.connector.postgresql
 import java.lang.management.ManagementFactory
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.Models._
+import com.emarsys.rdb.connector.common.Models.MetaData
 import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.PostgreSqlConnectionConfig
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
@@ -25,14 +25,7 @@ class PostgreSqlConnectorSpec extends WordSpecLike with Matchers with MockitoSug
         dbUser = "me",
         dbPassword = "secret",
         certificate = "cert",
-        connectionParams = "?param1=asd",
-        connectorConfig = ConnectorConfig(
-          select = PoolConfig(1, 1),
-          update = PoolConfig(1, 1),
-          segment = PoolConfig(1, 1),
-          meta = PoolConfig(1, 1),
-          test = PoolConfig(1, 1)
-        )
+        connectionParams = "?param1=asd"
       )
 
       "creates url from config" in {

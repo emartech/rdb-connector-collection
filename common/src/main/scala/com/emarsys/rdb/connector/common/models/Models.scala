@@ -33,15 +33,6 @@ object Models {
     }
   }
 
-  case class PoolConfig(maxPoolSize: Int, queueSize: Int)
-  case class ConnectorConfig(
-      select: PoolConfig,
-      update: PoolConfig,
-      segment: PoolConfig,
-      meta: PoolConfig,
-      test: PoolConfig
-  )
-
   case class MetaData(nameQuoter: String, valueQuoter: String, escape: String)
 
 }

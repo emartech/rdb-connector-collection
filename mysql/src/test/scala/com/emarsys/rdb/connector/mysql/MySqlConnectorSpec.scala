@@ -3,7 +3,7 @@ package com.emarsys.rdb.connector.mysql
 import java.lang.management.ManagementFactory
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.Models._
+import com.emarsys.rdb.connector.common.Models.MetaData
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectionConfig
 import com.zaxxer.hikari.HikariPoolMXBean
@@ -25,13 +25,6 @@ class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
       dbPassword = "secret",
       certificate = "cert",
       connectionParams = "?param1=asd",
-      connectorConfig = ConnectorConfig(
-        select = PoolConfig(1, 1),
-        update = PoolConfig(1, 1),
-        segment = PoolConfig(1, 1),
-        meta = PoolConfig(1, 1),
-        test = PoolConfig(1, 1)
-      ),
       replicaConfig = None
     )
 

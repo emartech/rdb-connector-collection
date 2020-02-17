@@ -4,7 +4,7 @@ import java.util.UUID
 
 import cats.data.EitherT
 import cats.syntax.applicativeError._
-import com.emarsys.rdb.connector.common.Models._
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.mssql.MsSqlAzureConnector.{
@@ -28,8 +28,7 @@ object MsSqlAzureConnector extends MsSqlAzureConnectorTrait {
       dbName: String,
       dbUser: String,
       dbPassword: String,
-      connectionParams: String,
-      connectorConfig: ConnectorConfig
+      connectionParams: String
   ) extends ConnectionConfig {
 
     protected def getPublicFieldsForId = List(host, dbName, dbUser, connectionParams)

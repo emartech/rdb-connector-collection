@@ -3,16 +3,23 @@ package com.emarsys.rdb.connector.postgresql
 import java.lang.management.ManagementFactory
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.Models.MetaData
-import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.PostgreSqlConnectionConfig
+import com.emarsys.rdb.connector.common.Models.{MetaData, PoolConfig}
+import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.{PostgreSqlConnectionConfig, PostgreSqlConnectorConfig}
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatestplus.mockito.MockitoSugar
 import slick.jdbc.PostgresProfile.api._
 import spray.json._
 
 class PostgreSqlConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
+
+  lazy val connectorConfig = PostgreSqlConnectorConfig(
+    streamChunkSize = 5000,
+    configPath = "postgredb",
+    sslMode = "verify-ca",
+    poolConfig = PoolConfig(2, 100)
+  )
 
   "PostgreSqlConnectorSpec" when {
 
@@ -104,7 +111,7 @@ class PostgreSqlConnectorSpec extends WordSpecLike with Matchers with MockitoSug
         val mBeanName: ObjectName = new ObjectName(s"com.zaxxer.hikari:type=Pool ($poolName)")
         mbs.registerMBean(mxPool, mBeanName)
 
-        val connector   = new PostgreSqlConnector(db, PostgreSqlConnector.defaultConfig, poolName, "public")
+        val connector = new PostgreSqlConnector(db, connectorConfig, poolName, "public")
         val metricsJson = connector.innerMetrics().parseJson.asJsObject
 
         metricsJson.fields.size shouldEqual 4
@@ -113,8 +120,8 @@ class PostgreSqlConnectorSpec extends WordSpecLike with Matchers with MockitoSug
 
       "return Json in sad case" in {
         val db          = mock[Database]
-        val poolName    = ""
-        val connector   = new PostgreSqlConnector(db, PostgreSqlConnector.defaultConfig, poolName, "public")
+        val poolName = ""
+        val connector = new PostgreSqlConnector(db, connectorConfig, poolName, "public")
         val metricsJson = connector.innerMetrics().parseJson.asJsObject
         metricsJson.fields.size shouldEqual 0
       }

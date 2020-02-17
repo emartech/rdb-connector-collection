@@ -4,10 +4,10 @@ import java.util.UUID
 
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData, PoolConfig}
+import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
-import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.redshift.RedshiftConnector.{RedshiftConnectionConfig, RedshiftConnectorConfig}
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import slick.jdbc.PostgresProfile.api._
@@ -74,9 +74,10 @@ object RedshiftConnector extends RedshiftConnectorTrait {
   }
 
   case class RedshiftConnectorConfig(
-      streamChunkSize: Int,
-      configPath: String
-  )
+                                      streamChunkSize: Int,
+                                      configPath: String,
+                                      poolConfig: PoolConfig
+                                    )
 
 }
 
@@ -86,16 +87,11 @@ trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandli
   import com.emarsys.rdb.connector.common.defaults.DefaultSqlWriters._
   import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 
-  val defaultConfig = RedshiftConnectorConfig(
-    streamChunkSize = 5000,
-    configPath = "redshiftdb"
-  )
-
   override def meta(): MetaData = MetaData("\"", "'", "\\")
 
   def create(
-      config: RedshiftConnectionConfig,
-      connectorConfig: RedshiftConnectorConfig = defaultConfig
+              config: RedshiftConnectionConfig,
+              connectorConfig: RedshiftConnectorConfig
   )(implicit ec: ExecutionContext): ConnectorResponse[RedshiftConnector] = {
     if (isSslDisabled(config.connectionParams)) {
       Future.successful(Left(DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "SSL is disabled")))

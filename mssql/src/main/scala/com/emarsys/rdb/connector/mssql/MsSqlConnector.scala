@@ -4,7 +4,7 @@ import java.util.UUID
 
 import cats.data.EitherT
 import cats.syntax.applicativeError._
-import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData, PoolConfig}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
@@ -79,8 +79,9 @@ object MsSqlConnector extends MsSqlConnectorTrait {
 
   case class MsSqlConnectorConfig(
       configPath: String,
-      trustServerCertificate: Boolean
-  )
+      trustServerCertificate: Boolean,
+      poolConfig: PoolConfig
+                                 )
 
 }
 
@@ -88,16 +89,11 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
   import cats.instances.future._
   import cats.syntax.functor._
 
-  val defaultConfig = MsSqlConnectorConfig(
-    configPath = "mssqldb",
-    trustServerCertificate = true
-  )
-
   override def meta(): MetaData = MetaData("\"", "'", "'")
 
   def create(
       config: MsSqlConnectionConfig,
-      connectorConfig: MsSqlConnectorConfig = defaultConfig
+      connectorConfig: MsSqlConnectorConfig
   )(implicit e: ExecutionContext): ConnectorResponse[MsSqlConnector] = {
     if (isSslDisabledOrTamperedWith(config.connectionParams)) {
       Future.successful(
@@ -152,6 +148,10 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
     ConfigFactory
       .load()
       .getConfig(connectorConfig.configPath)
+      .withValue("maxConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("minConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("numThreads", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("queueSize", fromAnyRef(connectorConfig.poolConfig.queueSize))
       .withValue("poolName", fromAnyRef(poolName))
       .withValue("registerMbeans", fromAnyRef(true))
       .withValue("jdbcUrl", fromAnyRef(jdbcUrl))

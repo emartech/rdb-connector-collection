@@ -2,7 +2,8 @@ package com.emarsys.rdb.connector.redshift.utils
 
 import java.util.Properties
 
-import com.emarsys.rdb.connector.redshift.RedshiftConnector.{RedshiftConnectionConfig, createUrl}
+import com.emarsys.rdb.connector.common.Models.PoolConfig
+import com.emarsys.rdb.connector.redshift.RedshiftConnector.{createUrl, RedshiftConnectionConfig, RedshiftConnectorConfig}
 import slick.jdbc.PostgresProfile.api._
 import slick.util.AsyncExecutor
 
@@ -21,6 +22,12 @@ object TestHelper {
     dbUser = ConfigFactory.load().getString("dbconf.user"),
     dbPassword = ConfigFactory.load().getString("dbconf.password"),
     connectionParams = ConfigFactory.load().getString("dbconf.connectionParams")
+  )
+
+  val TEST_CONNECTOR_CONFIG = RedshiftConnectorConfig(
+    streamChunkSize = 5000,
+    configPath = "redshiftdb",
+    poolConfig = PoolConfig(2, 100)
   )
 
   private lazy val db: Database = {

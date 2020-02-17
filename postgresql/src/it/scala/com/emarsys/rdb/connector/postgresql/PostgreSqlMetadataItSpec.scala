@@ -1,27 +1,23 @@
 package com.emarsys.rdb.connector.postgresql
 
-import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.postgresql.utils.TestHelper
+import com.emarsys.rdb.connector.postgresql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.MetadataItSpec
 
 import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class PostgreSqlMetadataItSpec extends MetadataItSpec {
-
-  val connector: Connector =
-    Await.result(PostgreSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
+class PostgreSqlMetadataItSpec extends MetadataItSpec with BaseDbSpec {
 
   override val awaitTimeout = 15.seconds
 
   def initDb(): Unit = {
-    val createTableSql = s"""CREATE TABLE "$tableName" (
-                            |    PersonID int,
-                            |    LastName varchar(255),
-                            |    FirstName varchar(255),
-                            |    Address varchar(255),
-                            |    City varchar(255)
+    val createTableSql =
+      s"""CREATE TABLE "$tableName" (
+         |    PersonID int,
+         |    LastName varchar(255),
+         |    FirstName varchar(255),
+         |    Address varchar(255),
+         |    City varchar(255)
                             |);""".stripMargin
 
     val createViewSql = s"""CREATE VIEW "$viewName" AS

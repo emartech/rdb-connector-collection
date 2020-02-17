@@ -1,28 +1,21 @@
 package com.emarsys.rdb.connector.mssql
 
-import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.mssql.utils.TestHelper
+import com.emarsys.rdb.connector.mssql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.MetadataItSpec
 
-import scala.concurrent.duration._
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 
-class MsSqlMetadataItSpec extends MetadataItSpec {
-
-  override val awaitTimeout: FiniteDuration = 30.seconds
-  val connector: Connector =
-    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), awaitTimeout).right.get
+class MsSqlMetadataItSpec extends MetadataItSpec with BaseDbSpec {
 
   def initDb(): Unit = {
-    val createTableSql = s"""CREATE TABLE [$tableName] (
-                            |    PersonID int,
-                            |    LastName varchar(255),
-                            |    FirstName varchar(255),
-                            |    Address varchar(255),
-                            |    City varchar(255)
-                            |);""".stripMargin
+    val createTableSql =
+      s"""CREATE TABLE [$tableName] (
+         |    PersonID int,
+         |    LastName varchar(255),
+         |    FirstName varchar(255),
+         |    Address varchar(255),
+         |    City varchar(255)
+         |);""".stripMargin
 
     val createViewSql = s"""CREATE VIEW [$viewName] AS
                            |SELECT PersonID, LastName, FirstName

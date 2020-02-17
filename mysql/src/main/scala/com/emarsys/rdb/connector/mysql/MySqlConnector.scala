@@ -4,7 +4,7 @@ import java.util.UUID
 
 import cats.data.EitherT
 import cats.syntax.applicativeError._
-import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData, PoolConfig}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
@@ -96,7 +96,8 @@ object MySqlConnector extends MySqlConnectorTrait {
 
   case class MySqlConnectorConfig(
       configPath: String,
-      verifyServerCertificate: Boolean
+      verifyServerCertificate: Boolean,
+      poolConfig: PoolConfig
   )
 
 }
@@ -105,16 +106,11 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
   import cats.instances.future._
   import cats.syntax.flatMap._
 
-  val defaultConfig =
-    MySqlConnectorConfig(
-      configPath = "mysqldb",
-      verifyServerCertificate = true
-    )
   override def meta(): MetaData = MetaData("`", "'", "\\")
 
   def create(
       config: MySqlConnectionConfig,
-      connectorConfig: MySqlConnectorConfig = defaultConfig
+      connectorConfig: MySqlConnectorConfig
   )(implicit e: ExecutionContext): ConnectorResponse[MySqlConnector] = {
     (for {
       trustStoreUrl <- createTrustStoreUrl(config.certificate)
@@ -178,6 +174,10 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
     ConfigFactory
       .load()
       .getConfig(connectorConfig.configPath)
+      .withValue("maxConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("minConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("numThreads", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("queueSize", fromAnyRef(connectorConfig.poolConfig.queueSize))
       .withValue("poolName", fromAnyRef(poolName))
       .withValue("registerMbeans", fromAnyRef(true))
       .withValue("jdbcUrl", fromAnyRef(jdbcUrl))

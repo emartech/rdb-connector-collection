@@ -8,6 +8,7 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.PostgreSqlConnectionConfig
+import com.emarsys.rdb.connector.postgresql.utils.TestHelper
 import com.emarsys.rdb.connector.postgresql.utils.TestHelper.TEST_CONNECTION_CONFIG
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
 import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}
@@ -36,7 +37,7 @@ class PostgreSqlConnectorItSpec
     "create connector" should {
 
       "connect success" in {
-        PostgreSqlConnector.create(defaultConnection).map { result =>
+        PostgreSqlConnector.create(defaultConnection, TestHelper.TEST_CONNECTOR_CONFIG).map { result =>
           result.right.value
           succeed
         }
@@ -47,7 +48,7 @@ class PostgreSqlConnectorItSpec
           DatabaseError(ErrorCategory.Internal, ErrorName.ConnectionConfigError, "SSL Error", None, None)
         val conn = defaultConnection.copy(connectionParams = "ssl=false")
 
-        PostgreSqlConnector.create(conn).map { result =>
+        PostgreSqlConnector.create(conn, TestHelper.TEST_CONNECTOR_CONFIG).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expected)
         }
       }
@@ -57,7 +58,7 @@ class PostgreSqlConnectorItSpec
           DatabaseError(ErrorCategory.Internal, ErrorName.ConnectionConfigError, "SSL Error", None, None)
         val conn = defaultConnection.copy(connectionParams = "sslrootcert=/root.crt")
 
-        PostgreSqlConnector.create(conn).map { result =>
+        PostgreSqlConnector.create(conn, TestHelper.TEST_CONNECTOR_CONFIG).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expected)
         }
       }
@@ -67,7 +68,7 @@ class PostgreSqlConnectorItSpec
           DatabaseError(ErrorCategory.Internal, ErrorName.ConnectionConfigError, "SSL Error", None, None)
         val conn = defaultConnection.copy(connectionParams = "sslmode=disable")
 
-        PostgreSqlConnector.create(conn).map { result =>
+        PostgreSqlConnector.create(conn, TestHelper.TEST_CONNECTOR_CONFIG).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expected)
         }
       }
@@ -77,7 +78,7 @@ class PostgreSqlConnectorItSpec
           DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, timeoutMessage, None, None)
         val conn = defaultConnection.copy(certificate = "")
 
-        PostgreSqlConnector.create(conn).map { result =>
+        PostgreSqlConnector.create(conn, TestHelper.TEST_CONNECTOR_CONFIG).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expected)
         }
       }
@@ -87,7 +88,7 @@ class PostgreSqlConnectorItSpec
           DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, timeoutMessage, None, None)
         val conn = defaultConnection.copy(host = "wrong")
 
-        PostgreSqlConnector.create(conn).map { result =>
+        PostgreSqlConnector.create(conn, TestHelper.TEST_CONNECTOR_CONFIG).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expected)
         }
       }
@@ -97,7 +98,7 @@ class PostgreSqlConnectorItSpec
           DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, timeoutMessage, None, None)
         val conn = defaultConnection.copy(dbUser = "")
 
-        PostgreSqlConnector.create(conn).map { result =>
+        PostgreSqlConnector.create(conn, TestHelper.TEST_CONNECTOR_CONFIG).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expected)
         }
       }
@@ -107,7 +108,7 @@ class PostgreSqlConnectorItSpec
           DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, timeoutMessage, None, None)
         val conn = defaultConnection.copy(dbPassword = "")
 
-        PostgreSqlConnector.create(conn).map { result =>
+        PostgreSqlConnector.create(conn, TestHelper.TEST_CONNECTOR_CONFIG).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expected)
         }
       }
@@ -118,7 +119,7 @@ class PostgreSqlConnectorItSpec
 
       "success" in {
         for {
-          result <- PostgreSqlConnector.create(defaultConnection)
+          result <- PostgreSqlConnector.create(defaultConnection, TestHelper.TEST_CONNECTOR_CONFIG)
           connector = result.right.value
           _ <- connector.testConnection()
           _ <- connector.close()
@@ -129,8 +130,8 @@ class PostgreSqlConnectorItSpec
 
     def runSelect(q: String, connConfig: PostgreSqlConnectionConfig = defaultConnection): ConnectorResponse[Unit] =
       for {
-        Right(connector) <- PostgreSqlConnector.create(connConfig)
-        Right(source)    <- connector.rawSelect(q, limit = None, 5.second)
+        Right(connector) <- PostgreSqlConnector.create(connConfig, TestHelper.TEST_CONNECTOR_CONFIG)
+        Right(source) <- connector.rawSelect(q, limit = None, 5.second)
         res              <- sinkOrLeft(source)
         _                <- connector.close()
       } yield res

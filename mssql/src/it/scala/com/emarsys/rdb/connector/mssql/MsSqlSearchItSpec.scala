@@ -3,19 +3,12 @@ package com.emarsys.rdb.connector.mssql
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.mssql.utils.TestHelper
+import com.emarsys.rdb.connector.mssql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SearchItSpec
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
 
-class MsSqlSearchItSpec extends TestKit(ActorSystem("MsSqlSearchItSpec")) with SearchItSpec {
-  import scala.concurrent.ExecutionContext.Implicits.global
-
-  override val awaitTimeout = 30.seconds
-  val connector: Connector =
-    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), awaitTimeout).right.get
+class MsSqlSearchItSpec extends TestKit(ActorSystem("MsSqlSearchItSpec")) with SearchItSpec with BaseDbSpec {
 
   override implicit val materializer: Materializer = ActorMaterializer()
 

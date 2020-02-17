@@ -3,7 +3,8 @@ package com.emarsys.rdb.connector.mssql
 import java.lang.management.ManagementFactory
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.Models.MetaData
+import com.emarsys.rdb.connector.common.Models.{MetaData, PoolConfig}
+import com.emarsys.rdb.connector.mssql.MsSqlConnector.MsSqlConnectorConfig
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
 import org.scalatestplus.mockito.MockitoSugar
@@ -12,6 +13,12 @@ import slick.jdbc.SQLServerProfile.api._
 import spray.json._
 
 class MsSqlConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
+
+  val defaultConfig = MsSqlConnectorConfig(
+    configPath = "mssqldb",
+    trustServerCertificate = true,
+    poolConfig = PoolConfig(2, 100)
+  )
 
   "MsSqlConnectorSpec" when {
 
@@ -43,7 +50,7 @@ class MsSqlConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
         val mBeanName: ObjectName = new ObjectName(s"com.zaxxer.hikari:type=Pool ($poolName)")
         mbs.registerMBean(mxPool, mBeanName)
 
-        val connector   = new MsSqlConnector(db, MsSqlConnector.defaultConfig, poolName)
+        val connector   = new MsSqlConnector(db, defaultConfig, poolName)
         val metricsJson = connector.innerMetrics().parseJson.asJsObject
 
         metricsJson.fields.size shouldEqual 4
@@ -53,7 +60,7 @@ class MsSqlConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
       "return Json in sad case" in {
         val db          = mock[Database]
         val poolName    = ""
-        val connector   = new MsSqlConnector(db, MsSqlConnector.defaultConfig, poolName)
+        val connector   = new MsSqlConnector(db, defaultConfig, poolName)
         val metricsJson = connector.innerMetrics().parseJson.asJsObject
         metricsJson.fields.size shouldEqual 0
       }

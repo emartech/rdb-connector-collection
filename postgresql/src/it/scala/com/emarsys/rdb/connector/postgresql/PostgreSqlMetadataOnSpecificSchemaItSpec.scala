@@ -6,12 +6,12 @@ import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.createUrl
 import com.emarsys.rdb.connector.postgresql.utils.TestHelper
 import com.emarsys.rdb.connector.test.MetadataItSpec
+import slick.jdbc.PostgresProfile.api._
 import slick.util.AsyncExecutor
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import slick.jdbc.PostgresProfile.api._
 
 class PostgreSqlMetadataOnSpecificSchemaItSpec extends MetadataItSpec {
 
@@ -39,7 +39,7 @@ class PostgreSqlMetadataOnSpecificSchemaItSpec extends MetadataItSpec {
   }
 
   val connector: Connector =
-    Await.result(PostgreSqlConnector.create(configWithSchema), 5.seconds).right.get
+    Await.result(PostgreSqlConnector.create(configWithSchema, TestHelper.TEST_CONNECTOR_CONFIG), 5.seconds).right.get
 
   override val awaitTimeout = 15.seconds
 

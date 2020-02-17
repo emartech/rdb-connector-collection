@@ -14,8 +14,6 @@ class MsSqlSimpleSelectItSpec
     with SimpleSelectItSpec
     with SelectDbInitHelper {
 
-  import scala.concurrent.ExecutionContext.Implicits.global
-
   override val awaitTimeout: FiniteDuration = 30.seconds
   override implicit val materializer: Materializer = ActorMaterializer()
 

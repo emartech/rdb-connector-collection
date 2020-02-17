@@ -5,12 +5,12 @@ import java.util.UUID
 
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
-import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
-import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData, PoolConfig}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.{PostgreSqlConnectionConfig, PostgreSqlConnectorConfig}
-import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -77,10 +77,11 @@ object PostgreSqlConnector extends PostgreSqlConnectorTrait {
   }
 
   case class PostgreSqlConnectorConfig(
-      streamChunkSize: Int,
-      configPath: String,
-      sslMode: String
-  )
+                                        streamChunkSize: Int,
+                                        configPath: String,
+                                        sslMode: String,
+                                        poolConfig: PoolConfig
+                                      )
 
 }
 
@@ -88,17 +89,11 @@ trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHa
   import cats.instances.future._
   import cats.syntax.functor._
 
-  private[postgresql] val defaultConfig = PostgreSqlConnectorConfig(
-    streamChunkSize = 5000,
-    configPath = "postgredb",
-    sslMode = "verify-ca"
-  )
-
   override def meta(): MetaData = MetaData("\"", "'", "\\")
 
   def create(
-      config: PostgreSqlConnectionConfig,
-      connectorConfig: PostgreSqlConnectorConfig = defaultConfig
+              config: PostgreSqlConnectionConfig,
+              connectorConfig: PostgreSqlConnectorConfig
   )(implicit ec: ExecutionContext): ConnectorResponse[PostgreSqlConnector] = {
     val poolName = UUID.randomUUID.toString
 

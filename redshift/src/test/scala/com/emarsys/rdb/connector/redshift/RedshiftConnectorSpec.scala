@@ -3,16 +3,22 @@ package com.emarsys.rdb.connector.redshift
 import java.lang.management.ManagementFactory
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.Models.MetaData
-import com.emarsys.rdb.connector.redshift.RedshiftConnector.RedshiftConnectionConfig
+import com.emarsys.rdb.connector.common.Models.{MetaData, PoolConfig}
+import com.emarsys.rdb.connector.redshift.RedshiftConnector.{RedshiftConnectionConfig, RedshiftConnectorConfig}
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatestplus.mockito.MockitoSugar
 import slick.jdbc.PostgresProfile.api._
 import spray.json._
 
 class RedshiftConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
+  val connectorConfig = RedshiftConnectorConfig(
+    streamChunkSize = 5000,
+    configPath = "redshiftdb",
+    poolConfig = PoolConfig(2, 100)
+  )
+
 
   "RedshiftConnectorTest" when {
 
@@ -95,7 +101,7 @@ class RedshiftConnectorSpec extends WordSpecLike with Matchers with MockitoSugar
         val mBeanName: ObjectName = new ObjectName(s"com.zaxxer.hikari:type=Pool ($poolName)")
         mbs.registerMBean(mxPool, mBeanName)
 
-        val connector   = new RedshiftConnector(db, RedshiftConnector.defaultConfig, poolName, "public")
+        val connector = new RedshiftConnector(db, connectorConfig, poolName, "public")
         val metricsJson = connector.innerMetrics().parseJson.asJsObject
 
         metricsJson.fields.size shouldEqual 4
@@ -103,9 +109,9 @@ class RedshiftConnectorSpec extends WordSpecLike with Matchers with MockitoSugar
       }
 
       "return Json in sad case" in {
-        val db          = mock[Database]
-        val poolName    = ""
-        val connector   = new RedshiftConnector(db, RedshiftConnector.defaultConfig, poolName, "public")
+        val db = mock[Database]
+        val poolName = ""
+        val connector = new RedshiftConnector(db, connectorConfig, poolName, "public")
         val metricsJson = connector.innerMetrics().parseJson.asJsObject
         metricsJson.fields.size shouldEqual 0
       }

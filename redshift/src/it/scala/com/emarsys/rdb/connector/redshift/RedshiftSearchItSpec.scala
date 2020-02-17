@@ -3,18 +3,13 @@ package com.emarsys.rdb.connector.redshift
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.redshift.utils.TestHelper
+import com.emarsys.rdb.connector.redshift.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SearchItSpec
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class RedshiftSearchItSpec extends TestKit(ActorSystem("RedshiftSearchItSpec")) with SearchItSpec {
-  import scala.concurrent.ExecutionContext.Implicits.global
-
-  val connector: Connector =
-    Await.result(RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
+class RedshiftSearchItSpec extends TestKit(ActorSystem("RedshiftSearchItSpec")) with SearchItSpec with BaseDbSpec {
 
   override implicit val materializer: Materializer = ActorMaterializer()
 
@@ -58,18 +53,8 @@ class RedshiftSearchItSpec extends TestKit(ActorSystem("RedshiftSearchItSpec")) 
   }
 }
 
-class RedshiftSearchWithSchemaItSpec extends TestKit(ActorSystem("RedshiftSearchWithSchemaItSpec")) with SearchItSpec {
-  import scala.concurrent.ExecutionContext.Implicits.global
-
+class RedshiftSearchWithSchemaItSpec extends TestKit(ActorSystem("RedshiftSearchWithSchemaItSpec")) with SearchItSpec with BaseDbSpec {
   val schema = "ittestschema"
-
-  val connector: Connector = Await
-    .result(
-      RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")),
-      5.seconds
-    )
-    .right
-    .get
 
   override implicit val materializer: Materializer = ActorMaterializer()
 

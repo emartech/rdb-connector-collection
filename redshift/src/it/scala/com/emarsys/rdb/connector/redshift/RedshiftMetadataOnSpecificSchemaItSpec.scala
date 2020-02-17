@@ -1,18 +1,16 @@
 package com.emarsys.rdb.connector.redshift
 import java.util.Properties
 
-import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.redshift.RedshiftConnector.createUrl
-import com.emarsys.rdb.connector.redshift.utils.TestHelper
+import com.emarsys.rdb.connector.redshift.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.MetadataItSpec
+import slick.jdbc.PostgresProfile.api._
 import slick.util.AsyncExecutor
 
 import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import slick.jdbc.PostgresProfile.api._
 
-class RedshiftMetadataOnSpecificSchemaItSpec extends MetadataItSpec {
+class RedshiftMetadataOnSpecificSchemaItSpec extends MetadataItSpec with BaseDbSpec {
 
   val schemaName = "otherschema"
   Await.result(TestHelper.executeQuery("CREATE SCHEMA IF NOT EXISTS " + schemaName), 5.seconds)
@@ -36,9 +34,6 @@ class RedshiftMetadataOnSpecificSchemaItSpec extends MetadataItSpec {
   def executeQuery(sql: String): Future[Int] = {
     db.run(sqlu"""#$sql""")
   }
-
-  val connector: Connector =
-    Await.result(RedshiftConnector.create(configWithSchema), 5.seconds).right.get
 
   override val awaitTimeout = 15.seconds
 

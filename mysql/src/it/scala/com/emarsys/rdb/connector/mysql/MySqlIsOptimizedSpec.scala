@@ -2,10 +2,8 @@ package com.emarsys.rdb.connector.mysql
 
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
-import com.emarsys.rdb.connector.mysql.utils.TestHelper
+import com.emarsys.rdb.connector.mysql.utils.{BaseDbSpec, SelectDbInitHelper, TestHelper}
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
 import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
@@ -13,28 +11,13 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
+class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues with BaseDbSpec {
 
   val uuid = UUID.randomUUID().toString
 
   val tableName  = s"is_optimized_table_$uuid"
   val index1Name = s"is_optimized_index1_$uuid"
   val index2Name = s"is_optimized_index2_$uuid"
-
-  val connector: Connector =
-    Await
-      .result(
-        MySqlConnector.create(
-          TestHelper.TEST_CONNECTION_CONFIG,
-          MySqlConnectorConfig(
-            configPath = "mysqldb",
-            verifyServerCertificate = false
-          )
-        ),
-        5.seconds
-      )
-      .right
-      .get
 
   override def beforeAll(): Unit = {
     initDb()

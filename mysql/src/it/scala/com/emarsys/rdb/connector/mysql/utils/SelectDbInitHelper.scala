@@ -1,33 +1,17 @@
 package com.emarsys.rdb.connector.mysql.utils
 
 import com.emarsys.rdb.connector.common.models.Connector
+import com.emarsys.rdb.connector.common.Models.PoolConfig
 import com.emarsys.rdb.connector.mysql.MySqlConnector
 import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-trait SelectDbInitHelper {
-
-  import scala.concurrent.ExecutionContext.Implicits.global
+trait SelectDbInitHelper extends BaseDbSpec {
 
   val aTableName: String
   val bTableName: String
-
-  lazy val connector: Connector =
-    Await
-      .result(
-        MySqlConnector.create(
-          TestHelper.TEST_CONNECTION_CONFIG,
-          MySqlConnectorConfig(
-            configPath = "mysqldb",
-            verifyServerCertificate = false
-          )
-        ),
-        5.seconds
-      )
-      .right
-      .get
 
   def initDb(): Unit = {
     val createATableSql =

@@ -50,7 +50,7 @@ class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQ
 object BigQueryConnector extends BigQueryConnectorTrait {
 
   case class BigQueryConnectionConfig(projectId: String, dataset: String, clientEmail: String, privateKey: String)
-      extends ConnectionConfig[BigQueryConnectionConfig] {
+      extends ConnectionConfig {
 
     protected def getPublicFieldsForId = List(projectId, dataset, clientEmail)
     protected def getSecretFieldsForId = List(privateKey)

@@ -7,8 +7,9 @@ object Models {
 
   case class CommonConnectionReadableData(`type`: String, location: String, dataset: String, user: String)
 
-  trait ConnectionConfig[C <: ConnectionConfig[C]] { self: C =>
-    def replica: Option[C] = None
+  trait ConnectionConfig {
+    type This <: ConnectionConfig
+    def replica: Option[This] = None
 
     protected def getPublicFieldsForId: List[String]
 

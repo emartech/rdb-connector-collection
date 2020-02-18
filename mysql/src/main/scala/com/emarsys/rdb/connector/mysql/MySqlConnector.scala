@@ -81,7 +81,8 @@ object MySqlConnector extends MySqlConnectorTrait {
       certificate: String,
       connectionParams: String,
       replicaConfig: Option[MySqlConnectionConfig] = None
-  ) extends ConnectionConfig[MySqlConnectionConfig] {
+  ) extends ConnectionConfig {
+    type This = MySqlConnectionConfig
 
     protected def getPublicFieldsForId =
       List(host, port.toString, dbName, dbUser, connectionParams, replicaConfig.map(_.getId).getOrElse("_"))

@@ -25,7 +25,7 @@ object MsSqlAzureConnector extends MsSqlAzureConnectorTrait {
       dbUser: String,
       dbPassword: String,
       connectionParams: String
-  ) extends ConnectionConfig[MsSqlAzureConnectionConfig] {
+  ) extends ConnectionConfig {
 
     protected def getPublicFieldsForId = List(host, dbName, dbUser, connectionParams)
     protected def getSecretFieldsForId = List(dbPassword)

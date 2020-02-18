@@ -2,8 +2,8 @@ package com.emarsys.rdb.connector.bigquery.stream.sendrequest
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.HttpExt
-import akka.http.scaladsl.model.StatusCodes.{BadRequest, Forbidden, NotFound}
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.StatusCodes.{BadRequest, Forbidden, NotFound}
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
@@ -13,12 +13,12 @@ import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
 import com.emarsys.rdb.connector.test.CustomMatchers._
 import org.mockito.Mockito._
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.prop.TableDrivenPropertyChecks
+import org.scalatestplus.mockito.MockitoSugar
 
-import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 
 class SendRequestWithOauthHandlingSpec
     extends TestKit(ActorSystem("SendRequestWithOauthHandlingSpec"))

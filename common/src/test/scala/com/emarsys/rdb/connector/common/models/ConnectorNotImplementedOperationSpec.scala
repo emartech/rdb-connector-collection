@@ -3,13 +3,11 @@ package com.emarsys.rdb.connector.common.models
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.StringValue
 import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-
 import com.emarsys.rdb.connector.common.models.SimpleSelect.{AllField, TableName}
-
 import org.scalatest.{Matchers, WordSpecLike}
 
-import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.duration._
 
 class ConnectorNotImplementedOperationSpec extends WordSpecLike with Matchers {
 

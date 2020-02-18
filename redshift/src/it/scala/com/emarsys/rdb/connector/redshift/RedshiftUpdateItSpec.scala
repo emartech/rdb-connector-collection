@@ -6,7 +6,7 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.redshift.utils.{SelectDbInitHelper, SelectDbWithSchemaInitHelper}
 import com.emarsys.rdb.connector.test.UpdateItSpec
 
-import concurrent.duration._
+import scala.concurrent.duration._
 
 class RedshiftUpdateItSpec
     extends TestKit(ActorSystem("RedshiftUpdateItSpec"))

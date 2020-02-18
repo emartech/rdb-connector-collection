@@ -6,7 +6,7 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.postgresql.utils.SelectDbInitHelper
 import com.emarsys.rdb.connector.test.ReplaceItSpec
 
-import concurrent.duration._
+import scala.concurrent.duration._
 
 class PostgreSqlReplaceItSpec
     extends TestKit(ActorSystem("PostgreSqlReplaceItSpec"))

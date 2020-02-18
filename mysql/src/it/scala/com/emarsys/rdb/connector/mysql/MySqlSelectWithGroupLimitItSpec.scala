@@ -3,7 +3,7 @@ package com.emarsys.rdb.connector.mysql
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.mysql.utils.{BaseDbSpec, SelectDbInitHelper, TestHelper}
+import com.emarsys.rdb.connector.mysql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
 
 import scala.concurrent.Await
@@ -13,7 +13,6 @@ class MySqlSelectWithGroupLimitItSpec
     extends TestKit(ActorSystem("MySqlSelectWithGroupLimitItSpec"))
     with SelectWithGroupLimitItSpec
     with BaseDbSpec {
-  import scala.concurrent.ExecutionContext.Implicits.global
 
   override implicit val materializer: Materializer = ActorMaterializer()
 

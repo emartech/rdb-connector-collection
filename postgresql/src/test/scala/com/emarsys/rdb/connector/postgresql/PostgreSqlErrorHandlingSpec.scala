@@ -4,8 +4,8 @@ import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionEx
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
-import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.{EitherValues, Matchers, PartialFunctionValues, WordSpec}
+import org.scalatest.prop.TableDrivenPropertyChecks
 import slick.SlickException
 
 class PostgreSqlErrorHandlingSpec

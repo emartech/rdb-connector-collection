@@ -8,8 +8,6 @@ import akka.testkit.TestKit
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
-import com.emarsys.rdb.connector.common.Models.PoolConfig
-import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
 import com.emarsys.rdb.connector.mysql.utils.TestHelper
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
 import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}

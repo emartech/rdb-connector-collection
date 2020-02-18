@@ -3,9 +3,9 @@ package com.emarsys.rdb.connector.postgresql
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
+import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.Future
-import slick.jdbc.PostgresProfile.api._
 
 trait PostgreSqlMetadata {
   self: PostgreSqlConnector =>

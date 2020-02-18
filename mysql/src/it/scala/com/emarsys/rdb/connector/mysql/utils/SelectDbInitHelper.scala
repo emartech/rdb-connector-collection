@@ -1,10 +1,5 @@
 package com.emarsys.rdb.connector.mysql.utils
 
-import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.Models.PoolConfig
-import com.emarsys.rdb.connector.mysql.MySqlConnector
-import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
-
 import scala.concurrent.Await
 import scala.concurrent.duration._
 

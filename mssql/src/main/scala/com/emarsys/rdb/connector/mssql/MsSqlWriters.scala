@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.mssql
 
-import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.common.defaults.{DefaultSqlWriters, SqlWriter}
+import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect.Value
 

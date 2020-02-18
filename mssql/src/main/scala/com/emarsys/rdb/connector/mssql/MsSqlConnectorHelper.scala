@@ -5,8 +5,8 @@ import slick.jdbc.SQLServerProfile.api._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait MsSqlConnectorHelper {
-  import cats.syntax.functor._
   import cats.instances.future._
+  import cats.syntax.functor._
 
   protected def checkConnection(db: Database)(implicit executionContext: ExecutionContext): Future[Unit] = {
     db.run(sql"SELECT 1".as[(String)]).void

@@ -22,7 +22,7 @@ class MsSqlConnectorItSpec
     with BeforeAndAfterAll
     with EitherValues {
 
-
+  val timeout = 30.seconds
   implicit val mat      = ActorMaterializer()
   override def afterAll = TestKit.shutdownActorSystem(system)
 

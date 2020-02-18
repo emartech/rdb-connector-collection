@@ -3,9 +3,9 @@ package com.emarsys.rdb.connector.redshift
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
-import RedshiftSqlWriters._
+import com.emarsys.rdb.connector.common.models.SimpleSelect
+import com.emarsys.rdb.connector.redshift.RedshiftSqlWriters._
 
 import scala.concurrent.duration.FiniteDuration
 

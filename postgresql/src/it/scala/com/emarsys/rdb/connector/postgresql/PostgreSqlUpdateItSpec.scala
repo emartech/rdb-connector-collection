@@ -5,7 +5,8 @@ import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.postgresql.utils.SelectDbInitHelper
 import com.emarsys.rdb.connector.test.UpdateItSpec
-import concurrent.duration._
+
+import scala.concurrent.duration._
 
 class PostgreSqlUpdateItSpec
     extends TestKit(ActorSystem("PostgreSqlUpdateItSpec"))

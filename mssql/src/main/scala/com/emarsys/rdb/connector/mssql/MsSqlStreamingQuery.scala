@@ -8,7 +8,6 @@ import com.emarsys.rdb.connector.common.ConnectorResponse
 import slick.jdbc.{GetResult, PositionedResult}
 import slick.jdbc.SQLServerProfile.api._
 
-import com.emarsys.rdb.connector.common._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 

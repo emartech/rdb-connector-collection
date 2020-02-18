@@ -2,10 +2,10 @@ package com.emarsys.rdb.connector.bigquery.stream.sendrequest
 
 import akka.NotUsed
 import akka.http.scaladsl.HttpExt
-import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
-import akka.stream.scaladsl.{Flow, GraphDSL}
+import akka.http.scaladsl.model.StatusCodes._
 import akka.stream.{ActorMaterializer, FlowShape, Graph, Materializer}
+import akka.stream.scaladsl.{Flow, GraphDSL}
 import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 

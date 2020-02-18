@@ -3,12 +3,11 @@ package com.emarsys.rdb.connector.mysql
 import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionException}
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
-import com.emarsys.rdb.connector.common.models.Errors.DatabaseError
-import com.emarsys.rdb.connector.common.models.Errors.{ErrorCategory => C, ErrorName => N}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
 import com.mysql.cj.exceptions.MysqlErrorNumbers._
 import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
-import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.{EitherValues, Matchers, PartialFunctionValues, WordSpecLike}
+import org.scalatest.prop.TableDrivenPropertyChecks
 import slick.SlickException
 
 class MySqlErrorHandlingSpec

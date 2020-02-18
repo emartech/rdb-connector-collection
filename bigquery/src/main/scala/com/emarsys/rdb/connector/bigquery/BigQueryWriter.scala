@@ -1,8 +1,8 @@
 package com.emarsys.rdb.connector.bigquery
 
 import com.emarsys.rdb.connector.bigquery.BigQueryConnector.BigQueryConnectionConfig
-import com.emarsys.rdb.connector.common.defaults.SqlWriter.createValueWriter
 import com.emarsys.rdb.connector.common.defaults.{DefaultSqlWriters, SqlWriter}
+import com.emarsys.rdb.connector.common.defaults.SqlWriter.createValueWriter
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect.{FieldName, TableName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.FieldModel

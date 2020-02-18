@@ -1,13 +1,13 @@
 package com.emarsys.rdb.connector.mysql
 
+import cats.data.EitherT
+import cats.implicits._
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
 import com.emarsys.rdb.connector.mysql.MySqlWriters._
 import slick.jdbc.MySQLProfile.api._
-import cats.data.EitherT
-import cats.implicits._
 
 trait MySqlMetadata {
   self: MySqlConnector =>

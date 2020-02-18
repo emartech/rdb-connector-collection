@@ -10,9 +10,9 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import akka.util.Timeout
 import cats.syntax.option._
+import com.emarsys.rdb.connector.bigquery.{BigQueryConnector, GoogleSession, GoogleTokenApi}
 import com.emarsys.rdb.connector.bigquery.GoogleApi._
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
-import com.emarsys.rdb.connector.bigquery.{BigQueryConnector, GoogleSession, GoogleTokenApi}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 

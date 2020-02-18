@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.common
 
-import java.security.MessageDigest
 import java.math.BigInteger
+import java.security.MessageDigest
 
 object Models {
 

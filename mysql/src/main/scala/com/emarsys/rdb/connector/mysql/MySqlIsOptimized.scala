@@ -1,10 +1,10 @@
 package com.emarsys.rdb.connector.mysql
 
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import slick.jdbc.MySQLProfile.api._
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
-import MySqlWriters._
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
+import com.emarsys.rdb.connector.mysql.MySqlWriters._
+import slick.jdbc.MySQLProfile.api._
 
 trait MySqlIsOptimized {
   self: MySqlConnector =>

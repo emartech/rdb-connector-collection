@@ -5,8 +5,8 @@ import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
 import com.microsoft.sqlserver.jdbc.SQLServerException
-import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor4}
 import org.scalatest.{EitherValues, Matchers, PartialFunctionValues, WordSpecLike}
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor4}
 
 class MsSqlErrorHandlingSpec
     extends WordSpecLike

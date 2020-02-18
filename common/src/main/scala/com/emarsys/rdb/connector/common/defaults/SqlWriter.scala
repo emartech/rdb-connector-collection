@@ -1,10 +1,10 @@
 package com.emarsys.rdb.connector.common.defaults
 
-import scala.language.implicitConversions
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 
 import scala.annotation.implicitNotFound
+import scala.language.implicitConversions
 
 @implicitNotFound(msg = "Cannot find implicit SqlWriter type class for ${T}")
 trait SqlWriter[T] {

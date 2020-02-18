@@ -5,7 +5,6 @@ import com.emarsys.rdb.connector.mysql.utils.{SelectDbInitHelper, TestHelper}
 import com.emarsys.rdb.connector.test.MetadataItSpec
 
 import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class MySqlMetadataItSpec extends MetadataItSpec with SelectDbInitHelper {

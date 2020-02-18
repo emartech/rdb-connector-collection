@@ -1,9 +1,9 @@
 package com.emarsys.rdb.connector.common.defaults
 
+import com.emarsys.rdb.connector.common.defaults.SqlWriter._
+import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import org.scalatest.{Matchers, WordSpecLike}
-import SqlWriter._
-import com.emarsys.rdb.connector.common.models.SimpleSelect
 
 class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 

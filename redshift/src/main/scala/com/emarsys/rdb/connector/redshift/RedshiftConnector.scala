@@ -10,6 +10,7 @@ import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCateg
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
 import com.emarsys.rdb.connector.redshift.RedshiftConnector.{RedshiftConnectionConfig, RedshiftConnectorConfig}
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
+import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -115,6 +116,10 @@ trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandli
     ConfigFactory
       .load()
       .getConfig(connectorConfig.configPath)
+      .withValue("maxConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("minConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("numThreads", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("queueSize", fromAnyRef(connectorConfig.poolConfig.queueSize))
       .withValue("poolName", ConfigValueFactory.fromAnyRef(poolName))
       .withValue("connectionInitSql", ConfigValueFactory.fromAnyRef(setSchemaQuery))
       .withValue("registerMbeans", ConfigValueFactory.fromAnyRef(true))

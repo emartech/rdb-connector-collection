@@ -26,8 +26,6 @@ class MsSqlConnectorItSpec
   implicit val mat      = ActorMaterializer()
   override def afterAll = TestKit.shutdownActorSystem(system)
 
-  private val timeout = 30.seconds
-
   "MsSqlConnectorItSpec" when {
 
     val connectorConfig = TestHelper.TEST_CONNECTOR_CONFIG

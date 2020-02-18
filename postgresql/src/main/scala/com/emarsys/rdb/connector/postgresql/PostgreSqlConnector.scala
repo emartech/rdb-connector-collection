@@ -118,6 +118,10 @@ trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHa
     ConfigFactory
       .load()
       .getConfig(connectorConfig.configPath)
+      .withValue("maxConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("minConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("numThreads", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("queueSize", fromAnyRef(connectorConfig.poolConfig.queueSize))
       .withValue("poolName", fromAnyRef(poolName))
       .withValue("registerMbeans", fromAnyRef(true))
       .withValue("jdbcUrl", fromAnyRef(jdbcUrl))

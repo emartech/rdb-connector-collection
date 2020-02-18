@@ -10,8 +10,13 @@ import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class RedshiftIsOptimizedSpec extends WordSpecLike with EitherValues with Matchers with BeforeAndAfterAll with BaseDbSpec {
-  val uuid = UUID.randomUUID().toString
+class RedshiftIsOptimizedSpec
+    extends WordSpecLike
+    with EitherValues
+    with Matchers
+    with BeforeAndAfterAll
+    with BaseDbSpec {
+  val uuid      = UUID.randomUUID().toString
   val tableName = s"is_optimized_table_$uuid"
 
   override def beforeAll(): Unit = {

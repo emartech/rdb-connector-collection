@@ -19,7 +19,7 @@ class MySqlSimpleSelectItSpec
     with SimpleSelectItSpec
     with SelectDbInitHelper {
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
     shutdown()

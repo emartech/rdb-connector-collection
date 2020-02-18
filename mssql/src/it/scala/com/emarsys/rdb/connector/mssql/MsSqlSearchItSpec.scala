@@ -10,8 +10,7 @@ import scala.concurrent.Await
 
 class MsSqlSearchItSpec extends TestKit(ActorSystem("MsSqlSearchItSpec")) with SearchItSpec with BaseDbSpec {
 
-  override implicit val materializer: Materializer = ActorMaterializer()
-
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
     system.terminate()

@@ -104,7 +104,7 @@ class GoogleTokenApiSpec
       )
 
       implicit val clock: Clock = java.time.Clock.systemUTC()
-      val api = new GoogleTokenApi(http)
+      val api                   = new GoogleTokenApi(http)
       Await.result(api.getAccessToken("test@example.com", privateKey), defaultPatience.timeout)
 
       val captor: ArgumentCaptor[HttpRequest] = ArgumentCaptor.forClass(classOf[HttpRequest])

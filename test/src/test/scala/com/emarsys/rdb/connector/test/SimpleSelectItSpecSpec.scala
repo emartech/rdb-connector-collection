@@ -431,7 +431,8 @@ class SimpleSelectItSpecSpec
         AllField,
         TableName(aTableName),
         where = Some(NotNull(FieldName("A3"))),
-        orderBy = List(SortCriteria(FieldName("A3"), Direction.Ascending), SortCriteria(FieldName("A1"), Direction.Descending))
+        orderBy =
+          List(SortCriteria(FieldName("A3"), Direction.Ascending), SortCriteria(FieldName("A1"), Direction.Descending))
       ),
       queryTimeout
     )
@@ -451,6 +452,5 @@ class SimpleSelectItSpecSpec
       )
     )
   )
-
 
 }

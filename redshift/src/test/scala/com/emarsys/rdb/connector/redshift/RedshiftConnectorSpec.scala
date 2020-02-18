@@ -19,7 +19,6 @@ class RedshiftConnectorSpec extends WordSpecLike with Matchers with MockitoSugar
     poolConfig = PoolConfig(2, 100)
   )
 
-
   "RedshiftConnectorTest" when {
 
     "#createUrl" should {
@@ -101,7 +100,7 @@ class RedshiftConnectorSpec extends WordSpecLike with Matchers with MockitoSugar
         val mBeanName: ObjectName = new ObjectName(s"com.zaxxer.hikari:type=Pool ($poolName)")
         mbs.registerMBean(mxPool, mBeanName)
 
-        val connector = new RedshiftConnector(db, connectorConfig, poolName, "public")
+        val connector   = new RedshiftConnector(db, connectorConfig, poolName, "public")
         val metricsJson = connector.innerMetrics().parseJson.asJsObject
 
         metricsJson.fields.size shouldEqual 4
@@ -109,9 +108,9 @@ class RedshiftConnectorSpec extends WordSpecLike with Matchers with MockitoSugar
       }
 
       "return Json in sad case" in {
-        val db = mock[Database]
-        val poolName = ""
-        val connector = new RedshiftConnector(db, connectorConfig, poolName, "public")
+        val db          = mock[Database]
+        val poolName    = ""
+        val connector   = new RedshiftConnector(db, connectorConfig, poolName, "public")
         val metricsJson = connector.innerMetrics().parseJson.asJsObject
         metricsJson.fields.size shouldEqual 0
       }

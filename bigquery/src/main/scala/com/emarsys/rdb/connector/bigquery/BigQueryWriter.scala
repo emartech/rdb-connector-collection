@@ -9,16 +9,16 @@ import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.FieldModel
 
 case class BigQueryWriter(config: BigQueryConnectionConfig, fields: Seq[FieldModel]) extends DefaultSqlWriters {
 
-  override implicit lazy val tableNameWriter: SqlWriter[TableName] =
+  implicit override lazy val tableNameWriter: SqlWriter[TableName] =
     (tableName: TableName) => s"${config.dataset}.${tableName.t}"
 
-  override implicit lazy val fieldNameWriter: SqlWriter[SimpleSelect.FieldName] =
+  implicit override lazy val fieldNameWriter: SqlWriter[SimpleSelect.FieldName] =
     fieldName => fieldName.f
 
-  override implicit lazy val valueWriter: SqlWriter[SimpleSelect.Value] =
+  implicit override lazy val valueWriter: SqlWriter[SimpleSelect.Value] =
     createValueWriter("\"", "\\")
 
-  override implicit lazy val equalToValueWriter: SqlWriter[SimpleSelect.EqualToValue] = { equalTo =>
+  implicit override lazy val equalToValueWriter: SqlWriter[SimpleSelect.EqualToValue] = { equalTo =>
     val fieldType = fields.find(f => f.name == equalTo.field.f).map(_.columnType).getOrElse("STRING")
     val valueAsSql = fieldType match {
       case "INT64" | "FLOAT64" | "INTEGER" | "FLOAT"    => equalTo.value.v

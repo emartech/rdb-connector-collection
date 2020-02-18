@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 
 class PostgreSqlSearchItSpec extends TestKit(ActorSystem("PostgreSqlSearchItSpec")) with SearchItSpec with BaseDbSpec {
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override val awaitTimeout = 15.seconds
 

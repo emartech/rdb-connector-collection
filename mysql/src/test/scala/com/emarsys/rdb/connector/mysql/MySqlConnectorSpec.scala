@@ -17,12 +17,12 @@ class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
 
   "MySqlConnector" when {
 
-      val defaultConfig =
-        MySqlConnectorConfig(
-          configPath = "mysqldb",
-          verifyServerCertificate = true,
-          poolConfig = PoolConfig(2, 100)
-        )
+    val defaultConfig =
+      MySqlConnectorConfig(
+        configPath = "mysqldb",
+        verifyServerCertificate = true,
+        poolConfig = PoolConfig(2, 100)
+      )
 
     val exampleConnection = MySqlConnectionConfig(
       host = "host",
@@ -43,8 +43,20 @@ class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
         DatabaseError(ErrorCategory.Timeout, ErrorName.CompletionTimeout, "whatever", None, None)  -> false,
         DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "Deadlock detected", None, None)   -> true,
         DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "whatever else", None, None)       -> false,
-        DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, "No operations allowed after connection closed.", None, None)       -> false,
-        DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, "No operations allowed after statement closed.", None, None)       -> false
+        DatabaseError(
+          ErrorCategory.Transient,
+          ErrorName.TransientDbError,
+          "No operations allowed after connection closed.",
+          None,
+          None
+        ) -> false,
+        DatabaseError(
+          ErrorCategory.Transient,
+          ErrorName.TransientDbError,
+          "No operations allowed after statement closed.",
+          None,
+          None
+        ) -> false
       ).foreach {
         case (e @ DatabaseError(errorCategory, errorName, message, _, _), expected) =>
           s"return $expected for ${errorCategory}#$errorName - $message" in {

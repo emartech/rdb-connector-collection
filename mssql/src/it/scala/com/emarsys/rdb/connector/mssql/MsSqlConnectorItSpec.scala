@@ -22,14 +22,14 @@ class MsSqlConnectorItSpec
     with BeforeAndAfterAll
     with EitherValues {
 
-  val timeout = 30.seconds
+  val timeout           = 30.seconds
   implicit val mat      = ActorMaterializer()
   override def afterAll = TestKit.shutdownActorSystem(system)
 
   "MsSqlConnectorItSpec" when {
 
     val connectorConfig = TestHelper.TEST_CONNECTOR_CONFIG
-    val testConnection = TestHelper.TEST_CONNECTION_CONFIG
+    val testConnection  = TestHelper.TEST_CONNECTION_CONFIG
 
     "create connector" should {
 
@@ -42,7 +42,7 @@ class MsSqlConnectorItSpec
       }
 
       "connect fail when wrong host" in {
-        val conn = testConnection.copy(host = "wrong")
+        val conn            = testConnection.copy(host = "wrong")
         val connectorEither = Await.result(MsSqlConnector.create(conn, connectorConfig), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
@@ -52,7 +52,7 @@ class MsSqlConnectorItSpec
       }
 
       "connect fail when wrong user" in {
-        val conn = testConnection.copy(dbUser = "")
+        val conn            = testConnection.copy(dbUser = "")
         val connectorEither = Await.result(MsSqlConnector.create(conn, connectorConfig), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
@@ -62,7 +62,7 @@ class MsSqlConnectorItSpec
       }
 
       "connect fail when wrong password" in {
-        val conn = testConnection.copy(dbPassword = "")
+        val conn            = testConnection.copy(dbPassword = "")
         val connectorEither = Await.result(MsSqlConnector.create(conn, connectorConfig), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
@@ -103,7 +103,8 @@ class MsSqlConnectorItSpec
          |
          |""".stripMargin)
 
-        val connectorEither = Await.result(MsSqlConnector.create(conn, connectorConfig.copy(trustServerCertificate = false)), timeout)
+        val connectorEither =
+          Await.result(MsSqlConnector.create(conn, connectorConfig.copy(trustServerCertificate = false)), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.Timeout,
@@ -148,7 +149,7 @@ class MsSqlConnectorItSpec
       def runQuery(q: String): ConnectorResponse[Unit] =
         for {
           Right(connector) <- MsSqlConnector.create(connectionConfig, connectorConfig)
-          Right(source) <- connector.rawSelect(q, limit = None, queryTimeout)
+          Right(source)    <- connector.rawSelect(q, limit = None, queryTimeout)
           res              <- sinkOrLeft(source)
           _ = connector.close()
         } yield res

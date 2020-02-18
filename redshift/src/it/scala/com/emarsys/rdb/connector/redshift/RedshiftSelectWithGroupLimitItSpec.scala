@@ -10,12 +10,12 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class RedshiftSelectWithGroupLimitItSpec
-  extends TestKit(ActorSystem("RedshiftSelectWithGroupLimitItSpec"))
+    extends TestKit(ActorSystem("RedshiftSelectWithGroupLimitItSpec"))
     with SelectWithGroupLimitItSpec
     with BaseDbSpec {
-  override implicit val materializer: Materializer = ActorMaterializer()
-  override val awaitTimeout = 20.seconds
-  override val queryTimeout = 20.seconds
+  implicit override val materializer: Materializer = ActorMaterializer()
+  override val awaitTimeout                        = 20.seconds
+  override val queryTimeout                        = 20.seconds
 
   override def afterAll(): Unit = {
     system.terminate()
@@ -56,12 +56,12 @@ class RedshiftSelectWithGroupLimitItSpec
 }
 
 class RedshiftSelectWithGroupLimitWithSchemaItSpec
-  extends TestKit(ActorSystem("RedshiftSelectWithGroupLimitWithSchemaItSpec"))
+    extends TestKit(ActorSystem("RedshiftSelectWithGroupLimitWithSchemaItSpec"))
     with SelectWithGroupLimitItSpec
     with BaseDbSpec {
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
-  val schema = "ittestschema"
+  val schema                    = "ittestschema"
   override val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")
 
   override def afterAll(): Unit = {

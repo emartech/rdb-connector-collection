@@ -21,7 +21,7 @@ trait DbInitUtil {
   implicit val materializer: ActorMaterializer
   implicit val timeout: Timeout
   implicit lazy val ec: ExecutionContext = sys.dispatcher
-  implicit val clock: Clock = java.time.Clock.systemUTC()
+  implicit val clock: Clock              = java.time.Clock.systemUTC()
 
   private val testConfig = TestHelper.TEST_CONNECTION_CONFIG
 

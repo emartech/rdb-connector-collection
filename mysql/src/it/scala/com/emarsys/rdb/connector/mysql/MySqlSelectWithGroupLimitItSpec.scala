@@ -14,7 +14,7 @@ class MySqlSelectWithGroupLimitItSpec
     with SelectWithGroupLimitItSpec
     with BaseDbSpec {
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
     system.terminate()

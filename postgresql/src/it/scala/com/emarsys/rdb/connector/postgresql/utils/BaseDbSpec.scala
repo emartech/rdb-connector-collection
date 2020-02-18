@@ -14,7 +14,10 @@ trait BaseDbSpec extends EitherValues {
 
   lazy val connector: Connector =
     Await
-      .result(PostgreSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG, TestHelper.TEST_CONNECTOR_CONFIG), 5.seconds)
+      .result(
+        PostgreSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG, TestHelper.TEST_CONNECTOR_CONFIG),
+        5.seconds
+      )
       .right
       .value
 

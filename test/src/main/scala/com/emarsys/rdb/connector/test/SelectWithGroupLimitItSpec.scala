@@ -213,7 +213,7 @@ trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeA
       result.head.map(_.toUpperCase) shouldBe Seq("ID", "NAME", "DATA")
       val grouped = result.tail.groupBy(s => (s(0), s(1)))
       grouped.size shouldBe 3
-      grouped.keys shouldBe Set(("2", "test3"), ("2", "test2"),("1", "test1"))
+      grouped.keys shouldBe Set(("2", "test3"), ("2", "test2"), ("1", "test1"))
     }
   }
 }

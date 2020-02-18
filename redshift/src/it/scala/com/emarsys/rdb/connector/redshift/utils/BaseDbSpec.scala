@@ -11,7 +11,7 @@ trait BaseDbSpec extends EitherValues {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG
-  val connectorConfig = TestHelper.TEST_CONNECTOR_CONFIG
+  val connectorConfig  = TestHelper.TEST_CONNECTOR_CONFIG
 
   lazy val connector: Connector =
     Await

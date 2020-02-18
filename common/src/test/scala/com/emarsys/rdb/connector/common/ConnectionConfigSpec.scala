@@ -8,9 +8,9 @@ class ConnectionConfigSpec extends WordSpecLike with Matchers {
 
   case class TestConfig(publicFields: List[String] = Nil, secretFields: List[String] = Nil)
       extends ConnectionConfig[TestConfig] {
-    override protected def getPublicFieldsForId                = publicFields
-    override protected def getSecretFieldsForId                = secretFields
-    override def toCommonFormat: CommonConnectionReadableData  = CommonConnectionReadableData("a", "b", "c", "d")
+    override protected def getPublicFieldsForId               = publicFields
+    override protected def getSecretFieldsForId               = secretFields
+    override def toCommonFormat: CommonConnectionReadableData = CommonConnectionReadableData("a", "b", "c", "d")
   }
 
   "ConnectionConfig" should {

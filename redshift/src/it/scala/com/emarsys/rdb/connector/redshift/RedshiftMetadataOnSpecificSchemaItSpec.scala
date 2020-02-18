@@ -12,7 +12,8 @@ import scala.concurrent.duration._
 
 class RedshiftMetadataOnSpecificSchemaItSpec extends MetadataItSpec with BaseDbSpec {
   val schemaName = "otherschema"
-  override val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schemaName")
+  override val connectionConfig =
+    TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schemaName")
 
   Await.result(TestHelper.executeQuery("CREATE SCHEMA IF NOT EXISTS " + schemaName), 5.seconds)
 

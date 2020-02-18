@@ -75,10 +75,10 @@ object RedshiftConnector extends RedshiftConnectorTrait {
   }
 
   case class RedshiftConnectorConfig(
-                                      streamChunkSize: Int,
-                                      configPath: String,
-                                      poolConfig: PoolConfig
-                                    )
+      streamChunkSize: Int,
+      configPath: String,
+      poolConfig: PoolConfig
+  )
 
 }
 
@@ -91,8 +91,8 @@ trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandli
   override def meta(): MetaData = MetaData("\"", "'", "\\")
 
   def create(
-              config: RedshiftConnectionConfig,
-              connectorConfig: RedshiftConnectorConfig
+      config: RedshiftConnectionConfig,
+      connectorConfig: RedshiftConnectorConfig
   )(implicit ec: ExecutionContext): ConnectorResponse[RedshiftConnector] = {
     if (isSslDisabled(config.connectionParams)) {
       Future.successful(Left(DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "SSL is disabled")))

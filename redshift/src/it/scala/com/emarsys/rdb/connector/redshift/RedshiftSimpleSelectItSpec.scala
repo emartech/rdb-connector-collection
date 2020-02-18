@@ -16,7 +16,7 @@ class RedshiftSimpleSelectItSpec
     with SimpleSelectItSpec
     with SelectDbInitHelper {
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override val awaitTimeout = 15.seconds
 
@@ -74,7 +74,7 @@ class RedshiftSimpleSelectWithSchemaItSpec
     with SimpleSelectItSpec
     with SelectDbWithSchemaInitHelper {
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override val awaitTimeout = 15.seconds
 

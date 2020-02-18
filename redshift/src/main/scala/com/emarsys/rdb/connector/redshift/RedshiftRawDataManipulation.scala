@@ -63,12 +63,10 @@ trait RedshiftRawDataManipulation {
     val dropTableQuery   = sqlu"DROP TABLE IF EXISTS #$newTable"
 
     db.run(createTableQuery)
-      .flatMap(
-        _ =>
-          rawInsertData(newTableName, definitions).flatMap(
-            insertedCount =>
-              swapTableNames(tableName, newTableName).flatMap(_ => db.run(dropTableQuery).map(_ => insertedCount))
-          )
+      .flatMap(_ =>
+        rawInsertData(newTableName, definitions).flatMap(insertedCount =>
+          swapTableNames(tableName, newTableName).flatMap(_ => db.run(dropTableQuery).map(_ => insertedCount))
+        )
       )
       .recover(eitherErrorHandler)
   }

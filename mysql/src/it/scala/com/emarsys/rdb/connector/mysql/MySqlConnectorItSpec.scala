@@ -31,7 +31,7 @@ class MySqlConnectorItSpec
   "MySqlConnectorItSpec" when {
 
     val testConnectorConfig = TestHelper.TEST_CONNECTOR_CONFIG
-    val testConnection = TestHelper.TEST_CONNECTION_CONFIG
+    val testConnection      = TestHelper.TEST_CONNECTION_CONFIG
 
     "create connector" should {
 

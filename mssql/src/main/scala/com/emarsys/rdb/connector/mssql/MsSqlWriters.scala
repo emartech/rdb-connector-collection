@@ -6,14 +6,14 @@ import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect.Value
 
 trait MsSqlWriters extends DefaultSqlWriters {
-  override implicit lazy val valueWriter: SqlWriter[Value] = (value: Value) => msSqlValueQuoter(Option(value.v))
+  implicit override lazy val valueWriter: SqlWriter[Value] = (value: Value) => msSqlValueQuoter(Option(value.v))
 
-  override implicit lazy val simpleSelectWriter: SqlWriter[SimpleSelect] = (ss: SimpleSelect) => {
+  implicit override lazy val simpleSelectWriter: SqlWriter[SimpleSelect] = (ss: SimpleSelect) => {
     val distinct = if (ss.distinct.getOrElse(false)) "DISTINCT " else ""
     val limit    = ss.limit.map("TOP " + _ + " ").getOrElse("")
     val head     = s"SELECT $distinct$limit${ss.fields.toSql} FROM ${ss.table.toSql}"
 
-    val where = ss.where.map(_.toSql).map(" WHERE " + _).getOrElse("")
+    val where   = ss.where.map(_.toSql).map(" WHERE " + _).getOrElse("")
     val orderBy = ss.orderBy.toSql
 
     s"$head$where$orderBy"

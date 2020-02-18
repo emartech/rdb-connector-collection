@@ -23,7 +23,7 @@ class BigQueryRawSelectItSpec
   implicit override val materializer: ActorMaterializer            = ActorMaterializer()
   implicit override val timeout: Timeout                           = Timeout(30.second)
   implicit override val queryTimeout: FiniteDuration               = timeout.duration
-  override implicit val executionContext: ExecutionContextExecutor = sys.dispatcher
+  implicit override val executionContext: ExecutionContextExecutor = sys.dispatcher
 
   override val awaitTimeout = 30.seconds
 

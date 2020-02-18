@@ -79,12 +79,10 @@ trait MsSqlRawDataManipulation {
     val dropTableQuery   = sqlu"IF OBJECT_ID(#${Value(newTableName).toSql}, 'U') IS NOT NULL DROP TABLE #$newTable;"
 
     db.run(createTableQuery)
-      .flatMap(
-        _ =>
-          rawInsertData(newTableName, definitions).flatMap(
-            insertedCount =>
-              swapTableNames(tableName, newTableName).flatMap(_ => db.run(dropTableQuery).map(_ => insertedCount))
-          )
+      .flatMap(_ =>
+        rawInsertData(newTableName, definitions).flatMap(insertedCount =>
+          swapTableNames(tableName, newTableName).flatMap(_ => db.run(dropTableQuery).map(_ => insertedCount))
+        )
       )
       .recover(eitherErrorHandler())
   }

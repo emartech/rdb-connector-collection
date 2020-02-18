@@ -10,7 +10,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class MySqlSearchItSpec extends TestKit(ActorSystem("MySqlSearchItSpec")) with SearchItSpec with BaseDbSpec {
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override val awaitTimeout = 15.seconds
 

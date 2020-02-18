@@ -9,7 +9,7 @@ import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
 import scala.concurrent.Await
 
 class MsSqlSelectWithGroupLimitItSpec
-  extends TestKit(ActorSystem("MsSqlSelectWithGroupLimitItSpec"))
+    extends TestKit(ActorSystem("MsSqlSelectWithGroupLimitItSpec"))
     with SelectWithGroupLimitItSpec
     with BaseDbSpec {
 

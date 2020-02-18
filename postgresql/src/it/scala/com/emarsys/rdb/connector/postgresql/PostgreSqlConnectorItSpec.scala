@@ -131,7 +131,7 @@ class PostgreSqlConnectorItSpec
     def runSelect(q: String, connConfig: PostgreSqlConnectionConfig = defaultConnection): ConnectorResponse[Unit] =
       for {
         Right(connector) <- PostgreSqlConnector.create(connConfig, TestHelper.TEST_CONNECTOR_CONFIG)
-        Right(source) <- connector.rawSelect(q, limit = None, 5.second)
+        Right(source)    <- connector.rawSelect(q, limit = None, 5.second)
         res              <- sinkOrLeft(source)
         _                <- connector.close()
       } yield res

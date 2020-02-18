@@ -17,7 +17,7 @@ class RedshiftReplaceItSpec
 
   override val awaitTimeout = 15.seconds
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
     system.terminate()
@@ -35,7 +35,7 @@ class RedshiftReplaceWithSchemaItSpec
 
   override val awaitTimeout = 15.seconds
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
     system.terminate()

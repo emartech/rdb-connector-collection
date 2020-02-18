@@ -29,7 +29,7 @@ class ConnectorNotImplementedOperationSpec extends WordSpecLike with Matchers {
     )
 
   class ConnectorTestScope extends Connector {
-    override implicit val executionContext: ExecutionContext = executionCtx
+    implicit override val executionContext: ExecutionContext = executionCtx
 
     override def close() = ???
   }

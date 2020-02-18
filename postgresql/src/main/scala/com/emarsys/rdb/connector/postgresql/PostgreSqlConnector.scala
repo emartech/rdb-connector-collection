@@ -77,11 +77,11 @@ object PostgreSqlConnector extends PostgreSqlConnectorTrait {
   }
 
   case class PostgreSqlConnectorConfig(
-                                        streamChunkSize: Int,
-                                        configPath: String,
-                                        sslMode: String,
-                                        poolConfig: PoolConfig
-                                      )
+      streamChunkSize: Int,
+      configPath: String,
+      sslMode: String,
+      poolConfig: PoolConfig
+  )
 
 }
 
@@ -92,8 +92,8 @@ trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHa
   override def meta(): MetaData = MetaData("\"", "'", "\\")
 
   def create(
-              config: PostgreSqlConnectionConfig,
-              connectorConfig: PostgreSqlConnectorConfig
+      config: PostgreSqlConnectionConfig,
+      connectorConfig: PostgreSqlConnectorConfig
   )(implicit ec: ExecutionContext): ConnectorResponse[PostgreSqlConnector] = {
     val poolName = UUID.randomUUID.toString
 

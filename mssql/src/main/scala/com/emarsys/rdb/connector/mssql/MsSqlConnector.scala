@@ -81,7 +81,7 @@ object MsSqlConnector extends MsSqlConnectorTrait {
       configPath: String,
       trustServerCertificate: Boolean,
       poolConfig: PoolConfig
-                                 )
+  )
 
 }
 
@@ -115,9 +115,8 @@ trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling wit
   )(implicit e: ExecutionContext): ConnectorResponseET[String] = {
     EitherT
       .fromEither[Future](createTrustStoreTempFile(cert).toEither)
-      .leftMap(
-        ex =>
-          DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "Wrong SSL cert format", Some(ex), None)
+      .leftMap(ex =>
+        DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "Wrong SSL cert format", Some(ex), None)
       )
   }
 

@@ -13,10 +13,9 @@ class MsSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
 
   val uuid = UUID.randomUUID().toString
 
-  val tableName = s"is_optimized_table_$uuid"
+  val tableName  = s"is_optimized_table_$uuid"
   val index1Name = s"is_optimized_index1_$uuid"
   val index2Name = s"is_optimized_index2_$uuid"
-
 
   override def beforeAll(): Unit = {
     initDb()

@@ -10,12 +10,17 @@ import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PostgreSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues with BaseDbSpec {
-  val awaitTimeout = 5.seconds
+class PostgreSqlIsOptimizedSpec
+    extends WordSpecLike
+    with Matchers
+    with BeforeAndAfterAll
+    with EitherValues
+    with BaseDbSpec {
+  val awaitTimeout     = 5.seconds
   val awaitTimeoutLong = 15.seconds
 
-  val uuid = UUID.randomUUID().toString
-  val tableName = s"is_optimized_table_$uuid"
+  val uuid       = UUID.randomUUID().toString
+  val tableName  = s"is_optimized_table_$uuid"
   val index1Name = s"is_optimized_index1_$uuid"
   val index2Name = s"is_optimized_index2_$uuid"
 

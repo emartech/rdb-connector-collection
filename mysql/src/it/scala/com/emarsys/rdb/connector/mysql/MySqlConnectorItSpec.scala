@@ -83,7 +83,7 @@ class MySqlConnectorItSpec
             None
           )
 
-        MySqlConnector.create(conn, testConnectorConfig).map { result =>
+        MySqlConnector.create(conn, testConnectorConfig.copy(verifyServerCertificate = true)).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
         }
       }

@@ -9,7 +9,7 @@ trait SelectDbWithSchemaInitHelper extends BaseDbSpec {
   val bTableName: String
 
   val schema = "ittestschema"
-  val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")
+  override val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")
 
   def initDb(): Unit = {
     val createATableSql =

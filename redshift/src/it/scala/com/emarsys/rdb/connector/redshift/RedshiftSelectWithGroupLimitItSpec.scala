@@ -62,6 +62,7 @@ class RedshiftSelectWithGroupLimitWithSchemaItSpec
   override implicit val materializer: Materializer = ActorMaterializer()
 
   val schema = "ittestschema"
+  override val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")
 
   override def afterAll(): Unit = {
     system.terminate()

@@ -10,9 +10,12 @@ import scala.concurrent.duration._
 trait BaseDbSpec extends EitherValues {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
+  val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG
+  val connectorConfig = TestHelper.TEST_CONNECTOR_CONFIG
+
   lazy val connector: Connector =
     Await
-      .result(RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG, TestHelper.TEST_CONNECTOR_CONFIG), 5.seconds)
+      .result(RedshiftConnector.create(connectionConfig, connectorConfig), 5.seconds)
       .right
       .value
 

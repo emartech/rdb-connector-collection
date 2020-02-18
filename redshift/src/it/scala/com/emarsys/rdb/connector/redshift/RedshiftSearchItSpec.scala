@@ -56,6 +56,8 @@ class RedshiftSearchItSpec extends TestKit(ActorSystem("RedshiftSearchItSpec")) 
 class RedshiftSearchWithSchemaItSpec extends TestKit(ActorSystem("RedshiftSearchWithSchemaItSpec")) with SearchItSpec with BaseDbSpec {
   val schema = "ittestschema"
 
+  override val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")
+
   override implicit val materializer: Materializer = ActorMaterializer()
 
   override val awaitTimeout = 15.seconds

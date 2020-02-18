@@ -5,7 +5,7 @@ import akka.stream.{ActorMaterializer, Materializer}
 import akka.stream.scaladsl.Sink
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import com.emarsys.rdb.connector.redshift.utils.SelectDbWithSchemaInitHelper
+import com.emarsys.rdb.connector.redshift.utils.{SelectDbWithSchemaInitHelper, TestHelper}
 import com.emarsys.rdb.connector.test.uuidGenerate
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 

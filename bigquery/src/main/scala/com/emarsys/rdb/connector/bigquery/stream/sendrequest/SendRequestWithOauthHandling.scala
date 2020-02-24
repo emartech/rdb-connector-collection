@@ -47,6 +47,7 @@ object SendRequestWithOauthHandling {
     case RateLimit(msg)       => DatabaseError(ErrorCategory.RateLimit, ErrorName.TooManyQueries, msg)
     case NotFoundDataSet(msg) => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, msg)
     case NotFoundProject(msg) => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, msg)
+    case AccessDenied(msg)    => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, msg)
     case _ =>
       DatabaseError(
         ErrorCategory.Unknown,
@@ -95,6 +96,14 @@ object SendRequestWithOauthHandling {
         val (response, body) = r
         if (response.status == Forbidden && body.contains("rateLimitExceeded") && body.contains("Exceeded rate limits"))
           errorMessageFrom(body)
+        else None
+      }
+    }
+
+    object AccessDenied {
+      def unapply(r: (HttpResponse, String)): Option[String] = {
+        val (response, body) = r
+        if (response.status == Forbidden && body.contains("Access Denied")) errorMessageFrom(body)
         else None
       }
     }

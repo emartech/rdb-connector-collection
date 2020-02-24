@@ -43,7 +43,14 @@ class SendRequestWithOauthHandlingSpec
     ("NotFoundTable", NotFound, "Not found: Table", C.FatalQueryExecution, N.TableNotFound),
     ("NotFoundDataset", NotFound, "Not found: Dataset", C.FatalQueryExecution, N.TableNotFound),
     ("NotFoundProject", BadRequest, "The project xxx has not enabled", C.FatalQueryExecution, N.TableNotFound),
-    ("RateLimit", Forbidden, "rateLimitExceeded, Exceeded rate limits", C.RateLimit, N.TooManyQueries)
+    ("RateLimit", Forbidden, "rateLimitExceeded, Exceeded rate limits", C.RateLimit, N.TooManyQueries),
+    (
+      "AccessDeniedError",
+      Forbidden,
+      "Access Denied: Project my-project: User does not have abc123 permission in project my-project.",
+      C.FatalQueryExecution,
+      N.AccessDeniedError
+    )
   )
 
   trait SendRequestScope {

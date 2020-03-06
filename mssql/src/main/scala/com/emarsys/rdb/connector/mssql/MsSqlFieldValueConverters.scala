@@ -5,7 +5,7 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrappe
 import com.emarsys.rdb.connector.common.models.SimpleSelect.Value
 
 trait MsSqlFieldValueConverters extends DefaultFieldValueConverters {
-  override implicit val booleanValueConverter: FieldValueConverter[FieldValueWrapper.BooleanValue] = {
+  implicit override val booleanValueConverter: FieldValueConverter[FieldValueWrapper.BooleanValue] = {
     case FieldValueWrapper.BooleanValue(true)  => Some(Value("1"))
     case FieldValueWrapper.BooleanValue(false) => Some(Value("0"))
   }

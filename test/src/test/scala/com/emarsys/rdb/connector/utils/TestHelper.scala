@@ -4,8 +4,8 @@ import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import org.mockito.Mockito.when
 
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.FiniteDuration
 
 object TestHelper {
 

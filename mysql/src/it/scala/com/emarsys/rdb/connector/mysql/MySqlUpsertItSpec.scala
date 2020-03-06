@@ -3,8 +3,8 @@ package com.emarsys.rdb.connector.mysql
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.Sink
 import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.scaladsl.Sink
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{IntValue, NullValue, StringValue}
 import com.emarsys.rdb.connector.common.models.DataManipulation.Record

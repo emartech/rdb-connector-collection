@@ -1,12 +1,12 @@
 package com.emarsys.rdb.connector.postgresql
 
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, FieldValueWrapper, Record, UpdateDefinition}
-import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import slick.jdbc.PostgresProfile.api._
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
-import PostgreSqlWriters._
+import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, FieldValueWrapper, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.NullValue
+import com.emarsys.rdb.connector.common.models.SimpleSelect._
+import com.emarsys.rdb.connector.postgresql.PostgreSqlWriters._
+import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration

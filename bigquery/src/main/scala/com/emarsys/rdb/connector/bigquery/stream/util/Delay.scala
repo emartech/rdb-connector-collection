@@ -3,10 +3,10 @@ package com.emarsys.rdb.connector.bigquery.stream.util
 import java.util.concurrent.TimeUnit
 
 import akka.NotUsed
+import akka.stream.{FlowShape, Graph}
 import akka.stream.contrib.DelayFlow
 import akka.stream.contrib.DelayFlow.DelayStrategy
 import akka.stream.scaladsl.{GraphDSL, Merge}
-import akka.stream.{FlowShape, Graph}
 
 import scala.concurrent.duration.FiniteDuration
 

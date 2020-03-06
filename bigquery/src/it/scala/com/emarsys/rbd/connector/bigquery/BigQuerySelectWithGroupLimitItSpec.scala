@@ -14,9 +14,9 @@ class BigQuerySelectWithGroupLimitItSpec
     extends TestKit(ActorSystem("BigQuerySelectWithGroupLimitItSpec"))
     with SelectWithGroupLimitItSpec
     with DbInitUtil {
-  override implicit val sys: ActorSystem                = system
-  override implicit val materializer: ActorMaterializer = ActorMaterializer()
-  override implicit val timeout: Timeout                = 20.seconds
+  implicit override val sys: ActorSystem                = system
+  implicit override val materializer: ActorMaterializer = ActorMaterializer()
+  implicit override val timeout: Timeout                = 20.seconds
   override val awaitTimeout                             = 20.seconds
   override val queryTimeout                             = 20.seconds
 

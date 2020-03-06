@@ -7,8 +7,8 @@ import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCateg
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect.{FieldName, SpecificFields, TableName}
 import com.emarsys.rdb.connector.postgresql.utils.{SelectDbInitHelper, TestHelper}
+import com.emarsys.rdb.connector.test.{getConnectorResult, SimpleSelectItSpec}
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
-import com.emarsys.rdb.connector.test.{SimpleSelectItSpec, getConnectorResult}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -17,9 +17,8 @@ class PostgreSqlSimpleSelectItSpec
     extends TestKit(ActorSystem("PostgreSqlSimpleSelectItSpec"))
     with SimpleSelectItSpec
     with SelectDbInitHelper {
-  import scala.concurrent.ExecutionContext.Implicits.global
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override val awaitTimeout = 15.seconds
 

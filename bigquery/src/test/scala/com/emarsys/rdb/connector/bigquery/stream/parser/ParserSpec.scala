@@ -2,16 +2,16 @@ package com.emarsys.rdb.connector.bigquery.stream.parser
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpEntity, HttpResponse}
+import akka.stream.{ActorMaterializer, ClosedShape}
 import akka.stream.scaladsl.{GraphDSL, RunnableGraph, Sink, Source}
 import akka.stream.testkit.scaladsl.TestSink
-import akka.stream.{ActorMaterializer, ClosedShape}
 import akka.testkit.TestKit
 import cats.syntax.option._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import spray.json.JsObject
 
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
 
 class ParserSpec extends TestKit(ActorSystem("ParserSpec")) with WordSpecLike with Matchers with BeforeAndAfterAll {
 

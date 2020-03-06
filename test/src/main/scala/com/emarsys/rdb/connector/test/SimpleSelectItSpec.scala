@@ -1,8 +1,8 @@
 package com.emarsys.rdb.connector.test
 
 import akka.stream.Materializer
-import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
+import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
@@ -436,7 +436,10 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           AllField,
           TableName(aTableName),
           where = Some(NotNull(FieldName("A3"))),
-          orderBy = List(SortCriteria(FieldName("A3"), Direction.Ascending), SortCriteria(FieldName("A1"), Direction.Descending))
+          orderBy = List(
+            SortCriteria(FieldName("A3"), Direction.Ascending),
+            SortCriteria(FieldName("A1"), Direction.Descending)
+          )
         )
 
         val result = getSimpleSelectResult(simpleSelect)

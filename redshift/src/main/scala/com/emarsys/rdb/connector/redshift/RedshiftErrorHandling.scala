@@ -5,7 +5,7 @@ import java.sql.SQLException
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.defaults.ErrorConverter
-import com.emarsys.rdb.connector.common.models.Errors.{ErrorCategory, ErrorName, DatabaseError}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 
 trait RedshiftErrorHandling {
 

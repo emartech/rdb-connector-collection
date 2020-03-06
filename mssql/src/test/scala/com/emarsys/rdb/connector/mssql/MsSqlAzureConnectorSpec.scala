@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.mssql
 
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatestplus.mockito.MockitoSugar
 
 class MsSqlAzureConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
 

@@ -4,12 +4,13 @@ import java.util.UUID
 
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData, PoolConfig}
+import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
-import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.redshift.RedshiftConnector.{RedshiftConnectionConfig, RedshiftConnectorConfig}
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
+import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -64,6 +65,10 @@ object RedshiftConnector extends RedshiftConnectorTrait {
       dbPassword: String,
       connectionParams: String
   ) extends ConnectionConfig {
+
+    protected def getPublicFieldsForId = List(host, port.toString, dbName, dbUser, connectionParams)
+    protected def getSecretFieldsForId = List(dbPassword)
+
     override def toCommonFormat: CommonConnectionReadableData = {
       CommonConnectionReadableData("redshift", s"$host:$port", dbName, dbUser)
     }
@@ -71,7 +76,8 @@ object RedshiftConnector extends RedshiftConnectorTrait {
 
   case class RedshiftConnectorConfig(
       streamChunkSize: Int,
-      configPath: String
+      configPath: String,
+      poolConfig: PoolConfig
   )
 
 }
@@ -82,16 +88,11 @@ trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandli
   import com.emarsys.rdb.connector.common.defaults.DefaultSqlWriters._
   import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 
-  val defaultConfig = RedshiftConnectorConfig(
-    streamChunkSize = 5000,
-    configPath = "redshiftdb"
-  )
-
   override def meta(): MetaData = MetaData("\"", "'", "\\")
 
   def create(
       config: RedshiftConnectionConfig,
-      connectorConfig: RedshiftConnectorConfig = defaultConfig
+      connectorConfig: RedshiftConnectorConfig
   )(implicit ec: ExecutionContext): ConnectorResponse[RedshiftConnector] = {
     if (isSslDisabled(config.connectionParams)) {
       Future.successful(Left(DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "SSL is disabled")))
@@ -115,6 +116,10 @@ trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandli
     ConfigFactory
       .load()
       .getConfig(connectorConfig.configPath)
+      .withValue("maxConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("minConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("numThreads", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("queueSize", fromAnyRef(connectorConfig.poolConfig.queueSize))
       .withValue("poolName", ConfigValueFactory.fromAnyRef(poolName))
       .withValue("connectionInitSql", ConfigValueFactory.fromAnyRef(setSchemaQuery))
       .withValue("registerMbeans", ConfigValueFactory.fromAnyRef(true))

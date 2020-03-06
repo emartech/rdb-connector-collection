@@ -5,7 +5,8 @@ import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.postgresql.utils.SelectDbInitHelper
 import com.emarsys.rdb.connector.test.InsertItSpec
-import concurrent.duration._
+
+import scala.concurrent.duration._
 
 class PostgreSqlInsertSpec
     extends TestKit(ActorSystem("PostgreSqlInsertSpec"))
@@ -17,7 +18,7 @@ class PostgreSqlInsertSpec
 
   override val awaitTimeout = 15.seconds
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
     shutdown()

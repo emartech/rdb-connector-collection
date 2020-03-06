@@ -3,8 +3,7 @@ package com.emarsys.rdb.connector.redshift
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.redshift.utils.TestHelper
+import com.emarsys.rdb.connector.redshift.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
 
 import scala.concurrent.Await
@@ -12,14 +11,11 @@ import scala.concurrent.duration._
 
 class RedshiftSelectWithGroupLimitItSpec
     extends TestKit(ActorSystem("RedshiftSelectWithGroupLimitItSpec"))
-    with SelectWithGroupLimitItSpec {
-  import scala.concurrent.ExecutionContext.Implicits.global
-  override implicit val materializer: Materializer = ActorMaterializer()
+    with SelectWithGroupLimitItSpec
+    with BaseDbSpec {
+  implicit override val materializer: Materializer = ActorMaterializer()
   override val awaitTimeout                        = 20.seconds
   override val queryTimeout                        = 20.seconds
-
-  val connector: Connector =
-    Await.result(RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG), awaitTimeout).right.get
 
   override def afterAll(): Unit = {
     system.terminate()
@@ -61,19 +57,13 @@ class RedshiftSelectWithGroupLimitItSpec
 
 class RedshiftSelectWithGroupLimitWithSchemaItSpec
     extends TestKit(ActorSystem("RedshiftSelectWithGroupLimitWithSchemaItSpec"))
-    with SelectWithGroupLimitItSpec {
-  import scala.concurrent.ExecutionContext.Implicits.global
-  override implicit val materializer: Materializer = ActorMaterializer()
+    with SelectWithGroupLimitItSpec
+    with BaseDbSpec {
+  implicit override val materializer: Materializer = ActorMaterializer()
 
-  val schema = "ittestschema"
+  val schema                    = "ittestschema"
+  override val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")
 
-  val connector: Connector = Await
-    .result(
-      RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")),
-      awaitTimeout
-    )
-    .right
-    .get
   override def afterAll(): Unit = {
     system.terminate()
     super.afterAll()

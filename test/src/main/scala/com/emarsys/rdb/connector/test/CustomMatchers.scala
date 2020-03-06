@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.test
 
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import org.scalatest.matchers.{MatchResult, Matcher}
+import org.scalatest.matchers.{Matcher, MatchResult}
 
 object CustomMatchers extends CustomMatchers
 trait CustomMatchers {

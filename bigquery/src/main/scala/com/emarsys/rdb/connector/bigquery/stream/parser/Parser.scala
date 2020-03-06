@@ -2,8 +2,8 @@ package com.emarsys.rdb.connector.bigquery.stream.parser
 
 import akka.NotUsed
 import akka.http.scaladsl.model.HttpResponse
-import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Zip}
 import akka.stream.{FanOutShape2, FlowShape, Graph, Materializer}
+import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Zip}
 import com.emarsys.rdb.connector.bigquery.util.AkkaHttpPimps._
 import spray.json._
 

@@ -2,20 +2,16 @@ package com.emarsys.rdb.connector.common.models
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
+import com.emarsys.rdb.connector.common.{notImplementedOperation, ConnectorResponse}
 import com.emarsys.rdb.connector.common.Models.MetaData
-import com.emarsys.rdb.connector.common.defaults.{
-  DefaultFieldValueConverters,
-  FieldValueConverters,
-  GroupWithLimitStage
-}
+import com.emarsys.rdb.connector.common.defaults.{DefaultFieldValueConverters, FieldValueConverters, GroupWithLimitStage}
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors._
-import com.emarsys.rdb.connector.common.{ConnectorResponse, notImplementedOperation}
 
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.FiniteDuration
 
 trait Connector {
 

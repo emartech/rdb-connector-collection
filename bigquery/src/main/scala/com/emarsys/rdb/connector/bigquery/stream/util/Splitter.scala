@@ -1,8 +1,8 @@
 package com.emarsys.rdb.connector.bigquery.stream.util
 
 import akka.NotUsed
-import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL}
 import akka.stream.{Graph, UniformFanOutShape}
+import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL}
 
 object Splitter {
 

@@ -4,17 +4,13 @@ import java.util.UUID
 
 import cats.data.EitherT
 import cats.syntax.applicativeError._
-import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig}
-import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
-import com.emarsys.rdb.connector.mssql.MsSqlAzureConnector.{
-  AzureMsSqlPort,
-  MsSqlAzureConnectionConfig,
-  MsSqlAzureConnectorConfig
-}
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, PoolConfig}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.mssql.MsSqlAzureConnector.{AzureMsSqlPort, MsSqlAzureConnectionConfig, MsSqlAzureConnectorConfig}
 import com.emarsys.rdb.connector.mssql.MsSqlConnector.MsSqlConnectorConfig
-import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import slick.jdbc.SQLServerProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -30,16 +26,21 @@ object MsSqlAzureConnector extends MsSqlAzureConnectorTrait {
       dbPassword: String,
       connectionParams: String
   ) extends ConnectionConfig {
+
+    protected def getPublicFieldsForId = List(host, dbName, dbUser, connectionParams)
+    protected def getSecretFieldsForId = List(dbPassword)
+
     override def toCommonFormat: CommonConnectionReadableData = {
       CommonConnectionReadableData("mssql-azure", s"$host:$AzureMsSqlPort", dbName, dbUser)
     }
   }
 
   case class MsSqlAzureConnectorConfig(
-      configPath: String
+      configPath: String,
+      poolConfig: PoolConfig
   ) {
     def toMsSqlConnectorConfig: MsSqlConnectorConfig =
-      MsSqlConnectorConfig(configPath, trustServerCertificate = true)
+      MsSqlConnectorConfig(configPath, trustServerCertificate = true, poolConfig)
   }
 }
 
@@ -47,13 +48,13 @@ trait MsSqlAzureConnectorTrait extends MsSqlErrorHandling with MsSqlConnectorHel
   import cats.instances.future._
   import cats.syntax.functor._
 
-  val defaultConfig = MsSqlAzureConnectorConfig(
-    configPath = "mssqldb"
-  )
+//  val defaultConfig = MsSqlAzureConnectorConfig(
+//    configPath = "mssqldb"
+//  )
 
   def create(
       config: MsSqlAzureConnectionConfig,
-      connectorConfig: MsSqlAzureConnectorConfig = defaultConfig
+      connectorConfig: MsSqlAzureConnectorConfig
   )(implicit e: ExecutionContext): ConnectorResponse[MsSqlConnector] = {
     if (isSslDisabledOrTamperedWith(config.connectionParams)) {
       Future.successful(
@@ -109,6 +110,10 @@ trait MsSqlAzureConnectorTrait extends MsSqlErrorHandling with MsSqlConnectorHel
     ConfigFactory
       .load()
       .getConfig(connectorConfig.configPath)
+      .withValue("maxConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("minConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("numThreads", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("queueSize", fromAnyRef(connectorConfig.poolConfig.queueSize))
       .withValue("poolName", fromAnyRef(poolName))
       .withValue("registerMbeans", fromAnyRef(true))
       .withValue("jdbcUrl", fromAnyRef(jdbcUrl))

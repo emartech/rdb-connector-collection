@@ -1,16 +1,11 @@
 package com.emarsys.rdb.connector.test
 
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.Source
 import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.scaladsl.Source
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{
-  BooleanValue,
-  IntValue,
-  NullValue,
-  StringValue
-}
+import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, IntValue, NullValue, StringValue}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.mockito.MockitoSugar

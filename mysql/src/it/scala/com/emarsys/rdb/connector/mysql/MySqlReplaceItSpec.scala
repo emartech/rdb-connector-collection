@@ -10,7 +10,7 @@ class MySqlReplaceItSpec extends TestKit(ActorSystem("MySqlReplaceItSpec")) with
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
     shutdown()

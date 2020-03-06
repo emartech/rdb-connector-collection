@@ -3,8 +3,8 @@ package com.emarsys.rdb.connector.redshift
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.defaults.DefaultSqlWriters._
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
-import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.NullValue
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, FieldValueWrapper, Record, UpdateDefinition}
+import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.NullValue
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import slick.jdbc.PostgresProfile.api._
 
@@ -63,12 +63,10 @@ trait RedshiftRawDataManipulation {
     val dropTableQuery   = sqlu"DROP TABLE IF EXISTS #$newTable"
 
     db.run(createTableQuery)
-      .flatMap(
-        _ =>
-          rawInsertData(newTableName, definitions).flatMap(
-            insertedCount =>
-              swapTableNames(tableName, newTableName).flatMap(_ => db.run(dropTableQuery).map(_ => insertedCount))
-          )
+      .flatMap(_ =>
+        rawInsertData(newTableName, definitions).flatMap(insertedCount =>
+          swapTableNames(tableName, newTableName).flatMap(_ => db.run(dropTableQuery).map(_ => insertedCount))
+        )
       )
       .recover(eitherErrorHandler)
   }

@@ -1,9 +1,9 @@
 package com.emarsys.rdb.connector.common.defaults
 
+import com.emarsys.rdb.connector.common.defaults.SqlWriter._
+import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import org.scalatest.{Matchers, WordSpecLike}
-import SqlWriter._
-import com.emarsys.rdb.connector.common.models.SimpleSelect
 
 class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
@@ -25,7 +25,7 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val tableNameWriter: SqlWriter[TableName] = SqlWriter.createTableNameWriter("#", "\\")
+          implicit override lazy val tableNameWriter: SqlWriter[TableName] = SqlWriter.createTableNameWriter("#", "\\")
         }
         import customWriters._
 
@@ -49,7 +49,7 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val fieldNameWriter: SqlWriter[FieldName] = SqlWriter.createFieldNameWriter("#", "\\")
+          implicit override lazy val fieldNameWriter: SqlWriter[FieldName] = SqlWriter.createFieldNameWriter("#", "\\")
         }
         import customWriters._
 
@@ -73,7 +73,7 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val valueWriter: SqlWriter[Value] = SqlWriter.createValueWriter("#", "\\")
+          implicit override lazy val valueWriter: SqlWriter[Value] = SqlWriter.createValueWriter("#", "\\")
         }
         import customWriters._
 
@@ -91,7 +91,7 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val allFieldWriter: SqlWriter[SimpleSelect.AllField.type] =
+          implicit override lazy val allFieldWriter: SqlWriter[SimpleSelect.AllField.type] =
             SqlWriter.createAllFieldWriter("#")
         }
         import customWriters._
@@ -116,7 +116,7 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer - many fields" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val specificFieldsWriter: SqlWriter[SpecificFields] =
+          implicit override lazy val specificFieldsWriter: SqlWriter[SpecificFields] =
             SqlWriter.createSpecificFieldsWriter("#")
         }
         import customWriters._
@@ -135,7 +135,7 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val isNullWriter: SqlWriter[IsNull] = SqlWriter.createIsNullWriter("<<IS %s NULL>>")
+          implicit override lazy val isNullWriter: SqlWriter[IsNull] = SqlWriter.createIsNullWriter("<<IS %s NULL>>")
         }
         import customWriters._
 
@@ -153,7 +153,7 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val notNullWriter: SqlWriter[NotNull] =
+          implicit override lazy val notNullWriter: SqlWriter[NotNull] =
             SqlWriter.createNotNullWriter("<<IS NOT %s NULL>>")
         }
         import customWriters._
@@ -172,7 +172,7 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val equalToValueWriter: SqlWriter[EqualToValue] =
+          implicit override lazy val equalToValueWriter: SqlWriter[EqualToValue] =
             SqlWriter.createEqualToValueWriter(" IS ")
         }
         import customWriters._
@@ -208,7 +208,7 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer - inner or" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val orWriter: SqlWriter[Or] = (x: Or) => conditionWriter(" || ", x.conditions)
+          implicit override lazy val orWriter: SqlWriter[Or] = (x: Or) => conditionWriter(" || ", x.conditions)
         }
         import customWriters._
 
@@ -248,7 +248,7 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
 
       "use custom writer - inner or" in {
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val andWriter: SqlWriter[And] = (x: And) => conditionWriter(" && ", x.conditions)
+          implicit override lazy val andWriter: SqlWriter[And] = (x: And) => conditionWriter(" && ", x.conditions)
         }
         import customWriters._
 
@@ -291,15 +291,15 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
       "combinate all element - use custom writers" in {
 
         val customWriters = new DefaultSqlWriters {
-          override implicit lazy val fieldNameWriter: SqlWriter[FieldName] = SqlWriter.createFieldNameWriter("#", "\\")
-          override implicit lazy val valueWriter: SqlWriter[Value]         = SqlWriter.createValueWriter("`", "\\")
-          override implicit lazy val notNullWriter: SqlWriter[NotNull] =
+          implicit override lazy val fieldNameWriter: SqlWriter[FieldName] = SqlWriter.createFieldNameWriter("#", "\\")
+          implicit override lazy val valueWriter: SqlWriter[Value]         = SqlWriter.createValueWriter("`", "\\")
+          implicit override lazy val notNullWriter: SqlWriter[NotNull] =
             SqlWriter.createNotNullWriter("<<IS NOT %s NULL>>")
-          override implicit lazy val equalToValueWriter: SqlWriter[EqualToValue] =
+          implicit override lazy val equalToValueWriter: SqlWriter[EqualToValue] =
             SqlWriter.createEqualToValueWriter(" == ")
-          override implicit lazy val isNullWriter: SqlWriter[IsNull] = SqlWriter.createIsNullWriter("NULL(%s)")
-          override implicit lazy val orWriter: SqlWriter[Or]         = (x: Or) => conditionWriter(" || ", x.conditions)
-          override implicit lazy val andWriter: SqlWriter[And]       = (x: And) => conditionWriter(" && ", x.conditions)
+          implicit override lazy val isNullWriter: SqlWriter[IsNull] = SqlWriter.createIsNullWriter("NULL(%s)")
+          implicit override lazy val orWriter: SqlWriter[Or]         = (x: Or) => conditionWriter(" || ", x.conditions)
+          implicit override lazy val andWriter: SqlWriter[And]       = (x: And) => conditionWriter(" && ", x.conditions)
         }
         import customWriters._
 
@@ -440,7 +440,10 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
         val select = SimpleSelect(
           fields = AllField,
           table = TableName("TABLE1"),
-          orderBy = List(SortCriteria(FieldName("name"), Direction.Ascending), SortCriteria(FieldName("age"), Direction.Descending))
+          orderBy = List(
+            SortCriteria(FieldName("name"), Direction.Ascending),
+            SortCriteria(FieldName("age"), Direction.Descending)
+          )
         )
 
         select.toSql shouldEqual """SELECT * FROM "TABLE1" ORDER BY "name" ASC, "age" DESC"""
@@ -462,7 +465,10 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
           ),
           limit = Some(100),
           distinct = Some(true),
-          orderBy = List(SortCriteria(FieldName("FIELD1"), Direction.Descending), SortCriteria(FieldName("FIELD2"), Direction.Ascending))
+          orderBy = List(
+            SortCriteria(FieldName("FIELD1"), Direction.Descending),
+            SortCriteria(FieldName("FIELD2"), Direction.Ascending)
+          )
         )
 
         select.toSql shouldEqual """SELECT DISTINCT "FIELD1","FIELD2","FIELD3" FROM "TABLE1" WHERE ("FIELD1" IS NULL AND ("FIELD2" IS NULL AND "FIELD3"='VALUE3')) ORDER BY "FIELD1" DESC, "FIELD2" ASC LIMIT 100"""

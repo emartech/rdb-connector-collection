@@ -6,7 +6,7 @@ import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.testkit.scaladsl.{TestSink, TestSource}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-import concurrent.duration._
+import scala.concurrent.duration._
 import scala.concurrent.Await
 
 class GroupWithLimitStageSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {

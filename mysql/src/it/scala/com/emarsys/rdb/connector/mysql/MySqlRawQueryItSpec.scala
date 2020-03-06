@@ -3,8 +3,8 @@ package com.emarsys.rdb.connector.mysql
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.Sink
 import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.scaladsl.Sink
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect
@@ -14,6 +14,7 @@ import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithout
 import org.scalatest._
 
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
 class MySqlRawQueryItSpec
     extends TestKit(ActorSystem("MySqlRawQueryItSpec"))
@@ -23,6 +24,8 @@ class MySqlRawQueryItSpec
     with BeforeAndAfterEach
     with BeforeAndAfterAll
     with EitherValues {
+
+  implicit val exco: ExecutionContext = ec
 
   val uuid = UUID.randomUUID().toString.replace("-", "")
 

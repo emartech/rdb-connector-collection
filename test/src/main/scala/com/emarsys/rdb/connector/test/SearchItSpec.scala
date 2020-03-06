@@ -2,12 +2,7 @@ package com.emarsys.rdb.connector.test
 
 import akka.stream.Materializer
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{
-  BooleanValue,
-  IntValue,
-  NullValue,
-  StringValue
-}
+import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, IntValue, NullValue, StringValue}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._

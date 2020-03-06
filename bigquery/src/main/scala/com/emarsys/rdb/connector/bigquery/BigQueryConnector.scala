@@ -9,13 +9,13 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.util.Timeout
 import com.emarsys.rdb.connector.bigquery.BigQueryConnector.BigQueryConnectionConfig
+import com.emarsys.rdb.connector.common.{notImplementedOperation, ConnectorResponse}
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.models.DataManipulation.Criteria
-import com.emarsys.rdb.connector.common.{notImplementedOperation, ConnectorResponse}
 
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
 
 class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQueryConnectionConfig)(
     implicit val executionContext: ExecutionContext
@@ -51,6 +51,9 @@ object BigQueryConnector extends BigQueryConnectorTrait {
 
   case class BigQueryConnectionConfig(projectId: String, dataset: String, clientEmail: String, privateKey: String)
       extends ConnectionConfig {
+
+    protected def getPublicFieldsForId = List(projectId, dataset, clientEmail)
+    protected def getSecretFieldsForId = List(privateKey)
 
     def toCommonFormat: CommonConnectionReadableData =
       CommonConnectionReadableData("bigquery", projectId, dataset, clientEmail)

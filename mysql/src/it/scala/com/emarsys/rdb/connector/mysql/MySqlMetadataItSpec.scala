@@ -1,32 +1,18 @@
 package com.emarsys.rdb.connector.mysql
 
-import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel}
-import com.emarsys.rdb.connector.mysql.utils.TestHelper
-import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
+import com.emarsys.rdb.connector.mysql.utils.{SelectDbInitHelper, TestHelper}
 import com.emarsys.rdb.connector.test.MetadataItSpec
 
 import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class MySqlMetadataItSpec extends MetadataItSpec {
+class MySqlMetadataItSpec extends MetadataItSpec with SelectDbInitHelper {
 
-  val connector: Connector = Await
-    .result(
-      MySqlConnector.create(
-        TestHelper.TEST_CONNECTION_CONFIG,
-        MySqlConnectorConfig(
-          configPath = "mysqldb",
-          verifyServerCertificate = false
-        )
-      ),
-      5.seconds
-    )
-    .right
-    .get
+  val aTableName: String = ""
+  val bTableName: String = ""
 
-  def initDb(): Unit = {
+  override def initDb(): Unit = {
     val createTableSql = s"""CREATE TABLE `$tableName` (
                            |    PersonID int,
                            |    LastName varchar(255),
@@ -44,7 +30,7 @@ class MySqlMetadataItSpec extends MetadataItSpec {
     } yield (), 5.seconds)
   }
 
-  def cleanUpDb(): Unit = {
+  override def cleanUpDb(): Unit = {
     val dropViewSql   = s"""DROP VIEW `$viewName`;"""
     val dropTableSql  = s"""DROP TABLE `$tableName`;"""
     val dropViewSql2  = s"""DROP VIEW IF EXISTS `${viewName}_2`;"""
@@ -91,8 +77,8 @@ class MySqlMetadataItSpec extends MetadataItSpec {
         val resultE = Await.result(connector.listTablesWithFields(), awaitTimeout)
 
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get.map(
-          x => x.copy(fields = x.fields.map(f => f.copy(name = f.name.toLowerCase, columnType = "")).sortBy(_.name))
+        val result = resultE.right.get.map(x =>
+          x.copy(fields = x.fields.map(f => f.copy(name = f.name.toLowerCase, columnType = "")).sortBy(_.name))
         )
         result should not contain (FullTableModel(s"${tableName}_2", false, tableFields))
         result should not contain (FullTableModel(s"${viewName}_2", true, viewFields))

@@ -28,10 +28,9 @@ package object test extends Matchers {
     result.head.map(_.toUpperCase) shouldEqual expected.head.map(_.toUpperCase)
     if (result.size > 1) {
       result.tail shouldEqual expected.tail
-      expected.tail shouldEqual  result.tail
+      expected.tail shouldEqual result.tail
     }
   }
-
 
   def getConnectorResult(connRes: ConnectorResponse[Source[Seq[String], NotUsed]], awaitTimeout: Duration)(
       implicit mat: Materializer

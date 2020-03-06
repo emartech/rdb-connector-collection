@@ -68,32 +68,29 @@ class BigQueryConnectorItSpec
 
     "custom error handling" should {
       "recognize syntax errors" in {
-        rawSelect("select from test.table").map(
-          error =>
-            error.left.value should haveErrorCategoryAndErrorName(
-              ErrorCategory.FatalQueryExecution,
-              ErrorName.SqlSyntaxError
-            )
+        rawSelect("select from test.table").map(error =>
+          error.left.value should haveErrorCategoryAndErrorName(
+            ErrorCategory.FatalQueryExecution,
+            ErrorName.SqlSyntaxError
+          )
         )
       }
 
       "recognize not found tables" in {
-        rawSelect("select * from test.a_non_existing_table").map(
-          error =>
-            error.left.value should haveErrorCategoryAndErrorName(
-              ErrorCategory.FatalQueryExecution,
-              ErrorName.TableNotFound
-            )
+        rawSelect("select * from test.a_non_existing_table").map(error =>
+          error.left.value should haveErrorCategoryAndErrorName(
+            ErrorCategory.FatalQueryExecution,
+            ErrorName.TableNotFound
+          )
         )
       }
 
       "recognize query timeouts" in {
-        rawSelect("select * from test.test_table", timeout = 100.millis).map(
-          error =>
-            error.left.value should haveErrorCategoryAndErrorName(
-              ErrorCategory.Timeout,
-              ErrorName.QueryTimeout
-            )
+        rawSelect("select * from test.test_table", timeout = 100.millis).map(error =>
+          error.left.value should haveErrorCategoryAndErrorName(
+            ErrorCategory.Timeout,
+            ErrorName.QueryTimeout
+          )
         )
       }
     }

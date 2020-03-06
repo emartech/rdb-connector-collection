@@ -11,8 +11,8 @@ import com.emarsys.rdb.connector.common.models.Errors.{ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.test.CustomMatchers._
 import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}
 
-import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.duration._
 
 class BigQueryIsOptimizedItSpec
     extends TestKit(ActorSystem("BigQueryIsOptimizedItSpec"))

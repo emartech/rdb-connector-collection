@@ -2,22 +2,22 @@ package com.emarsys.rdb.connector.bigquery.stream
 
 import akka.actor.{ActorSystem, ExtendedActorSystem}
 import akka.event.LoggingAdapter
+import akka.http.scaladsl.{HttpExt, HttpsConnectionContext}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.settings.ConnectionPoolSettings
-import akka.http.scaladsl.{HttpExt, HttpsConnectionContext}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.bigquery.stream.parser.PagingInfo
-import org.mockito.captor.ArgCaptor
 import org.mockito.{ArgumentMatchersSugar, IdiomaticMockito}
+import org.mockito.captor.ArgCaptor
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import spray.json.JsObject
 
-import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 import scala.util.Try
 
 class BigQueryStreamSourceSpec

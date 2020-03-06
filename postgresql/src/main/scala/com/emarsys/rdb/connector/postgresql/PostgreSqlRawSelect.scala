@@ -7,8 +7,7 @@ import com.emarsys.rdb.connector.common.models.SimpleSelect.FieldName
 import slick.jdbc.MySQLProfile.api._
 
 import scala.annotation.tailrec
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration.SECONDS
+import scala.concurrent.duration.{FiniteDuration, SECONDS}
 
 trait PostgreSqlRawSelect extends PostgreSqlStreamingQuery {
   self: PostgreSqlConnector =>

@@ -4,9 +4,9 @@ import java.sql.SQLException
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
-import com.microsoft.sqlserver.jdbc.SQLServerException
 import com.emarsys.rdb.connector.common.defaults.ErrorConverter.default
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
+import com.microsoft.sqlserver.jdbc.SQLServerException
 
 trait MsSqlErrorHandling {
 

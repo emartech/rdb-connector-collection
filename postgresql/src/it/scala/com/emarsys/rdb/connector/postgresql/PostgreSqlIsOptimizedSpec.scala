@@ -2,19 +2,22 @@ package com.emarsys.rdb.connector.postgresql
 
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import com.emarsys.rdb.connector.postgresql.utils.TestHelper
+import com.emarsys.rdb.connector.postgresql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
 import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PostgreSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
-  implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
-  val awaitTimeout              = 5.seconds
-  val awaitTimeoutLong          = 15.seconds
+class PostgreSqlIsOptimizedSpec
+    extends WordSpecLike
+    with Matchers
+    with BeforeAndAfterAll
+    with EitherValues
+    with BaseDbSpec {
+  val awaitTimeout     = 5.seconds
+  val awaitTimeoutLong = 15.seconds
 
   val uuid       = UUID.randomUUID().toString
   val tableName  = s"is_optimized_table_$uuid"
@@ -29,11 +32,6 @@ class PostgreSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAn
     cleanUpDb()
     connector.close()
   }
-
-  val connector: Connector = Await
-    .result(PostgreSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), awaitTimeoutLong)
-    .right
-    .get
 
   def initDb(): Unit = {
     val createTableSql =

@@ -1,21 +1,11 @@
 package com.emarsys.rdb.connector.mssql.utils
 
-import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.mssql.MsSqlConnector
-
 import scala.concurrent.Await
-import scala.concurrent.duration._
 
-trait SelectDbInitHelper {
-
-  import scala.concurrent.ExecutionContext.Implicits.global
+trait SelectDbInitHelper extends BaseDbSpec {
 
   val aTableName: String
   val bTableName: String
-
-  val timeout: FiniteDuration = 30.seconds
-  val connector: Connector =
-    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), timeout).right.get
 
   def initDb(): Unit = {
     val createATableSql =

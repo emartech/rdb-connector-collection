@@ -1,8 +1,8 @@
 package com.emarsys.rdb.connector.common.models
 
+import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 
 import scala.concurrent.ExecutionContext
 

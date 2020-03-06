@@ -6,10 +6,10 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.redshift.utils.TestHelper
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.redshift.utils.TestHelper
 import com.emarsys.rdb.connector.test.CustomMatchers._
+import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -38,7 +38,7 @@ class RedshiftConnectorItSpec
         connectionParams += "ssl=false"
 
         val badConnection = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = connectionParams)
-        val result        = Await.result(RedshiftConnector.create(badConnection), timeout)
+        val result        = Await.result(RedshiftConnector.create(badConnection, TestHelper.TEST_CONNECTOR_CONFIG), timeout)
         result.left.value should beDatabaseErrorEqualWithoutCause(
           DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "SSL is disabled")
         )
@@ -47,7 +47,10 @@ class RedshiftConnectorItSpec
       "connect ok" in {
 
         val connectorEither =
-          Await.result(RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG), timeout)
+          Await.result(
+            RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG, TestHelper.TEST_CONNECTOR_CONFIG),
+            timeout
+          )
 
         connectorEither shouldBe a[Right[_, _]]
       }
@@ -57,7 +60,13 @@ class RedshiftConnectorItSpec
 
       "return ok in happy case" in {
         val connection =
-          Await.result(RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG), timeout).toOption.get
+          Await
+            .result(
+              RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG, TestHelper.TEST_CONNECTOR_CONFIG),
+              timeout
+            )
+            .toOption
+            .get
         val result = Await.result(connection.testConnection(), timeout)
         result shouldBe Right({})
         connection.close()
@@ -65,7 +74,8 @@ class RedshiftConnectorItSpec
 
       "return error if cant connect" in {
         val badConnection = TestHelper.TEST_CONNECTION_CONFIG.copy(host = "asd.asd.asd")
-        val connection    = Await.result(RedshiftConnector.create(badConnection), timeout)
+        val connection =
+          Await.result(RedshiftConnector.create(badConnection, TestHelper.TEST_CONNECTOR_CONFIG), timeout)
         connection shouldBe a[Left[_, _]]
         connection.left.get should haveErrorCategoryAndErrorName(ErrorCategory.Timeout, ErrorName.ConnectionTimeout)
       }
@@ -78,7 +88,7 @@ class RedshiftConnectorItSpec
 
       def runQuery(q: String): ConnectorResponse[Unit] =
         for {
-          Right(connector) <- RedshiftConnector.create(connectionConfig)
+          Right(connector) <- RedshiftConnector.create(connectionConfig, TestHelper.TEST_CONNECTOR_CONFIG)
           Right(source)    <- connector.rawSelect(q, limit = None, queryTimeout)
           res              <- sinkOrLeft(source)
           _ = connector.close()

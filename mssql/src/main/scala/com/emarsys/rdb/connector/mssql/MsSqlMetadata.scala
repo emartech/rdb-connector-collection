@@ -31,19 +31,18 @@ trait MsSqlMetadata {
           .as[(String, String)]
       )
       .map(_.map(parseToFieldModel))
-      .map(
-        result =>
-          if (result.isEmpty)
-            Left(
-              DatabaseError(
-                ErrorCategory.FatalQueryExecution,
-                ErrorName.TableNotFound,
-                s"Table not found: $tableName",
-                None,
-                None
-              )
+      .map(result =>
+        if (result.isEmpty)
+          Left(
+            DatabaseError(
+              ErrorCategory.FatalQueryExecution,
+              ErrorName.TableNotFound,
+              s"Table not found: $tableName",
+              None,
+              None
             )
-          else Right(result)
+          )
+        else Right(result)
       )
       .recover(eitherErrorHandler())
   }

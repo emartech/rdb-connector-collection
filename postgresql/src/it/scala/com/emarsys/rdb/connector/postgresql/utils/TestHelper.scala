@@ -2,15 +2,17 @@ package com.emarsys.rdb.connector.postgresql.utils
 
 import java.util.Properties
 
-import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.{PostgreSqlConnectionConfig, createUrl}
+import com.emarsys.rdb.connector.common.Models.PoolConfig
+import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.{createUrl, PostgreSqlConnectionConfig, PostgreSqlConnectorConfig}
+import slick.jdbc.PostgresProfile.api._
 import slick.util.AsyncExecutor
 
 import scala.concurrent.Future
 
-import slick.jdbc.PostgresProfile.api._
-
 object TestHelper {
+
   import com.typesafe.config.ConfigFactory
+
   lazy val config = ConfigFactory.load()
 
   lazy val TEST_CONNECTION_CONFIG = PostgreSqlConnectionConfig(
@@ -21,6 +23,13 @@ object TestHelper {
     dbPassword = config.getString("dbconf.password"),
     certificate = config.getString("dbconf.certificate"),
     connectionParams = config.getString("dbconf.connectionParams")
+  )
+
+  lazy val TEST_CONNECTOR_CONFIG = PostgreSqlConnectorConfig(
+    streamChunkSize = 5000,
+    configPath = "postgredb",
+    sslMode = "verify-ca",
+    poolConfig = PoolConfig(2, 100)
   )
 
   private lazy val db: Database = {

@@ -5,12 +5,12 @@ import java.util.UUID
 
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
-import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
-import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData, PoolConfig}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.{PostgreSqlConnectionConfig, PostgreSqlConnectorConfig}
-import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -67,6 +67,10 @@ object PostgreSqlConnector extends PostgreSqlConnectorTrait {
       certificate: String,
       connectionParams: String
   ) extends ConnectionConfig {
+
+    protected def getPublicFieldsForId = List(host, port.toString, dbName, dbUser, connectionParams)
+    protected def getSecretFieldsForId = List(dbPassword, certificate)
+
     override def toCommonFormat: CommonConnectionReadableData = {
       CommonConnectionReadableData("postgres", s"$host:$port", dbName, dbUser)
     }
@@ -75,7 +79,8 @@ object PostgreSqlConnector extends PostgreSqlConnectorTrait {
   case class PostgreSqlConnectorConfig(
       streamChunkSize: Int,
       configPath: String,
-      sslMode: String
+      sslMode: String,
+      poolConfig: PoolConfig
   )
 
 }
@@ -84,17 +89,11 @@ trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHa
   import cats.instances.future._
   import cats.syntax.functor._
 
-  private[postgresql] val defaultConfig = PostgreSqlConnectorConfig(
-    streamChunkSize = 5000,
-    configPath = "postgredb",
-    sslMode = "verify-ca"
-  )
-
   override def meta(): MetaData = MetaData("\"", "'", "\\")
 
   def create(
       config: PostgreSqlConnectionConfig,
-      connectorConfig: PostgreSqlConnectorConfig = defaultConfig
+      connectorConfig: PostgreSqlConnectorConfig
   )(implicit ec: ExecutionContext): ConnectorResponse[PostgreSqlConnector] = {
     val poolName = UUID.randomUUID.toString
 
@@ -119,6 +118,10 @@ trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHa
     ConfigFactory
       .load()
       .getConfig(connectorConfig.configPath)
+      .withValue("maxConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("minConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("numThreads", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("queueSize", fromAnyRef(connectorConfig.poolConfig.queueSize))
       .withValue("poolName", fromAnyRef(poolName))
       .withValue("registerMbeans", fromAnyRef(true))
       .withValue("jdbcUrl", fromAnyRef(jdbcUrl))

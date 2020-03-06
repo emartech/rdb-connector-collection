@@ -1,10 +1,11 @@
 package com.emarsys.rdb.connector.common
 
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig}
-import org.scalatest.{Matchers, WordSpecLike}
 import spray.json._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class ConnectionConfigSpec extends WordSpecLike with Matchers {
+class ConnectionConfigSpec extends AnyWordSpecLike with Matchers {
 
   case class TestConfig(publicFields: List[String] = Nil, secretFields: List[String] = Nil)
       extends ConnectionConfig {

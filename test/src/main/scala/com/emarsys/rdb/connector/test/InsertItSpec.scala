@@ -11,8 +11,10 @@ import org.scalatest._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-trait InsertItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
+trait InsertItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
   val connector: Connector
   def initDb(): Unit
   def cleanUpDb(): Unit

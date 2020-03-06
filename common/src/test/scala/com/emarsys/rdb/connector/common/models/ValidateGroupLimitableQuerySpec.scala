@@ -1,9 +1,10 @@
 package com.emarsys.rdb.connector.common.models
 
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class ValidateGroupLimitableQuerySpec extends WordSpecLike with Matchers {
+class ValidateGroupLimitableQuerySpec extends AnyWordSpecLike with Matchers {
 
   import ValidateGroupLimitableQuery.GroupLimitValidationResult._
 

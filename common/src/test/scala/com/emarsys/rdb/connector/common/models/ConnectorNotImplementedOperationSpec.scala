@@ -4,12 +4,13 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrappe
 import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect.{AllField, TableName}
-import org.scalatest.{Matchers, WordSpecLike}
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class ConnectorNotImplementedOperationSpec extends WordSpecLike with Matchers {
+class ConnectorNotImplementedOperationSpec extends AnyWordSpecLike with Matchers {
 
   implicit val executionCtx: ExecutionContext = ExecutionContext.global
 

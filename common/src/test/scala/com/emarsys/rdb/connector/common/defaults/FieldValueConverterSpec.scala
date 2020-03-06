@@ -3,9 +3,10 @@ package com.emarsys.rdb.connector.common.defaults
 import com.emarsys.rdb.connector.common.defaults.FieldValueConverter._
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper._
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class FieldValueConverterSpec extends WordSpecLike with Matchers {
+class FieldValueConverterSpec extends AnyWordSpecLike with Matchers {
 
   "FieldValueConverter" when {
 

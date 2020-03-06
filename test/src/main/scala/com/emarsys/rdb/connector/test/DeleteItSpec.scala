@@ -5,17 +5,19 @@ import akka.stream.scaladsl.Sink
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, NullValue, StringValue}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 /*
 For positive results use the A table definition and preloaded data defined in the SimpleSelect.
 Make sure you have index on (A2,A3) and A3.
  */
 
-trait DeleteItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
+trait DeleteItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
   val connector: Connector
   def initDb(): Unit
   def cleanUpDb(): Unit

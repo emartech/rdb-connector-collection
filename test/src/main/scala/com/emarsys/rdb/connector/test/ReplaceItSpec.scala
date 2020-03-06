@@ -9,12 +9,14 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrappe
 import com.emarsys.rdb.connector.common.models.DataManipulation.Record
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-trait ReplaceItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
+trait ReplaceItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
   val connector: Connector
   def initDb(): Unit
   def cleanUpDb(): Unit

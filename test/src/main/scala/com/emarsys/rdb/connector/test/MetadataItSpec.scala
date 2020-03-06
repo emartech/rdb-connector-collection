@@ -4,17 +4,19 @@ import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
-import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, EitherValues}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 /*
 For positive test results you need to implement an initDb function which creates a table and a view with the given names.
 The table must have "PersonID", "LastName", "FirstName", "Address", "City" columns.
 The view must have "PersonID", "LastName", "FirstName" columns.
  */
-trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
+trait MetadataItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
   val uuid      = uuidGenerate
   val tableName = s"metadata_list_tables_table_$uuid"
   val viewName  = s"metadata_list_tables_view_$uuid"

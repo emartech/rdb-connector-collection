@@ -3,9 +3,11 @@ package com.emarsys.rdb.connector.test
 import akka.stream.Materializer
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 /*
 For positive test results you need to implement an initDb function which creates two tables with the given names and
@@ -42,7 +44,7 @@ C:
   ("c3")
 
  */
-trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
+trait SimpleSelectItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAll {
   val uuid = uuidGenerate
 
   val postfixTableName = s"_simple_select_table_$uuid"

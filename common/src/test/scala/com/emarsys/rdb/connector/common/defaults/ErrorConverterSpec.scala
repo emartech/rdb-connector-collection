@@ -4,10 +4,12 @@ import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionEx
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
-import org.scalatest.{Matchers, PartialFunctionValues, WordSpecLike}
+import org.scalatest.PartialFunctionValues
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor4}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class ErrorConverterSpec extends WordSpecLike with Matchers with PartialFunctionValues with TableDrivenPropertyChecks {
+class ErrorConverterSpec extends AnyWordSpecLike with Matchers with PartialFunctionValues with TableDrivenPropertyChecks {
 
   val sqlErrorCases: TableFor4[String, Exception, C, N] = Table(
     ("error", "exception", "errorCategory", "errorName"),

@@ -10,14 +10,15 @@ import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import org.mockito.Answers
 import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito.{never, spy, verify, when}
-import org.scalatest.{Matchers, WordSpecLike}
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class ConnectorSearchSpec extends WordSpecLike with Matchers with MockitoSugar {
+class ConnectorSearchSpec extends AnyWordSpecLike with Matchers with MockitoSugar {
 
   val tableName = "tableName"
   val viewName  = "viewName"

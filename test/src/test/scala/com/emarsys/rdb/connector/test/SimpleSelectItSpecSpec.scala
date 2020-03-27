@@ -453,4 +453,33 @@ class SimpleSelectItSpecSpec
     )
   )
 
+  when(
+    connector.simpleSelect(
+      SimpleSelect(
+        SpecificFields("A2"),
+        TableName(aTableName),
+        orderBy = List(SortCriteria(FieldName("A1"), Direction.Descending)),
+        distinct = Some(true)
+      ),
+      queryTimeout
+    )
+  ).thenReturn(
+    Future(
+      Right(
+        Source(
+          Seq(
+            Seq("A2", "A1"),
+            Seq(null, "v7"),
+            Seq("6", "v6"),
+            Seq(null, "v5"),
+            Seq("-4", "v4"),
+            Seq("3", "v3"),
+            Seq("2", "v2"),
+            Seq("1", "v1")
+          ).to[scala.collection.immutable.Seq]
+        )
+      )
+    )
+  )
+
 }

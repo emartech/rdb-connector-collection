@@ -131,7 +131,7 @@ trait DefaultSqlWriters {
     val orderedFields = ss.orderBy.map(_.field)
     val fields: Fields = ss.fields match {
       case SimpleSelect.AllField => SimpleSelect.AllField
-      case SpecificFields(fields) => SpecificFields(fields ++ orderedFields)
+      case SpecificFields(fields) => SpecificFields((fields ++ orderedFields).distinct)
     }
     val head     = s"SELECT $distinct${fields.toSql} FROM ${ss.table.toSql}"
     val where    = ss.where.map(_.toSql).map(" WHERE " + _).getOrElse("")

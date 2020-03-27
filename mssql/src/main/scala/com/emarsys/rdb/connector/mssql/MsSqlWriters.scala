@@ -3,7 +3,7 @@ package com.emarsys.rdb.connector.mssql
 import com.emarsys.rdb.connector.common.defaults.{DefaultSqlWriters, SqlWriter}
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.common.models.SimpleSelect
-import com.emarsys.rdb.connector.common.models.SimpleSelect.Value
+import com.emarsys.rdb.connector.common.models.SimpleSelect.{Fields, SpecificFields, Value}
 
 trait MsSqlWriters extends DefaultSqlWriters {
   implicit override lazy val valueWriter: SqlWriter[Value] = (value: Value) => msSqlValueQuoter(Option(value.v))
@@ -11,7 +11,12 @@ trait MsSqlWriters extends DefaultSqlWriters {
   implicit override lazy val simpleSelectWriter: SqlWriter[SimpleSelect] = (ss: SimpleSelect) => {
     val distinct = if (ss.distinct.getOrElse(false)) "DISTINCT " else ""
     val limit    = ss.limit.map("TOP " + _ + " ").getOrElse("")
-    val head     = s"SELECT $distinct$limit${ss.fields.toSql} FROM ${ss.table.toSql}"
+    val orderedFields = ss.orderBy.map(_.field)
+    val fields: Fields = ss.fields match {
+      case SimpleSelect.AllField => SimpleSelect.AllField
+      case SpecificFields(fields) => SpecificFields(fields ++ orderedFields)
+    }
+    val head     = s"SELECT $distinct$limit${fields.toSql} FROM ${ss.table.toSql}"
 
     val where   = ss.where.map(_.toSql).map(" WHERE " + _).getOrElse("")
     val orderBy = ss.orderBy.toSql

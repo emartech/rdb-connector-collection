@@ -457,6 +457,33 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
         )
       }
 
+      "work when simple select does not specify ordered fields as selected" in {
+        val simpleSelect = SimpleSelect(
+          SpecificFields("A2"),
+          TableName(aTableName),
+          orderBy = List(SortCriteria(FieldName("A1"), Direction.Descending)),
+          distinct = Some(true)
+        )
+
+        val result = getSimpleSelectResult(simpleSelect)
+
+        val expectedResult = Seq(
+          Seq("A2", "A1"),
+          Seq(null, "v7"),
+          Seq("6", "v6"),
+          Seq(null, "v5"),
+          Seq("-4", "v4"),
+          Seq("3", "v3"),
+          Seq("2", "v2"),
+          Seq("1", "v1")
+        )
+
+        checkResultWithRowOrder(
+          result,
+          expectedResult
+        )
+      }
+
     }
   }
 }

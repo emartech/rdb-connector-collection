@@ -55,6 +55,10 @@ class MsSqlConnector(
     }.getOrElse(super.innerMetrics())
   }
 
+  override val isErrorRetryable: PartialFunction[DatabaseError, Boolean] = {
+    case DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, message, _, _) if message.contains("deadlock") => true
+    case _                                                                                                      => false
+  }
 }
 
 object MsSqlConnector extends MsSqlConnectorTrait {

@@ -1,5 +1,6 @@
 package com.emarsys.rdb.connector.mssql
 
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import org.scalatest.{Matchers, WordSpecLike}
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -21,6 +22,26 @@ class MsSqlAzureConnectorSpec extends WordSpecLike with Matchers with MockitoSug
         MsSqlAzureConnector.checkAzureUrl("hello.windows.net") shouldBe false
       }
 
+    }
+
+    "#isErrorRetryable" should {
+      Seq(
+        DatabaseError(
+          ErrorCategory.Unknown,
+          ErrorName.Unknown,
+          "...was deadlocked on lock resources with another process...",
+          None,
+          None
+        )                                                                                    -> true,
+        DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "whatever else", None, None) -> false
+      ).foreach {
+        case (e @ DatabaseError(errorCategory, errorName, message, _, _), expected) =>
+          s"return $expected for ${errorCategory}#$errorName - $message" in {
+            val connector = new MsSqlConnector(null, null, null)(null)
+
+            connector.isErrorRetryable(e) shouldBe expected
+          }
+      }
     }
   }
 }

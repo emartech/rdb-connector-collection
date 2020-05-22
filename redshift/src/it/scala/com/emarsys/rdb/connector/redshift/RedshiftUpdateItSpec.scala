@@ -20,7 +20,7 @@ class RedshiftUpdateItSpec
   implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 }
@@ -37,7 +37,7 @@ class RedshiftUpdateWithSchemaItSpec
   implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 }

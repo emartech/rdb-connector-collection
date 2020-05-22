@@ -46,11 +46,12 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-stream"          % akkaVersion,
       "org.typelevel"     %% "cats-core"            % catsCoreVersion,
+      "com.beachape"      %% "enumeratum"           % enumeratumVersion,
       "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion % Test,
       "org.scalatest"     %% "scalatest"            % scalatestVersion % Test,
       "org.mockito"       %% "mockito-scala"        % mockitoScalaVersion % Test,
       "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion % Test,
-      "com.beachape"      %% "enumeratum"           % enumeratumVersion
+      "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion % Test
     )
   )
 

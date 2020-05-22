@@ -37,7 +37,7 @@ class MultipleQueryWithSchemaSpec
 
   override def afterAll(): Unit = {
     connector.close()
-    system.terminate()
+    shutdown()
   }
 
   val aTableName: String = tableName

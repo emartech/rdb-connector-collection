@@ -77,7 +77,7 @@ class SelectWithGroupLimitItSpecSpec
   override def cleanUpDb(): Unit = ()
 
   override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
 }

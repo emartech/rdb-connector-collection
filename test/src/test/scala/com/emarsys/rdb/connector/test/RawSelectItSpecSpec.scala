@@ -27,7 +27,7 @@ class RawSelectItSpecSpec
   override def beforeAll(): Unit = ()
 
   override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
   val simpleSelect    = s"""SELECT * FROM "$aTableName";"""

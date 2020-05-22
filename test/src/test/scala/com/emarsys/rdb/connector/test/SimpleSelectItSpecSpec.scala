@@ -29,7 +29,7 @@ class SimpleSelectItSpecSpec
   override def cleanUpDb(): Unit = ()
 
   override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
   when(connector.simpleSelect(SimpleSelect(AllField, TableName(aTableName)), queryTimeout)).thenReturn(

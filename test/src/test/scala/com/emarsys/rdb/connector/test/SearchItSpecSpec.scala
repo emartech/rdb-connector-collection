@@ -29,7 +29,7 @@ class SearchItSpecSpec
   override def cleanUpDb(): Unit = ()
 
   override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+    shutdown()
   }
 
   when(connector.search(tableName, Map("z1" -> StringValue("r1")), None, queryTimeout)).thenReturn(

@@ -3,7 +3,7 @@ import sbt.Keys._
 
 object Dependencies {
 
-  val ScalaVersion = "2.12.10"
+  val ScalaVersion = "2.12.11"
 
   val mssqlVersion    = "6.4.0.jre8"
   val mysqlVersion    = "8.0.18"

@@ -44,7 +44,7 @@ lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(publishSettings: _*)
 
 lazy val bigQuery = connector("bigquery", Dependencies.BigQuery)
-lazy val mssql    = connector("mssql", Dependencies.Mssql, testForkedParallel := false)
+lazy val mssql    = connector("mssql", Dependencies.Mssql)
 lazy val mysql    = connector("mysql", Dependencies.Mysql)
 lazy val postgres = connector("postgresql", Dependencies.Postgresql)
 lazy val redshift = connector("redshift", Dependencies.Redshift)

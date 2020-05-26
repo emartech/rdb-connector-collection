@@ -58,7 +58,9 @@ trait RedshiftMetadata {
         sql"SELECT table_name, column_name, data_type FROM SVV_COLUMNS WHERE table_schema = $schemaName;"
           .as[(String, String, String)]
       )
-      .map(_.groupBy(_._1).mapValues(_.map(x => parseToFiledModel(x._2 -> x._3)).toSeq))
+      .map(_.groupBy(_._1).map {
+        case (table, b) => table -> b.map { case (_, column, dataType) => parseToFiledModel(column -> dataType) }
+      })
   }
 
   private def makeTablesWithFields(

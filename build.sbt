@@ -21,7 +21,8 @@ lazy val connectorCollection = project
   .settings(meta: _*)
   .settings(
     publishArtifact := false,
-    publishTo := Some(Resolver.file("Unused repository", file("target/unused")))
+    publish / skip := true,
+    crossScalaVersions := Nil
   )
 
 lazy val common = Project(id = "common", base = file("common"))

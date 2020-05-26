@@ -39,7 +39,7 @@ trait MySqlMetadata {
         sql"select TABLE_NAME, COLUMN_NAME, DATA_TYPE from information_schema.columns where table_schema = DATABASE();"
           .as[(String, String, String)]
       )
-      .map(_.groupBy(_._1).mapValues(_.map(x => parseToFiledModel(x._2 -> x._3)).toSeq))
+      .map(_.groupBy(_._1).map { case (a, b) => a -> b.map(x => parseToFiledModel(x._2 -> x._3)) })
       .map(Right(_))
       .recover(eitherErrorHandler())
   }

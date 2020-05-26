@@ -58,7 +58,9 @@ trait MsSqlMetadata {
 
   private def listAllFields(): Future[Map[String, Seq[FieldModel]]] = {
     db.run(sql"SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS;".as[(String, String, String)])
-      .map(_.groupBy(_._1).mapValues(_.map(x => parseToFieldModel(x._2 -> x._3)).toSeq))
+      .map(_.groupBy(_._1).map {
+        case (table, b) => table -> b.map { case (_, column, dataType) => parseToFieldModel(column -> dataType) }
+      })
   }
 
   private def makeTablesWithFields(

@@ -117,7 +117,7 @@ trait PostgreSqlRawDataManipulation {
 
     And(
       criteria
-        .mapValues(_.toSimpleSelectValue)
+        .map { case (field, fieldValueWrapper) => field -> fieldValueWrapper.toSimpleSelectValue }
         .map {
           case (field, Some(value)) => EqualToValue(FieldName(field), value)
           case (field, None)        => IsNull(FieldName(field))
@@ -131,7 +131,7 @@ trait PostgreSqlRawDataManipulation {
     import fieldValueConverters._
 
     criteria
-      .mapValues(_.toSimpleSelectValue)
+      .map { case (field, fieldValueWrapper) => field -> fieldValueWrapper.toSimpleSelectValue }
       .map {
         case (field, Some(value)) => EqualToValue(FieldName(field), value).toSql
         case (field, None)        => FieldName(field).toSql + "=NULL"

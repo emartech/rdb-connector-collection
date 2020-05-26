@@ -144,7 +144,7 @@ trait MySqlRawDataManipulation {
 
     And(
       criteria
-        .mapValues(_.toSimpleSelectValue)
+        .map { case (a, b) => a -> b.toSimpleSelectValue}
         .map {
           case (field, Some(value)) => EqualToValue(FieldName(field), value)
           case (field, None)        => IsNull(FieldName(field))
@@ -158,7 +158,7 @@ trait MySqlRawDataManipulation {
     import fieldValueConverters._
 
     criteria
-      .mapValues(_.toSimpleSelectValue)
+      .map { case (a, b) => a -> b.toSimpleSelectValue}
       .map {
         case (field, Some(value)) => EqualToValue(FieldName(field), value).toSql
         case (field, None)        => FieldName(field).toSql + "=NULL"

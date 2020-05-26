@@ -58,7 +58,7 @@ trait PostgreSqlMetadata {
         sql"SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = $schemaName;"
           .as[(String, String, String)]
       )
-      .map(_.groupBy(_._1).mapValues(_.map(x => parseToFiledModel(x._2 -> x._3)).toSeq))
+      .map(_.groupBy(_._1).map { case (a, b) => a -> b.map(x => parseToFiledModel(x._2 -> x._3))})
   }
 
   private def makeTablesWithFields(

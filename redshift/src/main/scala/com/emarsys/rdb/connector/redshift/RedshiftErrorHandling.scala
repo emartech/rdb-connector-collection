@@ -61,8 +61,8 @@ trait RedshiftErrorHandling {
   }
 
   protected def eitherErrorHandler[T]: PartialFunction[Throwable, Either[DatabaseError, T]] =
-    (errorHandler orElse ErrorConverter.default) andThen Left.apply
+    errorHandler.orElse(ErrorConverter.default).andThen(Left.apply(_))
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    (errorHandler orElse ErrorConverter.default) andThen Source.failed
+    errorHandler.orElse(ErrorConverter.default).andThen(Source.failed(_))
 }

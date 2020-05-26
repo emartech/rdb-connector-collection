@@ -10,6 +10,8 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.mockito.MockitoSugar
 
+
+import scala.collection.immutable //TODO remove this after 2.13
 import scala.concurrent.Future
 
 class SearchItSpecSpec
@@ -36,10 +38,10 @@ class SearchItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("Z1", "Z2", "Z3", "Z4"),
-            Seq("r1", "1", "1", "s1")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("Z1", "Z2", "Z3", "Z4"),
+            immutable.Seq("r1", "1", "1", "s1")
+          )
         )
       )
     )
@@ -49,10 +51,10 @@ class SearchItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("Z1", "Z2", "Z3", "Z4"),
-            Seq("r2", "2", "0", "s2")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("Z1", "Z2", "Z3", "Z4"),
+            immutable.Seq("r2", "2", "0", "s2")
+          )
         )
       )
     )
@@ -62,10 +64,10 @@ class SearchItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("Z1", "Z2", "Z3", "Z4"),
-            Seq("r2", "2", "0", "s2")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("Z1", "Z2", "Z3", "Z4"),
+            immutable.Seq("r2", "2", "0", "s2")
+          )
         )
       )
     )
@@ -75,10 +77,10 @@ class SearchItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("Z1", "Z2", "Z3", "Z4"),
-            Seq("r3", "3", null, "s3")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("Z1", "Z2", "Z3", "Z4"),
+            immutable.Seq("r3", "3", null, "s3")
+          )
         )
       )
     )
@@ -88,11 +90,11 @@ class SearchItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("Z1", "Z2", "Z3", "Z4"),
-            Seq("r4", "45", "1", "s4"),
-            Seq("r5", "45", "1", "s5")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("Z1", "Z2", "Z3", "Z4"),
+            immutable.Seq("r4", "45", "1", "s4"),
+            immutable.Seq("r5", "45", "1", "s5")
+          )
         )
       )
     )

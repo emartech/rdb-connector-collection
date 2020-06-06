@@ -39,7 +39,7 @@ object Delay {
         case 0 => a
         case _ => fib_tail( n-1, b, a+b )
       }
-      fib_tail( n, 0, 1)
+      fib_tail( n, 1, 1)
     }
 
     var idx               = 0

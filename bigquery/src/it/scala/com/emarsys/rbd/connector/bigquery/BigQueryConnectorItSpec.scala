@@ -22,7 +22,7 @@ class BigQueryConnectorItSpec
     with BeforeAndAfterAll
     with EitherValues {
 
-  implicit val mat      = ActorMaterializer()
+  implicit val mat        = ActorMaterializer()
   override def afterAll() = shutdown()
 
   val testConnection = TestHelper.TEST_CONNECTION_CONFIG

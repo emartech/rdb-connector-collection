@@ -22,7 +22,6 @@ class UpstreamFinishHandlerSpec
   implicit val materializer = ActorMaterializer()
   implicit val timeout      = Timeout(1.second)
 
-
   override protected def afterAll(): Unit = {
     shutdown()
   }

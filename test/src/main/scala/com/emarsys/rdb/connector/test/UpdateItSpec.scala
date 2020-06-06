@@ -3,7 +3,12 @@ package com.emarsys.rdb.connector.test
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
-import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, IntValue, NullValue, StringValue}
+import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{
+  BooleanValue,
+  IntValue,
+  NullValue,
+  StringValue
+}
 import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._

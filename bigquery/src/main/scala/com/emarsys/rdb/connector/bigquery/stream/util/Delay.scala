@@ -33,16 +33,16 @@ object Delay {
     }
 
   class FibonacciStrategy[T](delayUnit: TimeUnit, maxDelay: Int) extends DelayStrategy[T] {
-    def fibs( n : Int) : Int = {
+    def fibs(n: Int): Int = {
       @scala.annotation.tailrec
-      def fib_tail(n: Int, a:Int, b:Int): Int = n match {
+      def fib_tail(n: Int, a: Int, b: Int): Int = n match {
         case 0 => a
-        case _ => fib_tail( n-1, b, a+b )
+        case _ => fib_tail(n - 1, b, a + b)
       }
-      fib_tail( n, 1, 1)
+      fib_tail(n, 1, 1)
     }
 
-    var idx               = 0
+    var idx = 0
     override def nextDelay(elem: T): FiniteDuration = {
       val delay = fibs(idx)
 

@@ -10,7 +10,6 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.mockito.MockitoSugar
 
-
 import scala.collection.immutable //TODO remove this after 2.13
 import scala.concurrent.Future
 

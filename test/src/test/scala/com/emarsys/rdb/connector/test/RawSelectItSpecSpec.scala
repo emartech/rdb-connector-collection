@@ -10,7 +10,6 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.mockito.MockitoSugar
 
-
 import scala.collection.immutable //TODO remove this after 2.13
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
@@ -87,8 +86,10 @@ class RawSelectItSpecSpec
   when(connector.validateProjectedRawSelect(simpleSelect, immutable.Seq("NONEXISTENT_COLUMN")))
     .thenReturn(Future(Left(databaseError)))
 
-  when(connector.projectedRawSelect(simpleSelect, immutable.Seq("A2", "A3"), None, queryTimeout, allowNullFieldValue = false))
-    .thenReturn(
+  when(
+    connector
+      .projectedRawSelect(simpleSelect, immutable.Seq("A2", "A3"), None, queryTimeout, allowNullFieldValue = false)
+  ).thenReturn(
       Future(
         Right(
           Source(
@@ -104,8 +105,10 @@ class RawSelectItSpecSpec
       )
     )
 
-  when(connector.projectedRawSelect(simpleSelect, immutable.Seq("A2", "A3"), None, queryTimeout, allowNullFieldValue = true))
-    .thenReturn(
+  when(
+    connector
+      .projectedRawSelect(simpleSelect, immutable.Seq("A2", "A3"), None, queryTimeout, allowNullFieldValue = true)
+  ).thenReturn(
       Future(
         Right(
           Source(

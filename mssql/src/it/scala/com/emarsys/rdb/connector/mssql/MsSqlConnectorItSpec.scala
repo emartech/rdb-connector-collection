@@ -23,8 +23,8 @@ class MsSqlConnectorItSpec
     with BeforeAndAfterAll
     with EitherValues {
 
-  val timeout           = 30.seconds
-  implicit val mat      = ActorMaterializer()
+  val timeout             = 30.seconds
+  implicit val mat        = ActorMaterializer()
   override def afterAll() = shutdown()
 
   "MsSqlConnectorItSpec" when {

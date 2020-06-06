@@ -6,8 +6,7 @@ import spray.json._
 
 class ConnectionConfigSpec extends WordSpecLike with Matchers {
 
-  case class TestConfig(publicFields: List[String] = Nil, secretFields: List[String] = Nil)
-      extends ConnectionConfig {
+  case class TestConfig(publicFields: List[String] = Nil, secretFields: List[String] = Nil) extends ConnectionConfig {
     override protected def getPublicFieldsForId               = publicFields
     override protected def getSecretFieldsForId               = secretFields
     override def toCommonFormat: CommonConnectionReadableData = CommonConnectionReadableData("a", "b", "c", "d")

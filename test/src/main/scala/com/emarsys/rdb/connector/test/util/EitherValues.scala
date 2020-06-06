@@ -7,7 +7,7 @@ import org.scalatest.{EitherValues => ScalatestEitherValues}
 trait EitherValues extends ScalatestEitherValues {
 
   implicit def convertEitherToValuable[L, R](either: Either[L, R])(
-    implicit pos: source.Position
+      implicit pos: source.Position
   ): EitherValuable[L, R] = new EitherValuable(either, pos)
 
   class EitherValuable[L, R](either: Either[L, R], pos: source.Position) {

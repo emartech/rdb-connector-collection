@@ -11,11 +11,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
 
-class DelaySpec
-    extends TestKit(ActorSystem("DelaySpec"))
-    with WordSpecLike
-    with Matchers
-    with BeforeAndAfterAll {
+class DelaySpec extends TestKit(ActorSystem("DelaySpec")) with WordSpecLike with Matchers with BeforeAndAfterAll {
 
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 

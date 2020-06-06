@@ -48,7 +48,7 @@ class BigQueryIsOptimizedItSpec
 
       "succeed" in {
         connector.isOptimized(tableName, Seq.empty).map { result =>
-          result.right.value shouldBe true
+          result.value shouldBe true
         }
       }
 

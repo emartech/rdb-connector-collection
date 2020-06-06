@@ -13,10 +13,11 @@ import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.{BigQueryConnector, GoogleSession, GoogleTokenApi}
 import com.emarsys.rdb.connector.bigquery.GoogleApi._
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
+import com.emarsys.rdb.connector.test.util.EitherValues
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 
-trait DbInitUtil {
+trait DbInitUtil extends EitherValues {
   implicit val sys: ActorSystem
   implicit val materializer: ActorMaterializer
   implicit val timeout: Timeout
@@ -25,7 +26,7 @@ trait DbInitUtil {
 
   private val testConfig = TestHelper.TEST_CONNECTION_CONFIG
 
-  lazy val connector: BigQueryConnector = Await.result(BigQueryConnector(testConfig)(sys), timeout.duration).right.get
+  lazy val connector: BigQueryConnector = Await.result(BigQueryConnector(testConfig)(sys), timeout.duration).value
 
   def sleep(): Unit = Thread.sleep(1000)
 

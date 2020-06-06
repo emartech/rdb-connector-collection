@@ -6,12 +6,13 @@ import akka.NotUsed
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import com.emarsys.rdb.connector.common.ConnectorResponse
+import com.emarsys.rdb.connector.test.util.EitherValues
 import org.scalatest.Matchers
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-package object test extends Matchers {
+package object test extends Matchers with EitherValues {
   def uuidGenerate = UUID.randomUUID().toString.replace("-", "")
 
   def checkResultWithoutRowOrder(result: Seq[Seq[String]], expected: Seq[Seq[String]]): Unit = {
@@ -38,7 +39,7 @@ package object test extends Matchers {
     val resultE = Await.result(connRes, awaitTimeout)
 
     resultE shouldBe a[Right[_, _]]
-    val resultStream: Source[Seq[String], NotUsed] = resultE.right.get
+    val resultStream: Source[Seq[String], NotUsed] = resultE.value
 
     Await.result(resultStream.runWith(Sink.seq), awaitTimeout)
   }

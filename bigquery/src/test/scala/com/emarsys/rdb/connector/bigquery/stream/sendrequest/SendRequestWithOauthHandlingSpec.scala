@@ -29,7 +29,7 @@ class SendRequestWithOauthHandlingSpec
     with TableDrivenPropertyChecks {
   import system.dispatcher
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     shutdown()
   }
 

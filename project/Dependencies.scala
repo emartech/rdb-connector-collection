@@ -3,8 +3,8 @@ import sbt.Keys._
 
 object Dependencies {
 
-  val v2_12         = "2.12.11"
-  val v2_13         = "2.13.2"
+  val v2_12                  = "2.12.11"
+  val v2_13                  = "2.13.2"
   val supportedScalaVersions = Seq(v2_12, v2_13)
 
   val mssqlVersion    = "6.4.0.jre8"
@@ -48,14 +48,15 @@ object Dependencies {
 
   val Common = scala ++ Seq(
     libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-stream"          % akkaVersion,
-      "org.typelevel"     %% "cats-core"            % catsCoreVersion,
-      "com.beachape"      %% "enumeratum"           % enumeratumVersion,
-      "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion % Test,
-      "org.scalatest"     %% "scalatest"            % scalatestVersion % Test,
-      "org.mockito"       %% "mockito-scala"        % mockitoScalaVersion % Test,
-      "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion % Test,
-      "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion % Test
+      "com.typesafe.akka"      %% "akka-stream"             % akkaVersion,
+      "org.typelevel"          %% "cats-core"               % catsCoreVersion,
+      "com.beachape"           %% "enumeratum"              % enumeratumVersion,
+      "com.typesafe.akka"      %% "akka-stream-testkit"     % akkaVersion % Test,
+      "org.scalatest"          %% "scalatest"               % scalatestVersion % Test,
+      "org.mockito"            %% "mockito-scala"           % mockitoScalaVersion % Test,
+      "com.typesafe.akka"      %% "akka-http-spray-json"    % akkaHttpVersion % Test,
+      "com.typesafe.akka"      %% "akka-stream-testkit"     % akkaVersion % Test,
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.4"
     )
   )
 

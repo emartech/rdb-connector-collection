@@ -77,7 +77,7 @@ class RedshiftConnectorItSpec
         val connection =
           Await.result(RedshiftConnector.create(badConnection, TestHelper.TEST_CONNECTOR_CONFIG), timeout)
         connection shouldBe a[Left[_, _]]
-        connection.left.get should haveErrorCategoryAndErrorName(ErrorCategory.Timeout, ErrorName.ConnectionTimeout)
+        connection.left.value should haveErrorCategoryAndErrorName(ErrorCategory.Timeout, ErrorName.ConnectionTimeout)
       }
 
     }
@@ -108,7 +108,7 @@ class RedshiftConnectorItSpec
         val result = Await.result(runQuery("select from table"), timeout)
 
         result shouldBe a[Left[_, _]]
-        result.left.get should haveErrorCategoryAndErrorName(
+        result.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,
           ErrorName.SqlSyntaxError
         )
@@ -118,7 +118,7 @@ class RedshiftConnectorItSpec
         val result = Await.result(runQuery("select * from a_non_existing_table"), timeout)
 
         result shouldBe a[Left[_, _]]
-        result.left.get should haveErrorCategoryAndErrorName(
+        result.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,
           ErrorName.TableNotFound
         )

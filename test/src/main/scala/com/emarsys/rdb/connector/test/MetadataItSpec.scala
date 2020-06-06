@@ -4,7 +4,8 @@ import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
-import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.test.util.EitherValues
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -40,7 +41,7 @@ trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll w
         val resultE = Await.result(connector.listTables(), awaitTimeout)
 
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
+        val result = resultE.value
 
         result should contain(TableModel(tableName, false))
         result should contain(TableModel(viewName, true))
@@ -55,7 +56,7 @@ trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll w
         val resultE = Await.result(connector.listFields(tableName), awaitTimeout)
 
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
+        val result = resultE.value
 
         val fieldModels = result.map(f => f.copy(name = f.name.toLowerCase, columnType = "")).sortBy(_.name)
 
@@ -81,7 +82,7 @@ trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll w
         val resultE = Await.result(connector.listTablesWithFields(), awaitTimeout)
 
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get.map(x =>
+        val result = resultE.value.map(x =>
           x.copy(fields = x.fields.map(f => f.copy(name = f.name.toLowerCase, columnType = "")).sortBy(_.name))
         )
 

@@ -77,7 +77,7 @@ class MySqlMetadataItSpec extends MetadataItSpec with SelectDbInitHelper {
         val resultE = Await.result(connector.listTablesWithFields(), awaitTimeout)
 
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get.map(x =>
+        val result = resultE.value.map(x =>
           x.copy(fields = x.fields.map(f => f.copy(name = f.name.toLowerCase, columnType = "")).sortBy(_.name))
         )
         result should not contain (FullTableModel(s"${tableName}_2", false, tableFields))

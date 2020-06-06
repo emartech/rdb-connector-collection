@@ -30,7 +30,7 @@ class GoogleTokenApiSpec
     with MockitoSugar
     with BeforeAndAfterAll {
 
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     shutdown()
   implicit val defaultPatience =
     PatienceConfig(timeout = 2.seconds, interval = 50.millis)

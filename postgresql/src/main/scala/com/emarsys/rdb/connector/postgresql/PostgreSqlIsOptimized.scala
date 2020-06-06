@@ -46,7 +46,7 @@ trait PostgreSqlIsOptimized {
           )
         case resultList =>
           Right(
-            resultList.map(result => isOptimizedHelper(fields.map(_.toLowerCase), result._3.split(", "))).reduce(_ || _)
+            resultList.map(result => isOptimizedHelper(fields.map(_.toLowerCase), result._3.split(", ").toIndexedSeq)).reduce(_ || _)
           )
       })
       .recover(eitherErrorHandler())

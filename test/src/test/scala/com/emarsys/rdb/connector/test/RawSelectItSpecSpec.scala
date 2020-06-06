@@ -28,7 +28,7 @@ class RawSelectItSpecSpec
 
   override def beforeAll(): Unit = ()
 
-  override def afterAll = {
+  override def afterAll() = {
     shutdown()
   }
 

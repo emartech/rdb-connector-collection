@@ -16,6 +16,7 @@ RUN chmod +x publish.sh
 COPY project/build.properties project/build.properties
 RUN sbt sbtVersion
 
+COPY .scalafmt.conf .scalafmt.conf
 COPY build.sbt build.sbt
 ADD project project
 RUN sbt update

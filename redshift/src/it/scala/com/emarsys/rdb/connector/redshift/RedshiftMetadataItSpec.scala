@@ -20,10 +20,10 @@ class RedshiftMetadataItSpec extends MetadataItSpec with BaseDbSpec {
          |    City varchar(255)
                             |);""".stripMargin
 
-    val createOtherSchemaSql = s"""CREATE SCHEMA $otherSchema"""
+    val createOtherSchemaSql = s"""CREATE SCHEMA "$otherSchema""""
 
     val createTableOtherSchemaSql =
-      s"""CREATE TABLE ${otherSchema}."$tableNameInOtherSchema" (
+      s"""CREATE TABLE "$otherSchema"."$tableNameInOtherSchema" (
          |    ID int
          |);""".stripMargin
 
@@ -41,7 +41,7 @@ class RedshiftMetadataItSpec extends MetadataItSpec with BaseDbSpec {
   def cleanUpDb(): Unit = {
     val dropViewSql  = s"""DROP VIEW "$viewName";"""
     val dropTableSql = s"""DROP TABLE "$tableName";"""
-    val dropOtherTableSql = s"""DROP TABLE "$tableNameInOtherSchema";"""
+    val dropOtherTableSql = s"""DROP TABLE "$otherSchema"."$tableNameInOtherSchema";"""
     val dropOtherSchemaSql = s"""DROP SCHEMA "$otherSchema";"""
     Await.result(for {
       _ <- TestHelper.executeQuery(dropViewSql)

@@ -20,11 +20,20 @@ class PostgreSqlMetadataItSpec extends MetadataItSpec with BaseDbSpec {
          |    City varchar(255)
                             |);""".stripMargin
 
+    val createOtherSchemaSql = s"""CREATE SCHEMA $otherSchema"""
+
+    val createTableOtherSchemaSql =
+      s"""CREATE TABLE ${otherSchema}."$tableNameInOtherSchema" (
+         |    ID int
+         |);""".stripMargin
+
     val createViewSql = s"""CREATE VIEW "$viewName" AS
                            |SELECT PersonID, LastName, FirstName
                            |FROM "$tableName";""".stripMargin
     Await.result(for {
       _ <- TestHelper.executeQuery(createTableSql)
+      _ <- TestHelper.executeQuery(createOtherSchemaSql)
+      _ <- TestHelper.executeQuery(createTableOtherSchemaSql)
       _ <- TestHelper.executeQuery(createViewSql)
     } yield (), 15.seconds)
   }
@@ -32,9 +41,13 @@ class PostgreSqlMetadataItSpec extends MetadataItSpec with BaseDbSpec {
   def cleanUpDb(): Unit = {
     val dropViewSql  = s"""DROP VIEW "$viewName";"""
     val dropTableSql = s"""DROP TABLE "$tableName";"""
+    val dropOtherTableSql = s"""DROP TABLE "$tableNameInOtherSchema";"""
+    val dropOtherSchemaSql = s"""DROP SCHEMA "$otherSchema";"""
     Await.result(for {
       _ <- TestHelper.executeQuery(dropViewSql)
       _ <- TestHelper.executeQuery(dropTableSql)
+      _ <- TestHelper.executeQuery(dropOtherTableSql)
+      _ <- TestHelper.executeQuery(dropOtherSchemaSql)
     } yield (), 15.seconds)
   }
 

@@ -14,10 +14,13 @@ import scala.concurrent.duration._
 For positive test results you need to implement an initDb function which creates a table and a view with the given names.
 The table must have "PersonID", "LastName", "FirstName", "Address", "City" columns.
 The view must have "PersonID", "LastName", "FirstName" columns.
+In addition, if the database supports it, a table with the given name should be created in a schema different from the default with an arbitrary schema.
  */
 trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
   val uuid      = uuidGenerate
+  val otherSchema = s"other_schema_$uuid"
   val tableName = s"metadata_list_tables_table_$uuid"
+  val tableNameInOtherSchema = s"mlt_other_schema_$uuid" // name has to be short, otherwise it might get truncated in postgres
   val viewName  = s"metadata_list_tables_view_$uuid"
   val connector: Connector
   val awaitTimeout = 5.seconds
@@ -45,6 +48,7 @@ trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll w
 
         result should contain(TableModel(tableName, false))
         result should contain(TableModel(viewName, true))
+        result should not contain(TableModel(tableNameInOtherSchema, false))
       }
     }
 

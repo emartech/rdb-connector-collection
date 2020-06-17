@@ -15,7 +15,7 @@ trait MsSqlMetadata {
 
   override def listTables(): ConnectorResponse[Seq[TableModel]] = {
 
-    db.run(sql"SELECT TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES".as[(String, String)])
+    db.run(sql"SELECT TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = schema_name()".as[(String, String)])
       .map(_.map(parseToTableModel))
       .map(Right(_))
       .recover(eitherErrorHandler())

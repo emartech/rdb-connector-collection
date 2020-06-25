@@ -3,7 +3,7 @@
     - name: Unit test all
       service: rdb-allconnector
       command: sbt +test
-      tag: ^(master|feature|update)
+      tag: ^(master|feature|update|snowflake)
     - type: parallel
       name: It tests
       steps:

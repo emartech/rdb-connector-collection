@@ -138,7 +138,7 @@ object SnowflakeConnector extends ConnectorCompanion {
     EitherT(
       checkConnection(db)
         .as(Right(new SnowflakeConnector(db, connectorConfig, poolName, currentSchema)))
-        .recover(ErrorConverter.default andThen Left.apply)
+        .recover(ErrorConverter.default.andThen(Left.apply(_)))
     ).leftMap { connectionError =>
       db.close()
       connectionError

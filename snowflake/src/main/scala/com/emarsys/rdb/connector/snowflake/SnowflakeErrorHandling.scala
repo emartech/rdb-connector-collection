@@ -8,7 +8,7 @@ import com.emarsys.rdb.connector.common.models.Errors.DatabaseError
 trait SnowflakeErrorHandling {
   import ErrorConverter._
 
-  protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[DatabaseError, T]] = default.andThen(Left.apply)
+  protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[DatabaseError, T]] = default.andThen(Left.apply(_))
 
-  protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] = default.andThen(Source.failed)
+  protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] = default.andThen(Source.failed(_))
 }

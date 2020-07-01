@@ -6,7 +6,7 @@ import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData, PoolConfig}
-import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion, SimpleSelect}
+import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.snowflake.SnowflakeConnector.SnowflakeConnectorConfig
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}

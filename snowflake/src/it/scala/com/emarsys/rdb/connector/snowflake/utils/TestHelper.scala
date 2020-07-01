@@ -1,8 +1,18 @@
 package com.emarsys.rdb.connector.snowflake.utils
 
+import java.util.Properties
+
 import com.emarsys.rdb.connector.common.Models.PoolConfig
-import com.emarsys.rdb.connector.snowflake.SnowflakeConnector.{SnowflakeConnectionConfig, SnowflakeConnectorConfig}
+import com.emarsys.rdb.connector.snowflake.SnowflakeConnector.{
+  createUrl,
+  SnowflakeConnectionConfig,
+  SnowflakeConnectorConfig
+}
 import com.typesafe.config.ConfigFactory
+import slick.util.AsyncExecutor
+import com.emarsys.rdb.connector.snowflake.SnowflakeProfile.api._
+
+import scala.concurrent.Future
 
 object TestHelper {
   val config = ConfigFactory.load().getConfig("dbconf")
@@ -14,7 +24,7 @@ object TestHelper {
     schemaName = config.getString("schema"),
     dbUser = config.getString("user"),
     dbPassword = config.getString("password"),
-    connectionParams = config.getString("connectionParams")
+    connectionParams = s"db=${config.getString("database")}"
   )
 
   val TEST_CONNECTOR_CONFIG = SnowflakeConnectorConfig(
@@ -22,4 +32,22 @@ object TestHelper {
     configPath = "snowflakedb",
     poolConfig = PoolConfig(2, 100)
   )
+
+  private lazy val db: Database = {
+    Database.forURL(
+      createUrl(TEST_CONNECTION_CONFIG),
+      Map(
+        "driver" -> "net.snowflake.client.jdbc.SnowflakeDriver",
+        "user" -> TEST_CONNECTION_CONFIG.dbUser,
+        "password" -> TEST_CONNECTION_CONFIG.dbPassword,
+        "warehouse" -> TEST_CONNECTION_CONFIG.warehouseName,
+        "schema"    -> TEST_CONNECTION_CONFIG.schemaName,
+        "db"        -> TEST_CONNECTION_CONFIG.dbName
+      )
+    )
+  }
+
+  def executeQuery(sql: String): Future[Int] = {
+    db.run(sqlu"""#$sql""")
+  }
 }

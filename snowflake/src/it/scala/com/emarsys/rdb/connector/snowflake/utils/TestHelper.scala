@@ -1,7 +1,5 @@
 package com.emarsys.rdb.connector.snowflake.utils
 
-import java.util.Properties
-
 import com.emarsys.rdb.connector.common.Models.PoolConfig
 import com.emarsys.rdb.connector.snowflake.SnowflakeConnector.{
   createUrl,
@@ -9,7 +7,6 @@ import com.emarsys.rdb.connector.snowflake.SnowflakeConnector.{
   SnowflakeConnectorConfig
 }
 import com.typesafe.config.ConfigFactory
-import slick.util.AsyncExecutor
 import com.emarsys.rdb.connector.snowflake.SnowflakeProfile.api._
 
 import scala.concurrent.Future
@@ -37,9 +34,9 @@ object TestHelper {
     Database.forURL(
       createUrl(TEST_CONNECTION_CONFIG),
       Map(
-        "driver" -> "net.snowflake.client.jdbc.SnowflakeDriver",
-        "user" -> TEST_CONNECTION_CONFIG.dbUser,
-        "password" -> TEST_CONNECTION_CONFIG.dbPassword,
+        "driver"    -> "net.snowflake.client.jdbc.SnowflakeDriver",
+        "user"      -> TEST_CONNECTION_CONFIG.dbUser,
+        "password"  -> TEST_CONNECTION_CONFIG.dbPassword,
         "warehouse" -> TEST_CONNECTION_CONFIG.warehouseName,
         "schema"    -> TEST_CONNECTION_CONFIG.schemaName,
         "db"        -> TEST_CONNECTION_CONFIG.dbName

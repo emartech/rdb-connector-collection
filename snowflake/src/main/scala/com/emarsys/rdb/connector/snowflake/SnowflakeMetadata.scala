@@ -25,7 +25,7 @@ trait SnowflakeMetadata {
         sql"SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = $schemaName AND table_name = $tableName;"
           .as[(String, String)]
       )
-      .map(_.map(parseToFiledModel))
+      .map(_.map(parseToFieldModel))
       .map(fields => {
         if (fields.isEmpty) {
           Left(
@@ -58,7 +58,7 @@ trait SnowflakeMetadata {
         sql"SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = $schemaName;"
           .as[(String, String, String)]
       )
-      .map(_.groupBy(_._1).map { case (a, b) => a -> b.map(x => parseToFiledModel(x._2 -> x._3)) })
+      .map(_.groupBy(_._1).map { case (a, b) => a -> b.map(x => parseToFieldModel(x._2 -> x._3)) })
   }
 
   private def makeTablesWithFields(
@@ -72,7 +72,7 @@ trait SnowflakeMetadata {
       }
   }
 
-  private def parseToFiledModel(f: (String, String)): FieldModel = {
+  private def parseToFieldModel(f: (String, String)): FieldModel = {
     FieldModel(f._1, f._2)
   }
 

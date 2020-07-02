@@ -27,7 +27,9 @@ class SnowflakeConnector(
     with SnowflakeTestConnection
     with SnowflakeMetadata
     with SnowflakeStreamingQuery
-    with SnowflakeSimpleSelect {
+    with SnowflakeSimpleSelect
+    with SnowflakeRawSelect {
+
   override def close(): Future[Unit] = {
     db.shutdown
   }

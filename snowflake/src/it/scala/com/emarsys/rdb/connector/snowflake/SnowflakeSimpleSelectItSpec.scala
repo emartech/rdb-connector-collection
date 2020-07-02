@@ -17,7 +17,7 @@ import scala.concurrent.duration._
 
 
 class SnowflakeSimpleSelectItSpec
-  extends TestKit(ActorSystem("MySqlSimpleSelectItSpec"))
+  extends TestKit(ActorSystem("SnowflakeSimpleSelectItSpec"))
   with SimpleSelectItSpec
   with SelectDbInitHelper
   with Matchers {

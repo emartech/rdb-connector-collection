@@ -25,6 +25,7 @@ class SnowflakeConnector(
     extends Connector
     with SnowflakeErrorHandling
     with SnowflakeTestConnection
+    with SnowflakeMetadata
     with SnowflakeStreamingQuery
     with SnowflakeSimpleSelect {
   override def close(): Future[Unit] = {

@@ -24,6 +24,7 @@ class SnowflakeConnector(
 )(implicit val executionContext: ExecutionContext)
     extends Connector
     with SnowflakeErrorHandling
+    with SnowflakeTestConnection
     with SnowflakeStreamingQuery
     with SnowflakeSimpleSelect {
   override def close(): Future[Unit] = {

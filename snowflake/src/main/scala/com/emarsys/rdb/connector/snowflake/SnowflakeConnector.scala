@@ -149,7 +149,7 @@ object SnowflakeConnector extends ConnectorCompanion {
     }.value
 
   private def checkConnection(db: Database)(implicit executionContext: ExecutionContext): Future[Unit] = {
-    import slick.jdbc.PostgresProfile.api._
+    import com.emarsys.rdb.connector.snowflake.SnowflakeProfile.api._
     db.run(sql"SELECT 1".as[Int]).void
   }
 }

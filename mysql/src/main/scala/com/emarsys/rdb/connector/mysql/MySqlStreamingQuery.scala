@@ -49,11 +49,10 @@ trait MySqlStreamingQuery {
   }
 
   private def getRowData(result: PositionedResult): Seq[String] = {
-    val columnTypes = (1 to result.numColumns).map(result.rs.getMetaData.getColumnType(_))
-
+    // TODO: test this
     (0 until result.numColumns).map { i =>
-      // TODO: test this
-      if (columnTypes(i) == Types.TIMESTAMP) {
+      val columnType = result.rs.getMetaData.getColumnType(i + 1)
+      if (columnType == Types.TIMESTAMP) {
         parseDateTime(result.nextString())
       } else {
         result.nextString()

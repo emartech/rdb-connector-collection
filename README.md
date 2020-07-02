@@ -35,3 +35,17 @@ After pushing the tag, while it is not strictly necessary, please [draft a relea
 [sbt-dynver]: https://github.com/dwijnand/sbt-dynver
 [semver]: https://semver.org
 [draft a release on github]: https://github.com/emartech/db-router-client/releases/new
+
+## Test databases
+
+Two of the databases used for IT tests are hosted on external services:  
+- Redshift on AWS  
+- BigQuery on GCP  
+
+### Redshift
+
+Hosted in AWS. Sign in via http://sso.emarsys.com/.  
+Region: `eu-central-1`  
+Cluster: `rdb-router-test`
+
+It is paused at nights automatically. If you would like to use it when it stopped by default, feel free to start it anytime.

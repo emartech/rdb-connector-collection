@@ -21,7 +21,7 @@ trait MySqlMetadata {
 
   override def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
     db.run(sql"DESC #${TableName(tableName).toSql}".as[(String, String, String, String, String, String)])
-      .map(_.map(parseToFiledModel))
+      .map(_.map(parseToFieldModel))
       .map(Right(_))
       .recover(handleNotExistingTable(tableName))
       .recover(eitherErrorHandler())
@@ -39,7 +39,7 @@ trait MySqlMetadata {
         sql"select TABLE_NAME, COLUMN_NAME, DATA_TYPE from information_schema.columns where table_schema = DATABASE();"
           .as[(String, String, String)]
       )
-      .map(_.groupBy(_._1).map { case (a, b) => a -> b.map(x => parseToFiledModel(x._2 -> x._3)) })
+      .map(_.groupBy(_._1).map { case (a, b) => a -> b.map(x => parseToFieldModel(x._2 -> x._3)) })
       .map(Right(_))
       .recover(eitherErrorHandler())
   }
@@ -55,11 +55,11 @@ trait MySqlMetadata {
       }
   }
 
-  private def parseToFiledModel(f: (String, String)): FieldModel = {
+  private def parseToFieldModel(f: (String, String)): FieldModel = {
     FieldModel(f._1, f._2)
   }
 
-  private def parseToFiledModel(f: (String, String, String, String, String, String)): FieldModel = {
+  private def parseToFieldModel(f: (String, String, String, String, String, String)): FieldModel = {
     FieldModel(f._1, f._2)
   }
 

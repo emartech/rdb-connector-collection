@@ -3,14 +3,14 @@ package com.emarsys.rdb.connector.snowflake
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName}
 import com.emarsys.rdb.connector.common.models.Errors.ErrorCategory.FatalQueryExecution
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect.{AllField, FieldName, SpecificFields, TableName}
 import com.emarsys.rdb.connector.snowflake.utils.{SelectDbInitHelper, TestHelper}
-import com.emarsys.rdb.connector.test.{SimpleSelectItSpec, getConnectorResult}
-import org.scalatest.Matchers
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
+import com.emarsys.rdb.connector.test.SimpleSelectItSpec
+import org.scalatest.Matchers
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -28,12 +28,12 @@ class SnowflakeSimpleSelectItSpec
     super.initDb()
 
     val createCTableSql =
-      s"""CREATE TABLE `$cTableName` (
+      s"""CREATE TABLE "$cTableName" (
          |    C varchar(255) NOT NULL
          |);""".stripMargin
 
     val insertCDataSql =
-      s"""INSERT INTO `$cTableName` (C) VALUES
+      s"""INSERT INTO "$cTableName" (C) VALUES
          |('c12'),
          |('c12'),
          |('c3')
@@ -46,7 +46,7 @@ class SnowflakeSimpleSelectItSpec
   }
 
   override def cleanUpDb(): Unit = {
-    val dropCTableSql = s"""DROP TABLE `$cTableName`;"""
+    val dropCTableSql = s"""DROP TABLE "$cTableName";"""
     Await.result(TestHelper.executeQuery(dropCTableSql), 5.seconds)
     super.cleanUpDb()
   }
@@ -63,7 +63,7 @@ class SnowflakeSimpleSelectItSpec
     }
 
     "return TableNotFound when the specified table is not found" in {
-      val message  = "SQL compilation error:\nObject '\"`NOPE`\"' does not exist or not authorized."
+      val message  = "SQL compilation error:\nObject '\"nope\"' does not exist or not authorized."
       val expected = DatabaseError(FatalQueryExecution, ErrorName.TableNotFound, message, None, None)
       val select   = SimpleSelect(AllField, TableName("nope"))
       val error    = the[DatabaseError] thrownBy getSimpleSelectResult(select)

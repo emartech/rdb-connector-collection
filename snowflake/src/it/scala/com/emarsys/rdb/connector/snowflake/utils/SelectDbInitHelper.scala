@@ -10,7 +10,7 @@ trait SelectDbInitHelper extends BaseDbSpec {
 
   def initDb(): Unit = {
     val createATableSql =
-      s"""CREATE TABLE `$aTableName` (
+      s"""CREATE TABLE "$aTableName" (
          |    A1 varchar(255) NOT NULL,
          |    A2 number,
          |    A3 number,
@@ -18,7 +18,7 @@ trait SelectDbInitHelper extends BaseDbSpec {
          |);""".stripMargin
 
     val createBTableSql =
-      s"""CREATE TABLE `$bTableName` (
+      s"""CREATE TABLE "$bTableName" (
          |    B1 varchar(255) NOT NULL,
          |    B2 varchar(255) NOT NULL,
          |    B3 varchar(255) NOT NULL,
@@ -26,7 +26,7 @@ trait SelectDbInitHelper extends BaseDbSpec {
          |);""".stripMargin
 
     val insertADataSql =
-      s"""INSERT INTO `$aTableName` (A1,A2,A3) VALUES
+      s"""INSERT INTO "$aTableName" (A1,A2,A3) VALUES
          |('v1', 1, 1),
          |('v2', 2, 0),
          |('v3', 3, 1),
@@ -37,7 +37,7 @@ trait SelectDbInitHelper extends BaseDbSpec {
          |;""".stripMargin
 
     val insertBDataSql =
-      s"""INSERT INTO `$bTableName` (B1,B2,B3,B4) VALUES
+      s"""INSERT INTO "$bTableName" (B1,B2,B3,B4) VALUES
          |('b,1', 'b.1', 'b:1', 'b"1'),
          |('b;2', 'b\\\\2', 'b\\'2', 'b=2'),
          |('b!3', 'b@3', 'b#3', NULL),
@@ -56,8 +56,8 @@ trait SelectDbInitHelper extends BaseDbSpec {
   }
 
   def cleanUpDb(): Unit = {
-    val dropATableSql = s"""DROP TABLE `$aTableName`;"""
-    val dropBTableSql = s"""DROP TABLE `$bTableName`;"""
+    val dropATableSql = s"""DROP TABLE "$aTableName";"""
+    val dropBTableSql = s"""DROP TABLE "$bTableName";"""
     Await.result(for {
       _ <- TestHelper.executeQuery(dropATableSql)
       _ <- TestHelper.executeQuery(dropBTableSql)

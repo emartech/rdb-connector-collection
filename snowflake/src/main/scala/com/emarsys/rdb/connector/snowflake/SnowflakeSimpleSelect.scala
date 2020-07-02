@@ -4,13 +4,13 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.SimpleSelect
-import com.emarsys.rdb.connector.common.defaults.SqlWriter._
-import SnowflakeSqlWriters._
 
 import scala.concurrent.duration.FiniteDuration
 
 trait SnowflakeSimpleSelect {
   self: SnowflakeConnector =>
+  import com.emarsys.rdb.connector.common.defaults.DefaultSqlWriters._
+  import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 
   override def simpleSelect(
       select: SimpleSelect,

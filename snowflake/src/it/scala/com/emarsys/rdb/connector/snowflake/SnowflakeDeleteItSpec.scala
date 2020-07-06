@@ -8,8 +8,6 @@ import com.emarsys.rdb.connector.test.DeleteItSpec
 
 import scala.concurrent.duration._
 
-// TODO: CDP-1102 fix this test. Fixing the type of A3 in SelectDbInitHelper to 'boolean' would fix this, but would also break other tests
-@org.scalatest.Ignore
 class SnowflakeDeleteItSpec
     extends TestKit(ActorSystem("SnowflakeDeleteItSpec"))
     with DeleteItSpec

@@ -42,6 +42,9 @@ class SnowflakeRawSelectItSpec
   override val badSimpleSelect = s"""SELECT * ForM "$aTableName""""
   override val simpleSelectNoSemicolon = s"""SELECT * FROM "$aTableName""""
 
+  override val booleanValue1 = "TRUE"
+  override val booleanValue0 = "FALSE"
+
   "#analyzeRawSelect" should {
     "return result" in {
       val result = getConnectorResult(connector.analyzeRawSelect(simpleSelect), awaitTimeout)

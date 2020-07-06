@@ -8,8 +8,6 @@ import com.emarsys.rdb.connector.test.ReplaceItSpec
 
 import scala.concurrent.duration._
 
-// TODO: CDP-1102 fix this test. Fixing the type of A3 in SelectDbInitHelper to 'boolean' would fix this, but would also break other tests
-@org.scalatest.Ignore
 class SnowflakeReplaceItSpec
     extends TestKit(ActorSystem("SnowflakeReplaceItSpec"))
     with ReplaceItSpec

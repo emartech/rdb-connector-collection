@@ -17,8 +17,6 @@ import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, BeforeAndAfterEach, 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-// TODO: CDP-1102 fix this test. Fixing the type of A3 in SelectDbInitHelper to 'boolean' would fix this, but would also break other tests
-@org.scalatest.Ignore
 class SnowflakeRawQueryItSpec
     extends TestKit(ActorSystem("SnowflakeRawQueryItSpec"))
     with SelectDbInitHelper

@@ -13,7 +13,7 @@ trait SelectDbInitHelper extends BaseDbSpec {
       s"""CREATE TABLE "$aTableName" (
          |    A1 varchar(255) NOT NULL,
          |    A2 number,
-         |    A3 number,
+         |    A3 boolean,
          |    PRIMARY KEY (A1)
          |);""".stripMargin
 
@@ -27,11 +27,11 @@ trait SelectDbInitHelper extends BaseDbSpec {
 
     val insertADataSql =
       s"""INSERT INTO "$aTableName" (A1,A2,A3) VALUES
-         |('v1', 1, 1),
-         |('v2', 2, 0),
-         |('v3', 3, 1),
-         |('v4', -4, 0),
-         |('v5', NULL, 0),
+         |('v1', 1, true),
+         |('v2', 2, false),
+         |('v3', 3, true),
+         |('v4', -4, false),
+         |('v5', NULL, false),
          |('v6', 6, NULL),
          |('v7', NULL, NULL)
          |;""".stripMargin

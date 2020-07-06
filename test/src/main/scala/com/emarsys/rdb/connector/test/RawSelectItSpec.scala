@@ -39,6 +39,9 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
   val awaitTimeout = 10.seconds
   val queryTimeout = 5.seconds
 
+  val booleanValue0 = "0"
+  val booleanValue1 = "1"
+
   s"RawSelectItSpec $uuid" when {
 
     "#rawSelect" should {
@@ -50,11 +53,11 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v4", "-4", "0"),
-            Seq("v5", null, "0"),
+            Seq("v1", "1", booleanValue1),
+            Seq("v2", "2", booleanValue0),
+            Seq("v3", "3", booleanValue1),
+            Seq("v4", "-4", booleanValue0),
+            Seq("v5", null, booleanValue0),
             Seq("v6", "6", null),
             Seq("v7", null, null)
           )
@@ -148,11 +151,11 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
           result,
           Seq(
             Seq("A2", "A3"),
-            Seq("1", "1"),
-            Seq("2", "0"),
-            Seq("3", "1"),
-            Seq("-4", "0"),
-            Seq(null, "0"),
+            Seq("1", booleanValue1),
+            Seq("2", booleanValue0),
+            Seq("3", booleanValue1),
+            Seq("-4", booleanValue0),
+            Seq(null, booleanValue0),
             Seq("6", null),
             Seq(null, null)
           )
@@ -169,10 +172,10 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
           result,
           Seq(
             Seq("A2", "A3"),
-            Seq("1", "1"),
-            Seq("2", "0"),
-            Seq("3", "1"),
-            Seq("-4", "0")
+            Seq("1", booleanValue1),
+            Seq("2", booleanValue0),
+            Seq("3", booleanValue1),
+            Seq("-4", booleanValue0)
           )
         )
       }

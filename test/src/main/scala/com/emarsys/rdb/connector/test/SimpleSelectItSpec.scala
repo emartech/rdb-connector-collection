@@ -55,6 +55,9 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
   val awaitTimeout = 15.seconds
   val queryTimeout = 20.seconds
 
+  val booleanValue0 = "0"
+  val booleanValue1 = "1"
+
   implicit val materializer: Materializer
 
   override def beforeAll(): Unit = {
@@ -88,11 +91,11 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v4", "-4", "0"),
-            Seq("v5", null, "0"),
+            Seq("v1", "1", booleanValue1),
+            Seq("v2", "2", booleanValue0),
+            Seq("v3", "3", booleanValue1),
+            Seq("v4", "-4", booleanValue0),
+            Seq("v5", null, booleanValue0),
             Seq("v6", "6", null),
             Seq("v7", null, null)
           )
@@ -125,11 +128,11 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A3"),
-            Seq("v1", "1"),
-            Seq("v2", "0"),
-            Seq("v3", "1"),
-            Seq("v4", "0"),
-            Seq("v5", "0"),
+            Seq("v1", booleanValue1),
+            Seq("v2", booleanValue0),
+            Seq("v3", booleanValue1),
+            Seq("v4", booleanValue0),
+            Seq("v5", booleanValue0),
             Seq("v6", null),
             Seq("v7", null)
           )
@@ -178,7 +181,7 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v5", null, "0"),
+            Seq("v5", null, booleanValue0),
             Seq("v7", null, null)
           )
         )
@@ -193,10 +196,10 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v4", "-4", "0"),
+            Seq("v1", "1", booleanValue1),
+            Seq("v2", "2", booleanValue0),
+            Seq("v3", "3", booleanValue1),
+            Seq("v4", "-4", booleanValue0),
             Seq("v6", "6", null)
           )
         )
@@ -212,7 +215,7 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v3", "3", "1")
+            Seq("v3", "3", booleanValue1)
           )
         )
       }
@@ -253,14 +256,22 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v3", "3", "1")
+            Seq("v3", "3", booleanValue1)
           )
         )
       }
 
       "list table values with EQUAL on booleans" in {
-        val simpleSelect =
-          SimpleSelect(AllField, TableName(aTableName), where = Some(EqualToValue(FieldName("A3"), Value("1"))))
+        val simpleSelect = SimpleSelect(
+          AllField,
+          TableName(aTableName),
+          where = Some(
+            EqualToValue(
+              FieldName("A3"),
+              Value(booleanValue1)
+            )
+          )
+        )
 
         val result = getSimpleSelectResult(simpleSelect)
 
@@ -268,8 +279,8 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v3", "3", "1")
+            Seq("v1", "1", booleanValue1),
+            Seq("v3", "3", booleanValue1)
           )
         )
       }
@@ -297,9 +308,9 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v5", null, "0"),
+            Seq("v1", "1", booleanValue1),
+            Seq("v2", "2", booleanValue0),
+            Seq("v5", null, booleanValue0),
             Seq("v7", null, null)
           )
         )
@@ -374,7 +385,7 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
+            Seq("v1", "1", booleanValue1),
             Seq("v7", null, null)
           )
         )
@@ -398,11 +409,11 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
             Seq("A1", "A2", "A3"),
             Seq("v7", null, null),
             Seq("v6", "6", null),
-            Seq("v5", null, "0"),
-            Seq("v4", "-4", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v1", "1", "1")
+            Seq("v5", null, booleanValue0),
+            Seq("v4", "-4", booleanValue0),
+            Seq("v3", "3", booleanValue1),
+            Seq("v2", "2", booleanValue0),
+            Seq("v1", "1", booleanValue1)
           )
         )
       }
@@ -420,11 +431,11 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v4", "-4", "0"),
-            Seq("v5", null, "0"),
+            Seq("v1", "1", booleanValue1),
+            Seq("v2", "2", booleanValue0),
+            Seq("v3", "3", booleanValue1),
+            Seq("v4", "-4", booleanValue0),
+            Seq("v5", null, booleanValue0),
             Seq("v6", "6", null),
             Seq("v7", null, null)
           )
@@ -448,11 +459,11 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v5", null, "0"),
-            Seq("v4", "-4", "0"),
-            Seq("v2", "2", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v1", "1", "1")
+            Seq("v5", null, booleanValue0),
+            Seq("v4", "-4", booleanValue0),
+            Seq("v2", "2", booleanValue0),
+            Seq("v3", "3", booleanValue1),
+            Seq("v1", "1", booleanValue1)
           )
         )
       }

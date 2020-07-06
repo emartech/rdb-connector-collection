@@ -24,6 +24,9 @@ class SnowflakeSimpleSelectItSpec
 
   implicit override val materializer: Materializer = ActorMaterializer()
 
+  override val booleanValue0 = "FALSE"
+  override val booleanValue1 = "TRUE"
+
   override def initDb(): Unit = {
     super.initDb()
 

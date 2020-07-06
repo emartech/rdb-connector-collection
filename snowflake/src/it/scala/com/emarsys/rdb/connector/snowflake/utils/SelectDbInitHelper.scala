@@ -51,7 +51,7 @@ trait SelectDbInitHelper extends BaseDbSpec {
         _ <- TestHelper.executeQuery(insertADataSql)
         _ <- TestHelper.executeQuery(insertBDataSql)
       } yield (),
-      5.seconds
+      20.seconds
     )
   }
 

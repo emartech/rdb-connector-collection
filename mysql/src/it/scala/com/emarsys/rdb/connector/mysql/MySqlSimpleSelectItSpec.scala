@@ -44,7 +44,7 @@ class MySqlSimpleSelectItSpec
     Await.result(for {
       _ <- TestHelper.executeQuery(createCTableSql)
       _ <- TestHelper.executeQuery(insertCDataSql)
-    } yield (), 5.seconds)
+    } yield (), 10.seconds)
   }
 
   override def cleanUpDb(): Unit = {

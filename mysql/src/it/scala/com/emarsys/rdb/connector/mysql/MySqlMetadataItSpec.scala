@@ -27,7 +27,7 @@ class MySqlMetadataItSpec extends MetadataItSpec with SelectDbInitHelper {
     Await.result(for {
       _ <- TestHelper.executeQuery(createTableSql)
       _ <- TestHelper.executeQuery(createViewSql)
-    } yield (), 5.seconds)
+    } yield (), 10.seconds)
   }
 
   override def cleanUpDb(): Unit = {
@@ -42,7 +42,7 @@ class MySqlMetadataItSpec extends MetadataItSpec with SelectDbInitHelper {
         _ <- TestHelper.executeQuery(dropViewSql2)
         _ <- TestHelper.executeQuery(dropTableSql2)
       } yield (),
-      5.seconds
+      10.seconds
     )
   }
 
@@ -68,7 +68,7 @@ class MySqlMetadataItSpec extends MetadataItSpec with SelectDbInitHelper {
           _ <- TestHelper.executeQuery(createTableSql)
           _ <- TestHelper.executeQuery(createViewSql)
           _ <- TestHelper.executeQuery(dropTableSql)
-        } yield (), 5.seconds)
+        } yield (), 10.seconds)
 
         val tableFields =
           Seq("PersonID", "LastName", "FirstName", "Address", "City").map(_.toLowerCase()).sorted.map(FieldModel(_, ""))

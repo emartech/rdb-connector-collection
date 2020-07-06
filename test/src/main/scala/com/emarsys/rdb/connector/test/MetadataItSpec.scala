@@ -23,7 +23,7 @@ trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll w
   val tableNameInOtherSchema = s"mlt_other_schema_$uuid" // name has to be short, otherwise it might get truncated in postgres
   val viewName  = s"metadata_list_tables_view_$uuid"
   val connector: Connector
-  val awaitTimeout = 5.seconds
+  val awaitTimeout = 10.seconds
 
   override def beforeAll(): Unit = {
     initDb()

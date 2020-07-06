@@ -48,7 +48,7 @@ class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
         _ <- TestHelper.executeQuery(createIndex1Sql)
         _ <- TestHelper.executeQuery(createIndex2Sql)
       } yield (),
-      5.seconds
+      10.seconds
     )
   }
 
@@ -61,7 +61,7 @@ class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
       _ <- TestHelper.executeQuery(dropIndex2Sql)
       _ <- TestHelper.executeQuery(dropIndex1Sql)
       _ <- TestHelper.executeQuery(dropTableSql)
-    } yield (), 5.seconds)
+    } yield (), 10.seconds)
   }
 
   "#isOptimized" when {

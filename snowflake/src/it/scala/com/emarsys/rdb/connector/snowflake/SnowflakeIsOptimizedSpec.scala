@@ -18,7 +18,7 @@ class SnowflakeIsOptimizedSpec
     with BeforeAndAfterAll
     with EitherValues
     with BaseDbSpec {
-  val awaitTimeout     = 5.seconds
+  val awaitTimeout     = 10.seconds
   val awaitTimeoutLong = 15.seconds
 
   val uuid      = UUID.randomUUID().toString

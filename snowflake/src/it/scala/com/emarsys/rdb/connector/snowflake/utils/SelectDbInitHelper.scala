@@ -61,6 +61,6 @@ trait SelectDbInitHelper extends BaseDbSpec {
     Await.result(for {
       _ <- TestHelper.executeQuery(dropATableSql)
       _ <- TestHelper.executeQuery(dropBTableSql)
-    } yield (), 5.seconds)
+    } yield (), 10.seconds)
   }
 }

@@ -37,7 +37,7 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
   val bTableName = s"b$postfixTableName"
 
   val awaitTimeout = 10.seconds
-  val queryTimeout = 5.seconds
+  val queryTimeout = 10.seconds
 
   val booleanValue0 = "0"
   val booleanValue1 = "1"

@@ -81,14 +81,9 @@ trait SnowflakeRawDataManipulation {
     futureResult.recover(eitherErrorHandler())
   }
 
-  private def swapTableNames(tableName: String, newTableName: String): Future[Seq[Int]] = {
-    val temporaryTableName = generateTempTableName()
-    val tablePairs         = Seq((tableName, temporaryTableName), (newTableName, tableName), (temporaryTableName, newTableName))
-    val queries = tablePairs.map({
-      case (from, to) =>
-        sqlu"ALTER TABLE #${TableName(from).toSql} RENAME TO #${TableName(to).toSql}"
-    })
-    db.run(DBIO.sequence(queries).transactionally)
+  private def swapTableNames(tableName: String, newTableName: String): Future[Int] = {
+    val query = sqlu"ALTER TABLE #${TableName(tableName).toSql} SWAP WITH #${TableName(newTableName).toSql}"
+    db.run(query)
   }
 
   private def generateTempTableName(original: String = ""): String = {

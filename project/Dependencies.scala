@@ -7,10 +7,11 @@ object Dependencies {
   val v2_13                  = "2.13.2"
   val supportedScalaVersions = Seq(v2_12, v2_13)
 
-  val mssqlVersion    = "6.4.0.jre8"
-  val mysqlVersion    = "8.0.18"
-  val postgresVersion = "42.2.9"
-  val redshiftVersion = "1.2.37.1061"
+  val mssqlVersion     = "6.4.0.jre8"
+  val mysqlVersion     = "8.0.18"
+  val postgresVersion  = "42.2.9"
+  val redshiftVersion  = "1.2.37.1061"
+  val snowflakeVersion = "3.12.8"
 
   val akkaVersion              = "2.5.27"
   val akkaHttpVersion          = "10.1.11"
@@ -113,6 +114,15 @@ object Dependencies {
       "com.typesafe.slick"  %% "slick-hikaricp" % slickVersion,
       "com.amazon.redshift" % "redshift-jdbc42" % redshiftVersion,
       "org.typelevel"       %% "cats-core"      % catsCoreVersion
+    )
+  )
+
+  val Snowflake = Seq(
+    libraryDependencies ++= Seq(
+      "com.typesafe.slick" %% "slick"          % slickVersion,
+      "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
+      "net.snowflake"      % "snowflake-jdbc"  % snowflakeVersion,
+      "org.typelevel"      %% "cats-core"      % catsCoreVersion
     )
   )
 }

@@ -9,7 +9,8 @@ lazy val connectors: Seq[ProjectReference] = Seq(
   mssql,
   mysql,
   postgres,
-  redshift
+  redshift,
+  snowflake
 )
 
 lazy val connectorCollection = project
@@ -46,11 +47,12 @@ lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(meta: _*)
   .settings(publishSettings: _*)
 
-lazy val bigQuery = connector("bigquery", Dependencies.BigQuery)
-lazy val mssql    = connector("mssql", Dependencies.Mssql)
-lazy val mysql    = connector("mysql", Dependencies.Mysql)
-lazy val postgres = connector("postgresql", Dependencies.Postgresql)
-lazy val redshift = connector("redshift", Dependencies.Redshift)
+lazy val bigQuery  = connector("bigquery", Dependencies.BigQuery)
+lazy val mssql     = connector("mssql", Dependencies.Mssql)
+lazy val mysql     = connector("mysql", Dependencies.Mysql)
+lazy val postgres  = connector("postgresql", Dependencies.Postgresql)
+lazy val redshift  = connector("redshift", Dependencies.Redshift)
+lazy val snowflake = connector("snowflake", Dependencies.Snowflake)
 
 lazy val ItTest = config("it") extend Test
 lazy val itTestSettings = Defaults.itSettings ++ Seq(

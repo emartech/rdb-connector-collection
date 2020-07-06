@@ -1,19 +1,19 @@
-package com.emarsys.rdb.connector.postgresql
+package com.emarsys.rdb.connector.snowflake
 
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, FieldValueWrapper, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.NullValue
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.postgresql.PostgreSqlWriters._
+import com.emarsys.rdb.connector.common.defaults.DefaultSqlWriters._
+import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 
-trait PostgreSqlRawDataManipulation {
+trait SnowflakeRawDataManipulation {
 
-  self: PostgreSqlConnector =>
+  self: SnowflakeConnector =>
 
   override def rawUpdate(tableName: String, definitions: Seq[UpdateDefinition]): ConnectorResponse[Int] = {
     if (definitions.isEmpty) {
@@ -23,7 +23,7 @@ trait PostgreSqlRawDataManipulation {
       val queries = definitions.map { definition =>
         val setPart   = createSetQueryPart(definition.update)
         val wherePart = createConditionQueryPart(definition.search).toSql
-        sqlu"UPDATE #$table SET #$setPart WHERE #$wherePart"
+        sqlu"""UPDATE #$table SET #$setPart WHERE #$wherePart"""
       }
 
       db.run(DBIO.sequence(queries).transactionally)
@@ -72,7 +72,7 @@ trait PostgreSqlRawDataManipulation {
     val table        = TableName(tableName).toSql
 
     val futureResult = for {
-      _             <- db.run(sqlu"CREATE TABLE #$newTable ( LIKE #$table INCLUDING DEFAULTS )")
+      _             <- db.run(sqlu"CREATE TABLE #$newTable LIKE #$table")
       insertedCount <- rawInsertData(newTableName, definitions)
       _             <- swapTableNames(tableName, newTableName)
       _             <- db.run(sqlu"DROP TABLE IF EXISTS #$newTable")
@@ -81,14 +81,9 @@ trait PostgreSqlRawDataManipulation {
     futureResult.recover(eitherErrorHandler())
   }
 
-  private def swapTableNames(tableName: String, newTableName: String): Future[Seq[Int]] = {
-    val temporaryTableName = generateTempTableName()
-    val tablePairs         = Seq((tableName, temporaryTableName), (newTableName, tableName), (temporaryTableName, newTableName))
-    val queries = tablePairs.map({
-      case (from, to) =>
-        sqlu"ALTER TABLE #${TableName(from).toSql} RENAME TO #${TableName(to).toSql}"
-    })
-    db.run(DBIO.sequence(queries).transactionally)
+  private def swapTableNames(tableName: String, newTableName: String): Future[Int] = {
+    val query = sqlu"ALTER TABLE #${TableName(tableName).toSql} SWAP WITH #${TableName(newTableName).toSql}"
+    db.run(query)
   }
 
   private def generateTempTableName(original: String = ""): String = {

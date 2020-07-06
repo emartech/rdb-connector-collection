@@ -1,18 +1,16 @@
-package com.emarsys.rdb.connector.postgresql
-
-import java.sql.Types
+package com.emarsys.rdb.connector.snowflake
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import slick.jdbc.{GetResult, PositionedResult}
-import slick.jdbc.PostgresProfile.api._
+import com.emarsys.rdb.connector.snowflake.SnowflakeProfile.api._
 
 import scala.concurrent.Future
-import scala.concurrent.duration._
+import scala.concurrent.duration.FiniteDuration
 
-trait PostgreSqlStreamingQuery {
-  self: PostgreSqlConnector =>
+trait SnowflakeStreamingQuery {
+  self: SnowflakeConnector =>
 
   protected def streamingQuery(
       timeout: FiniteDuration
@@ -21,7 +19,7 @@ trait PostgreSqlStreamingQuery {
       .as(resultConverter)
       .transactionally
       .withStatementParameters(
-        fetchSize = connectorConfig.streamChunkSize,
+        fetchSize = Int.MinValue,
         statementInit = _.setQueryTimeout(timeout.toSeconds.toInt)
       )
     val publisher = db.stream(sql)
@@ -49,28 +47,12 @@ trait PostgreSqlStreamingQuery {
   }
 
   private def getRowData(result: PositionedResult): Seq[String] = {
-    val columnTypes = (1 to result.numColumns).map(result.rs.getMetaData.getColumnType(_))
-
     (0 until result.numColumns).map { i =>
-      columnTypes(i) match {
-        case Types.TIMESTAMP => parseDateTime(result.nextString())
-        case Types.BIT       => parseBoolean(result.nextString())
-        case _               => result.nextString()
-      }
+      result.nextString()
     }
   }
 
   private def getHeaders(r: PositionedResult): Seq[String] =
-    (1 to r.numColumns).map(r.rs.getMetaData.getColumnName(_))
+    (1 to r.numColumns).map(r.rs.getMetaData.getColumnLabel(_))
 
-  private def parseDateTime(column: String): String = Option(column) match {
-    case Some(s) => s.split('.').headOption.getOrElse("")
-    case None    => null
-  }
-
-  private def parseBoolean(column: String): String = Option(column) match {
-    case Some("t") => "1"
-    case Some("f") => "0"
-    case _         => null
-  }
 }

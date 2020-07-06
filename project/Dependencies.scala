@@ -86,7 +86,9 @@ object Dependencies {
       "com.typesafe.slick"      %% "slick-hikaricp" % slickVersion,
       "com.microsoft.sqlserver" % "mssql-jdbc"      % mssqlVersion,
       "org.typelevel"           %% "cats-core"      % catsCoreVersion
-    )
+    ),
+    // disable parallel test run to prevent random deadlocks
+    Test / parallelExecution := false
   )
 
   val Mysql = Seq(

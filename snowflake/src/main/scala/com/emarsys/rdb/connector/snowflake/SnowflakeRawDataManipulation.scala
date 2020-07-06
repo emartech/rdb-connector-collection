@@ -11,7 +11,6 @@ import slick.jdbc.PostgresProfile.api._
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 
-// TODO: CDP-1102 review this code
 trait SnowflakeRawDataManipulation {
 
   self: SnowflakeConnector =>
@@ -87,7 +86,6 @@ trait SnowflakeRawDataManipulation {
     val tablePairs         = Seq((tableName, temporaryTableName), (newTableName, tableName), (temporaryTableName, newTableName))
     val queries = tablePairs.map({
       case (from, to) =>
-        TableName(from).toSql + " TO " + TableName(to).toSql
         sqlu"ALTER TABLE #${TableName(from).toSql} RENAME TO #${TableName(to).toSql}"
     })
     db.run(DBIO.sequence(queries).transactionally)

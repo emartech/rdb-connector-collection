@@ -45,7 +45,7 @@
               service: rdb-allconnector
               command: sbt "project bigquery; +it:test"
             - name: Snowflake
-              tag: ^(master|feature|update/snowflake-jdbc|snowflake)
+              tag: ^(master|feature|update/snowflake-jdbc)
               service: rdb-allconnector
               command: sbt "project snowflake; +it:test"
     - name: Publish connectors

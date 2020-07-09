@@ -22,7 +22,7 @@ trait SnowflakeMetadata {
 
   override def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
     db.run(
-        sql"SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = $schemaName AND table_name = $tableName;"
+        sql"SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = $schemaName AND table_name = $tableName ORDER BY ORDINAL_POSITION;"
           .as[(String, String)]
       )
       .map(_.map(parseToFieldModel))

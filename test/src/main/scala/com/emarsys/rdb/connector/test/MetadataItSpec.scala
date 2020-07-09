@@ -55,14 +55,14 @@ trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll w
     "#listFields" should {
       "list table fields" in {
         val tableFields =
-          Seq("PersonID", "LastName", "FirstName", "Address", "City").map(_.toLowerCase()).sorted.map(FieldModel(_, ""))
+          Seq("PersonID", "LastName", "FirstName", "Address", "City").map(_.toLowerCase()).map(FieldModel(_, ""))
 
         val resultE = Await.result(connector.listFields(tableName), awaitTimeout)
 
         resultE shouldBe a[Right[_, _]]
         val result = resultE.value
 
-        val fieldModels = result.map(f => f.copy(name = f.name.toLowerCase, columnType = "")).sortBy(_.name)
+        val fieldModels = result.map(f => f.copy(name = f.name.toLowerCase, columnType = ""))
 
         fieldModels shouldBe tableFields
       }

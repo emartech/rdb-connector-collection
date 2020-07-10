@@ -120,7 +120,7 @@ object SnowflakeConnector extends ConnectorCompanion {
       .withValue("registerMbeans", ConfigValueFactory.fromAnyRef(true))
       .withValue("url", ConfigValueFactory.fromAnyRef(createUrl(config)))
       .withValue("schema", ConfigValueFactory.fromAnyRef(config.schemaName))
-      .withValue("db", ConfigValueFactory.fromAnyRef(config.dbName))
+      .withValue("catalog", ConfigValueFactory.fromAnyRef(config.dbName))
       .withValue("properties.user", ConfigValueFactory.fromAnyRef(config.dbUser))
       .withValue("properties.password", ConfigValueFactory.fromAnyRef(config.dbPassword))
       .withValue("properties.warehouse", ConfigValueFactory.fromAnyRef(config.warehouseName))

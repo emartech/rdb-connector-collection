@@ -104,7 +104,7 @@ object SnowflakeConnector extends ConnectorCompanion {
     connectionParams.matches(".*ssl=off.*")
   }
 
-  private def createDbConfig(
+  private[snowflake] def createDbConfig(
       config: SnowflakeConnectionConfig,
       connectorConfig: SnowflakeConnectorConfig,
       poolName: String

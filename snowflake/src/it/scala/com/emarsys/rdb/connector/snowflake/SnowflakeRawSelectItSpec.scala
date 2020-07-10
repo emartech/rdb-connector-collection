@@ -6,7 +6,7 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.DatabaseError
 import com.emarsys.rdb.connector.common.models.Errors.ErrorCategory.Timeout
 import com.emarsys.rdb.connector.common.models.Errors.ErrorName.QueryTimeout
-import com.emarsys.rdb.connector.snowflake.utils.SelectDbInitHelper
+import com.emarsys.rdb.connector.snowflake.utils.{SelectDbInitHelper, TestHelper}
 import com.emarsys.rdb.connector.test.CustomMatchers.haveErrorCategoryAndErrorName
 import com.emarsys.rdb.connector.test._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
@@ -49,11 +49,14 @@ class SnowflakeRawSelectItSpec
     "return result" in {
       val result = getConnectorResult(connector.analyzeRawSelect(simpleSelect), awaitTimeout)
 
+      val dbName = TestHelper.TEST_CONNECTION_CONFIG.dbName
+      val schema = TestHelper.TEST_CONNECTION_CONFIG.schemaName
+
       result shouldEqual Seq(
         Seq("step", "id", "parent", "operation", "objects", "alias", "expressions", "partitionsTotal", "partitionsAssigned", "bytesAssigned"),
         Seq(null, null, null, "GlobalStats", null, null, null, "1", "1", "1024"),
         Seq("1", "0", null, "Result", null, null, s""""$aTableName".A1, "$aTableName".A2, "$aTableName".A3""", null, null, null),
-        Seq("1", "1", "0", "TableScan", s"""TEST_DB.EMS."$aTableName"""", null, "A1, A2, A3", "1", "1", "1024")
+        Seq("1", "1", "0", "TableScan", s""""$dbName"."$schema"."$aTableName"""", null, "A1, A2, A3", "1", "1", "1024")
       )
     }
   }

@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 class SnowflakeConnectorItSpec extends WordSpecLike with EitherValues with Matchers {
   "The SnowflakeConnector's companion" can {
     implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
-    val timeout                   = 8.seconds
+    val timeout                   = 12.seconds
 
     "create connector" when {
       "ssl is disabled" should {

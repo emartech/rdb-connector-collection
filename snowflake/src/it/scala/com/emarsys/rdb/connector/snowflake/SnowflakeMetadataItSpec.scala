@@ -22,6 +22,8 @@ class SnowflakeMetadataItSpec extends MetadataItSpec with BaseDbSpec {
 
     val createOtherSchemaSql = s"""CREATE SCHEMA "$otherSchema""""
 
+    val useOriginalSchemaSql = s"""USE SCHEMA "${TestHelper.TEST_CONNECTION_CONFIG.schemaName}""""
+
     val createTableOtherSchemaSql =
       s"""CREATE TABLE "$otherSchema"."$tableNameInOtherSchema" (
          |    ID int
@@ -34,6 +36,7 @@ class SnowflakeMetadataItSpec extends MetadataItSpec with BaseDbSpec {
       for {
         _ <- TestHelper.executeQuery(createTableSql)
         _ <- TestHelper.executeQuery(createOtherSchemaSql)
+        _ <- TestHelper.executeQuery(useOriginalSchemaSql)
         _ <- TestHelper.executeQuery(createTableOtherSchemaSql)
         _ <- TestHelper.executeQuery(createViewSql)
       } yield (),

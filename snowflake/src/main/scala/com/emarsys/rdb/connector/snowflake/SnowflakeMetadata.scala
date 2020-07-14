@@ -55,7 +55,7 @@ trait SnowflakeMetadata {
 
   private def listAllFields(): Future[Map[String, Seq[FieldModel]]] = {
     db.run(
-        sql"SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = $schemaName;"
+        sql"SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = $schemaName ORDER BY ORDINAL_POSITION;;"
           .as[(String, String, String)]
       )
       .map(_.groupBy(_._1).map { case (a, b) => a -> b.map(x => parseToFieldModel(x._2 -> x._3)) })

@@ -13,7 +13,7 @@ trait SnowflakeErrorHandling {
   private val errorHandler: PartialFunction[Throwable, DatabaseError] = {
     case ex: slick.SlickException if selectQueryWasGivenAsUpdate(ex.getMessage) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
-    case e: SnowflakeSQLException if e.getSQLState == SqlState.SYNTAX_ERROR_OR_ACCESS_RULE_VIOLATION =>
+    case e: SnowflakeSQLException if sqlSyntaxErrorStates.contains(e.getSQLState) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, e)
     case e: SnowflakeSQLException if e.getSQLState == SqlState.BASE_TABLE_OR_VIEW_NOT_FOUND =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, e)
@@ -27,6 +27,13 @@ trait SnowflakeErrorHandling {
         DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, e)
       }
   }
+
+  private val sqlSyntaxErrorStates = Set(
+    SqlState.SYNTAX_ERROR,
+    SqlState.SYNTAX_ERROR_OR_ACCESS_RULE_VIOLATION,
+    SqlState.INVALID_CHARACTER_VALUE_FOR_CAST,
+    SqlState.INVALID_DATETIME_FORMAT
+  )
 
   private def selectQueryWasGivenAsUpdate(message: String) =
     "Update statements should not return a ResultSet" == message

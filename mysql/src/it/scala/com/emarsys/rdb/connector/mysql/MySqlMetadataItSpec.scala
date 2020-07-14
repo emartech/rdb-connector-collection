@@ -9,8 +9,9 @@ import scala.concurrent.duration._
 
 class MySqlMetadataItSpec extends MetadataItSpec with SelectDbInitHelper {
 
-  val aTableName: String = ""
-  val bTableName: String = ""
+  val aTableName: String  = ""
+  val bTableName: String  = ""
+  val fieldsTable: String = "fields_table"
 
   override def initDb(): Unit = {
     val createTableSql = s"""CREATE TABLE `$tableName` (
@@ -31,22 +32,24 @@ class MySqlMetadataItSpec extends MetadataItSpec with SelectDbInitHelper {
   }
 
   override def cleanUpDb(): Unit = {
-    val dropViewSql   = s"""DROP VIEW `$viewName`;"""
-    val dropTableSql  = s"""DROP TABLE `$tableName`;"""
-    val dropViewSql2  = s"""DROP VIEW IF EXISTS `${viewName}_2`;"""
-    val dropTableSql2 = s"""DROP TABLE IF EXISTS `${tableName}_2`;"""
+    val dropViewSql        = s"""DROP VIEW `$viewName`;"""
+    val dropTableSql       = s"""DROP TABLE `$tableName`;"""
+    val dropViewSql2       = s"""DROP VIEW IF EXISTS `${viewName}_2`;"""
+    val dropTableSql2      = s"""DROP TABLE IF EXISTS `${tableName}_2`;"""
+    val dropFieldsTableSql = s"""DROP TABLE IF EXISTS `$fieldsTable`;"""
     Await.result(
       for {
         _ <- TestHelper.executeQuery(dropViewSql)
         _ <- TestHelper.executeQuery(dropTableSql)
         _ <- TestHelper.executeQuery(dropViewSql2)
         _ <- TestHelper.executeQuery(dropTableSql2)
+        _ <- TestHelper.executeQuery(dropFieldsTableSql)
       } yield (),
       10.seconds
     )
   }
 
-  s"MetadataItSpec $uuid" when {
+  s"MySqlMetadataItSpec $uuid" when {
 
     "#listTablesWithFields" should {
       "list without view after table dropped" in {
@@ -71,17 +74,49 @@ class MySqlMetadataItSpec extends MetadataItSpec with SelectDbInitHelper {
         } yield (), 10.seconds)
 
         val tableFields =
-          Seq("PersonID", "LastName", "FirstName", "Address", "City").map(_.toLowerCase()).sorted.map(FieldModel(_, ""))
-        val viewFields = Seq("PersonID", "LastName", "FirstName").map(_.toLowerCase()).sorted.map(FieldModel(_, ""))
+          Seq("PersonID", "LastName", "FirstName", "Address", "City").map(_.toLowerCase()).map(FieldModel(_, ""))
+        val viewFields = Seq("PersonID", "LastName", "FirstName").map(_.toLowerCase()).map(FieldModel(_, ""))
 
         val resultE = Await.result(connector.listTablesWithFields(), awaitTimeout)
 
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.value.map(x =>
-          x.copy(fields = x.fields.map(f => f.copy(name = f.name.toLowerCase, columnType = "")).sortBy(_.name))
+        val result =
+          resultE.value.map(x => x.copy(fields = x.fields.map(f => f.copy(name = f.name.toLowerCase, columnType = ""))))
+        result should not contain FullTableModel(s"${tableName}_2", false, tableFields)
+        result should not contain FullTableModel(s"${viewName}_2", true, viewFields)
+      }
+
+      "list fields with column type" in {
+        val createTableSql = s"""CREATE TABLE `$fieldsTable` (
+                                |    `PersonID` INTEGER PRIMARY KEY,
+                                |    `LastName` varchar(255) NOT NULL,
+                                |    `FirstName` text,
+                                |    `Address` float(5),
+                                |    `City` varchar(15),
+                                |    `Unsigned` BIGINT UNSIGNED,
+                                |    `Date` DATE,
+                                |    `Timestamp` TIMESTAMP
+                                |);""".stripMargin
+
+        Await.result(TestHelper.executeQuery(createTableSql), 10.seconds)
+
+        val resultE = Await.result(connector.listTablesWithFields(), awaitTimeout)
+
+        resultE shouldBe a[Right[_, _]]
+        val result = resultE.value
+        result.map(_.name) should contain(fieldsTable)
+        result.find(_.name == fieldsTable).get.fields should be(
+          Seq(
+            FieldModel("PersonID", "int(11)"),
+            FieldModel("LastName", "varchar(255)"),
+            FieldModel("FirstName", "text"),
+            FieldModel("Address", "float"),
+            FieldModel("City", "varchar(15)"),
+            FieldModel("Unsigned", "bigint(20) unsigned"),
+            FieldModel("Date", "date"),
+            FieldModel("Timestamp", "timestamp")
+          )
         )
-        result should not contain (FullTableModel(s"${tableName}_2", false, tableFields))
-        result should not contain (FullTableModel(s"${viewName}_2", true, viewFields))
       }
     }
   }

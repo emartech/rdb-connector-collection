@@ -1,7 +1,7 @@
 package com.emarsys.rdb.connector.postgresql
 
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.FieldModel
-  import com.emarsys.rdb.connector.postgresql.utils.{BaseDbSpec, TestHelper}
+import com.emarsys.rdb.connector.postgresql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.MetadataItSpec
 
 import scala.concurrent.Await
@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 class PostgreSqlMetadataItSpec extends MetadataItSpec with BaseDbSpec {
 
   override val awaitTimeout = 15.seconds
-  val fieldsTable: String = "fields_table"
+  val fieldsTable: String   = "fields_table"
 
   def initDb(): Unit = {
     val createTableSql =
@@ -32,27 +32,33 @@ class PostgreSqlMetadataItSpec extends MetadataItSpec with BaseDbSpec {
     val createViewSql = s"""CREATE VIEW "$viewName" AS
                            |SELECT PersonID, LastName, FirstName
                            |FROM "$tableName";""".stripMargin
-    Await.result(for {
-      _ <- TestHelper.executeQuery(createTableSql)
-      _ <- TestHelper.executeQuery(createOtherSchemaSql)
-      _ <- TestHelper.executeQuery(createTableOtherSchemaSql)
-      _ <- TestHelper.executeQuery(createViewSql)
-    } yield (), 15.seconds)
+    Await.result(
+      for {
+        _ <- TestHelper.executeQuery(createTableSql)
+        _ <- TestHelper.executeQuery(createOtherSchemaSql)
+        _ <- TestHelper.executeQuery(createTableOtherSchemaSql)
+        _ <- TestHelper.executeQuery(createViewSql)
+      } yield (),
+      15.seconds
+    )
   }
 
   def cleanUpDb(): Unit = {
-    val dropViewSql  = s"""DROP VIEW "$viewName";"""
-    val dropTableSql = s"""DROP TABLE "$tableName";"""
-    val dropOtherTableSql = s"""DROP TABLE "$otherSchema"."$tableNameInOtherSchema";"""
+    val dropViewSql        = s"""DROP VIEW "$viewName";"""
+    val dropTableSql       = s"""DROP TABLE "$tableName";"""
+    val dropOtherTableSql  = s"""DROP TABLE "$otherSchema"."$tableNameInOtherSchema";"""
     val dropOtherSchemaSql = s"""DROP SCHEMA "$otherSchema";"""
     val dropFieldsTableSql = s"""DROP TABLE "$fieldsTable";"""
-    Await.result(for {
-      _ <- TestHelper.executeQuery(dropViewSql)
-      _ <- TestHelper.executeQuery(dropTableSql)
-      _ <- TestHelper.executeQuery(dropOtherTableSql)
-      _ <- TestHelper.executeQuery(dropOtherSchemaSql)
-      _ <- TestHelper.executeQuery(dropFieldsTableSql)
-    } yield (), 15.seconds)
+    Await.result(
+      for {
+        _ <- TestHelper.executeQuery(dropViewSql)
+        _ <- TestHelper.executeQuery(dropTableSql)
+        _ <- TestHelper.executeQuery(dropOtherTableSql)
+        _ <- TestHelper.executeQuery(dropOtherSchemaSql)
+        _ <- TestHelper.executeQuery(dropFieldsTableSql)
+      } yield (),
+      15.seconds
+    )
   }
 
   s"PostgreSqlMetadataItSpec $uuid" when {

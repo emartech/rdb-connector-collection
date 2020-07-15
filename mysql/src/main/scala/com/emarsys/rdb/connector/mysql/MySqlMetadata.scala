@@ -36,7 +36,7 @@ trait MySqlMetadata {
 
   private def listAllFieldsByTable(): ConnectorResponse[Map[String, Seq[FieldModel]]] = {
     db.run(
-        sql"select TABLE_NAME, COLUMN_NAME, COLUMN_TYPE from information_schema.columns where table_schema = DATABASE();"
+        sql"select TABLE_NAME, COLUMN_NAME, COLUMN_TYPE from information_schema.columns where table_schema = DATABASE() ORDER BY ORDINAL_POSITION;"
           .as[(String, String, String)]
       )
       .map(_.groupBy(_._1).map { case (a, b) => a -> b.map(x => parseToFieldModel(x._2 -> x._3)) })

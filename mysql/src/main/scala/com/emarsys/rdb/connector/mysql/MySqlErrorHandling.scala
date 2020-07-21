@@ -34,7 +34,7 @@ trait MySqlErrorHandling {
   private def errorHandler: PartialFunction[Throwable, DatabaseError] = {
     case ex: slick.SlickException if selectQueryWasGivenAsUpdate(ex.getMessage) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
-    case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied") =>
+    case ex: SQLException if ex.getMessage.contains("Access denied") =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, ex)
     case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled") =>
       DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, ex)

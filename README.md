@@ -44,7 +44,7 @@ Two of the databases used for IT tests are hosted on external services:
 
 ### Redshift
 
-Hosted in AWS. Sign in via http://sso.emarsys.com/.  
+Hosted on AWS. Sign in via http://sso.emarsys.com/.  
 Region: `eu-central-1`  
 Cluster: `rdb-router-test`
 

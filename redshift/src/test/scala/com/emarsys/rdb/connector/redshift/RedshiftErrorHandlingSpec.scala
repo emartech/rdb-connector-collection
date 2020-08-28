@@ -40,6 +40,11 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers with EitherVa
       "42702",
       "[Amazon](500310) Invalid operation: column reference \"seller_id\" is ambiguous;",
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "", None, None)
+    ),
+    (
+      "22P02",
+      "[Amazon](500310) Invalid operation: invalid input syntax for integer: \"2019-07-10\";",
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "", None, None)
     )
   )
 

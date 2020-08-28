@@ -16,8 +16,9 @@ trait RedshiftErrorHandling {
   val REDSHIFT_STATE_PERMISSION_DENIED    = "42501"
   val REDSHIFT_STATE_RELATION_NOT_FOUND   = "42P01"
 
-  val REDSHIFT_MESSAGE_CONNECTION_TIMEOUT = "Connection is not available, request timed out after"
-  val REDSHIFT_MESSAGE_TCP_SOCKET_TIMEOUT = "The TCP Socket has timed out while waiting for response"
+  val REDSHIFT_MESSAGE_CONNECTION_TIMEOUT   = "Connection is not available, request timed out after"
+  val REDSHIFT_MESSAGE_TCP_SOCKET_TIMEOUT   = "The TCP Socket has timed out while waiting for response"
+  val REDSHIFT_MESSAGE_INVALID_INPUT_SYNTAX = "[Amazon](500310) Invalid operation: invalid input syntax for"
 
   val REDSHIFT_STATE_UNABLE_TO_CONNECT       = "08001"
   val REDSHIFT_AUTHORIZATION_NAME_IS_INVALID = "28000"
@@ -41,6 +42,8 @@ trait RedshiftErrorHandling {
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_SYNTAX_ERROR =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_AMBIGUOUS_COLUMN_REF =>
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
+    case ex: SQLException if ex.getMessage.startsWith(REDSHIFT_MESSAGE_INVALID_INPUT_SYNTAX) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_PERMISSION_DENIED =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, ex)

@@ -14,7 +14,13 @@ trait RedshiftErrorHandling {
   val REDSHIFT_STATE_SYNTAX_ERROR         = "42601"
   val REDSHIFT_STATE_AMBIGUOUS_COLUMN_REF = "42702"
   val REDSHIFT_STATE_PERMISSION_DENIED    = "42501"
-  val REDSHIFT_STATE_RELATION_NOT_FOUND   = "42P01"
+  val REDSHIFT_STATE_TABLE_NOT_FOUND      = "42P01"
+  val UNDEFINED_ERRORS = List(
+    "42703", //	UNDEFINED COLUMN
+    "42883", //	UNDEFINED FUNCTION
+    "42P02", //	UNDEFINED PARAMETER
+    "42704"  //	UNDEFINED OBJECT
+  )
 
   val REDSHIFT_MESSAGE_CONNECTION_TIMEOUT   = "Connection is not available, request timed out after"
   val REDSHIFT_MESSAGE_TCP_SOCKET_TIMEOUT   = "The TCP Socket has timed out while waiting for response"
@@ -39,16 +45,22 @@ trait RedshiftErrorHandling {
       DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, ex)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_QUERY_CANCELLED =>
       DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, ex)
+
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_SYNTAX_ERROR =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_AMBIGUOUS_COLUMN_REF =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
     case ex: SQLException if ex.getMessage.startsWith(REDSHIFT_MESSAGE_INVALID_INPUT_SYNTAX) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
+    case ex: SQLException if UNDEFINED_ERRORS.contains(ex.getSQLState) =>
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
+
+    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_TABLE_NOT_FOUND =>
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, ex)
+
     case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_PERMISSION_DENIED =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, ex)
-    case ex: SQLException if ex.getSQLState == REDSHIFT_STATE_RELATION_NOT_FOUND =>
-      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, ex)
+
     case ex: SQLException if connectionErrors.contains(ex.getSQLState) =>
       DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, ex)
   }

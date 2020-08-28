@@ -45,6 +45,26 @@ class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers with EitherVa
       "22P02",
       "[Amazon](500310) Invalid operation: invalid input syntax for integer: \"2019-07-10\";",
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "", None, None)
+    ),
+    (
+      "42703",
+      "[Amazon](500310) Invalid operation: column t.customer_email does not exist;",
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "", None, None)
+    ),
+    (
+      "42883",
+      "[Amazon](500310) Invalid operation: function whatever does not exist;",
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "", None, None)
+    ),
+    (
+      "42P02",
+      "[Amazon](500310) Invalid operation: parameter whatever does not exist;",
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "", None, None)
+    ),
+    (
+      "42704",
+      "[Amazon](500310) Invalid operation: object whatever does not exist;",
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, "", None, None)
     )
   )
 

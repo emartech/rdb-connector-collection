@@ -11,7 +11,8 @@ import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.mysql.utils.SelectDbInitHelper
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
-import org.scalatest._
+import com.emarsys.rdb.connector.test.util.EitherValues
+import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, BeforeAndAfterEach, Matchers}
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
@@ -35,7 +36,7 @@ class MySqlRawQueryItSpec
   implicit val materializer: Materializer = ActorMaterializer()
 
   val awaitTimeout = 10.seconds
-  val queryTimeout = 5.seconds
+  val queryTimeout = 10.seconds
 
   override def afterAll(): Unit = {
     shutdown()
@@ -98,7 +99,7 @@ class MySqlRawQueryItSpec
   private def selectAll(tableName: String) = {
     connector
       .simpleSelect(SimpleSelect(AllField, TableName(tableName)), queryTimeout)
-      .flatMap(result => result.right.value.runWith(Sink.seq))
+      .flatMap(result => result.value.runWith(Sink.seq))
       .map(_.drop(1))
   }
 }

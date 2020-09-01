@@ -52,7 +52,7 @@ class PostgreSqlSearchItSpec extends TestKit(ActorSystem("PostgreSqlSearchItSpec
         _ <- TestHelper.executeQuery(addIndex1)
         _ <- TestHelper.executeQuery(addIndex2)
       } yield (),
-      5.seconds
+      10.seconds
     )
   }
 

@@ -24,7 +24,6 @@ trait PostgreSqlStreamingQuery {
         fetchSize = connectorConfig.streamChunkSize,
         statementInit = _.setQueryTimeout(timeout.toSeconds.toInt)
       )
-
     val publisher = db.stream(sql)
     val dbSource = Source
       .fromPublisher(publisher)

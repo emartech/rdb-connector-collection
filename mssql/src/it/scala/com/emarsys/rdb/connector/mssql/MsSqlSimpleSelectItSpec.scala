@@ -18,7 +18,7 @@ class MsSqlSimpleSelectItSpec
   implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

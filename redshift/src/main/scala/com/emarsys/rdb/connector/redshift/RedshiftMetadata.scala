@@ -25,7 +25,7 @@ trait RedshiftMetadata {
         sql"SELECT column_name, data_type FROM SVV_COLUMNS WHERE table_name = $tableName AND table_schema = $schemaName;"
           .as[(String, String)]
       )
-      .map(_.map(parseToFiledModel))
+      .map(_.map(parseToFieldModel))
       .map(fields => {
         if (fields.isEmpty) {
           Left(
@@ -58,7 +58,9 @@ trait RedshiftMetadata {
         sql"SELECT table_name, column_name, data_type FROM SVV_COLUMNS WHERE table_schema = $schemaName;"
           .as[(String, String, String)]
       )
-      .map(_.groupBy(_._1).mapValues(_.map(x => parseToFiledModel(x._2 -> x._3)).toSeq))
+      .map(_.groupBy(_._1).map {
+        case (table, b) => table -> b.map { case (_, column, dataType) => parseToFieldModel(column -> dataType) }
+      })
   }
 
   private def makeTablesWithFields(
@@ -72,7 +74,7 @@ trait RedshiftMetadata {
       }
   }
 
-  private def parseToFiledModel(f: (String, String)): FieldModel = {
+  private def parseToFieldModel(f: (String, String)): FieldModel = {
     FieldModel(f._1, f._2)
   }
 

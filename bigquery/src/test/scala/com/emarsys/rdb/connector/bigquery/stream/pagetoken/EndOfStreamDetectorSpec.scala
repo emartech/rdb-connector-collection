@@ -14,7 +14,7 @@ class EndOfStreamDetectorSpec
     with Matchers
     with BeforeAndAfterAll {
 
-  override def afterAll = {
+  override def afterAll() = {
     shutdown()
   }
 

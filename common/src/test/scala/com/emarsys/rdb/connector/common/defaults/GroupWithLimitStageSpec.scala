@@ -4,19 +4,23 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.testkit.scaladsl.{TestSink, TestSource}
+import akka.testkit.TestKit
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
-class GroupWithLimitStageSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
+class GroupWithLimitStageSpec
+    extends TestKit(ActorSystem("GroupWithLimitStageSpec"))
+    with WordSpecLike
+    with Matchers
+    with BeforeAndAfterAll {
 
-  implicit val actorSystem  = ActorSystem("GroupWithLimitStageSpec")
   implicit val materializer = ActorMaterializer()
   val timeout               = 3.seconds
 
   override protected def afterAll(): Unit = {
-    actorSystem.terminate()
+    shutdown()
     super.afterAll()
   }
 

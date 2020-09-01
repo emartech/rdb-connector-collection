@@ -13,7 +13,7 @@ class MsSqlReplaceItSpec extends TestKit(ActorSystem("MsSqlReplaceItSpec")) with
   implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

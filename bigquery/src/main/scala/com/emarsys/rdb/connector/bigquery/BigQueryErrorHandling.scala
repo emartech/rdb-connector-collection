@@ -13,8 +13,8 @@ trait BigQueryErrorHandling {
   }
 
   protected def eitherErrorHandler[T]: PartialFunction[Throwable, Either[DatabaseError, T]] =
-    (errorHandler orElse common) andThen Left.apply
+    errorHandler.orElse(common).andThen(Left.apply(_))
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    (errorHandler orElse common) andThen Source.failed
+    errorHandler.orElse(common).andThen(Source.failed(_))
 }

@@ -43,8 +43,8 @@ class MetadataItSpecSpec extends MetadataItSpec with MockitoSugar {
       Right(
         Seq(
           FieldModel("PersonID", "PersonIDType"),
-          FieldModel("FirstName", "FirstNameType"),
           FieldModel("lastname", "LastNameType"),
+          FieldModel("FirstName", "FirstNameType"),
           FieldModel("ADDRESS", "AddressType"),
           FieldModel("City", "")
         )

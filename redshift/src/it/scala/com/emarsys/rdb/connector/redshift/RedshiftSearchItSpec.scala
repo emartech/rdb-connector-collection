@@ -16,7 +16,7 @@ class RedshiftSearchItSpec extends TestKit(ActorSystem("RedshiftSearchItSpec")) 
   override val awaitTimeout = 15.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 
@@ -66,7 +66,7 @@ class RedshiftSearchWithSchemaItSpec
   override val awaitTimeout = 15.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

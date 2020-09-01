@@ -3,7 +3,11 @@ package com.emarsys.rdb.connector.postgresql.utils
 import java.util.Properties
 
 import com.emarsys.rdb.connector.common.Models.PoolConfig
-import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.{createUrl, PostgreSqlConnectionConfig, PostgreSqlConnectorConfig}
+import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.{
+  createUrl,
+  PostgreSqlConnectionConfig,
+  PostgreSqlConnectorConfig
+}
 import slick.jdbc.PostgresProfile.api._
 import slick.util.AsyncExecutor
 

@@ -10,7 +10,8 @@ import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.mysql.utils.TestHelper
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
-import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}
+import com.emarsys.rdb.connector.test.util.EitherValues
+import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, Matchers}
 
 import scala.concurrent.duration._
 
@@ -22,7 +23,7 @@ class MySqlConnectorItSpec
     with EitherValues {
 
   implicit val mat: ActorMaterializer = ActorMaterializer()
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     shutdown()
   }
 
@@ -38,7 +39,7 @@ class MySqlConnectorItSpec
       "connect success" in {
         withClue("We should have received back a connector") {
           MySqlConnector.create(testConnection, testConnectorConfig).map { connector =>
-            connector.right.value.close()
+            connector.value.close()
             succeed
           }
         }
@@ -125,7 +126,7 @@ class MySqlConnectorItSpec
       "return success" in {
         for {
           result <- MySqlConnector.create(testConnection, testConnectorConfig)
-          connector = result.right.value
+          connector = result.value
           _ <- connector.testConnection()
           _ <- connector.close()
         } yield succeed

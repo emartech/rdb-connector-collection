@@ -18,7 +18,7 @@ class RedshiftInsertSpec extends TestKit(ActorSystem("RedshiftInsertSpec")) with
   implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 }
@@ -36,7 +36,7 @@ class RedshiftInsertWithSchemaSpec
   implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 }

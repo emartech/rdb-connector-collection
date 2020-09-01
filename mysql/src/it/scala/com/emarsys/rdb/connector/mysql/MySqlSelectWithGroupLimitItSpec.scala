@@ -17,7 +17,7 @@ class MySqlSelectWithGroupLimitItSpec
   implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 
@@ -45,7 +45,7 @@ class MySqlSelectWithGroupLimitItSpec
     Await.result(for {
       _ <- TestHelper.executeQuery(createTableSql)
       _ <- TestHelper.executeQuery(insertDataSql)
-    } yield (), 5.seconds)
+    } yield (), 10.seconds)
   }
 
   override def cleanUpDb(): Unit = {

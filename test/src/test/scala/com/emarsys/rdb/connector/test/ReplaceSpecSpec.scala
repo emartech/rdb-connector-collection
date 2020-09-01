@@ -29,7 +29,7 @@ class ReplaceSpecSpec
 
   override def cleanUpDb(): Unit = ()
 
-  override def afterAll = {
+  override def afterAll() = {
     shutdown()
   }
 

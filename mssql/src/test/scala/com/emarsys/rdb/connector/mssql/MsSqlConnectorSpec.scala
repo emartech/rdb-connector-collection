@@ -4,6 +4,7 @@ import java.lang.management.ManagementFactory
 import java.util.UUID
 
 import com.emarsys.rdb.connector.common.Models.{MetaData, PoolConfig}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mssql.MsSqlConnector.MsSqlConnectorConfig
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
@@ -73,6 +74,26 @@ class MsSqlConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
         MsSqlConnector.meta() shouldEqual MetaData(nameQuoter = "\"", valueQuoter = "'", escape = "'")
       }
 
+    }
+
+    "#isErrorRetryable" should {
+      Seq(
+        DatabaseError(
+          ErrorCategory.Unknown,
+          ErrorName.Unknown,
+          "...was deadlocked on lock resources with another process...",
+          None,
+          None
+        )                                                                                    -> true,
+        DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "whatever else", None, None) -> false
+      ).foreach {
+        case (e @ DatabaseError(errorCategory, errorName, message, _, _), expected) =>
+          s"return $expected for ${errorCategory}#$errorName - $message" in {
+            val connector = new MsSqlConnector(null, null, null)(null)
+
+            connector.isErrorRetryable(e) shouldBe expected
+          }
+      }
     }
   }
 }

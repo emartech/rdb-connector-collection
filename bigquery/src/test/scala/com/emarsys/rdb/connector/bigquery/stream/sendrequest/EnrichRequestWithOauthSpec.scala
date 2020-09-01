@@ -22,7 +22,7 @@ class EnrichRequestWithOauthSpec
     with BeforeAndAfterAll
     with MockitoSugar {
 
-  override def afterAll = {
+  override def afterAll() = {
     shutdown()
   }
 

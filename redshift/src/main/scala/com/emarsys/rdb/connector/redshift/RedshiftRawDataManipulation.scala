@@ -76,7 +76,6 @@ trait RedshiftRawDataManipulation {
     val tablePairs         = Seq((tableName, temporaryTableName), (newTableName, tableName), (temporaryTableName, newTableName))
     val queries = tablePairs.map({
       case (from, to) =>
-        TableName(from).toSql + " TO " + TableName(to).toSql
         sqlu"ALTER TABLE #${TableName(from).toSql} RENAME TO #${TableName(to).toSql}"
     })
     db.run(DBIO.sequence(queries).transactionally)
@@ -107,7 +106,7 @@ trait RedshiftRawDataManipulation {
 
     And(
       criteria
-        .mapValues(_.toSimpleSelectValue)
+        .map { case (field, fieldValueWrapper) => field -> fieldValueWrapper.toSimpleSelectValue }
         .map {
           case (field, Some(value)) => EqualToValue(FieldName(field), value)
           case (field, None)        => IsNull(FieldName(field))
@@ -121,7 +120,7 @@ trait RedshiftRawDataManipulation {
     import fieldValueConverters._
 
     criteria
-      .mapValues(_.toSimpleSelectValue)
+      .map { case (field, fieldValueWrapper) => field -> fieldValueWrapper.toSimpleSelectValue }
       .map {
         case (field, Some(value)) => EqualToValue(FieldName(field), value).toSql
         case (field, None)        => FieldName(field).toSql + "=NULL"

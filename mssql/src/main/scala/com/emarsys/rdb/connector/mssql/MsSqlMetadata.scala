@@ -15,7 +15,7 @@ trait MsSqlMetadata {
 
   override def listTables(): ConnectorResponse[Seq[TableModel]] = {
 
-    db.run(sql"SELECT TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES".as[(String, String)])
+    db.run(sql"SELECT TABLE_NAME, TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = schema_name()".as[(String, String)])
       .map(_.map(parseToTableModel))
       .map(Right(_))
       .recover(eitherErrorHandler())
@@ -31,19 +31,18 @@ trait MsSqlMetadata {
           .as[(String, String)]
       )
       .map(_.map(parseToFieldModel))
-      .map(
-        result =>
-          if (result.isEmpty)
-            Left(
-              DatabaseError(
-                ErrorCategory.FatalQueryExecution,
-                ErrorName.TableNotFound,
-                s"Table not found: $tableName",
-                None,
-                None
-              )
+      .map(result =>
+        if (result.isEmpty)
+          Left(
+            DatabaseError(
+              ErrorCategory.FatalQueryExecution,
+              ErrorName.TableNotFound,
+              s"Table not found: $tableName",
+              None,
+              None
             )
-          else Right(result)
+          )
+        else Right(result)
       )
       .recover(eitherErrorHandler())
   }
@@ -59,7 +58,9 @@ trait MsSqlMetadata {
 
   private def listAllFields(): Future[Map[String, Seq[FieldModel]]] = {
     db.run(sql"SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS;".as[(String, String, String)])
-      .map(_.groupBy(_._1).mapValues(_.map(x => parseToFieldModel(x._2 -> x._3)).toSeq))
+      .map(_.groupBy(_._1).map {
+        case (table, b) => table -> b.map { case (_, column, dataType) => parseToFieldModel(column -> dataType) }
+      })
   }
 
   private def makeTablesWithFields(

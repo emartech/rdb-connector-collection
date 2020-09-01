@@ -9,7 +9,6 @@ WORKDIR /rdb-allconnector
 # Git is need for dynver for proper versoning.
 RUN apk --no-cache add openssl gnupg git
 
-COPY ci/secrets.tar.enc ci/secrets.tar.enc
 COPY publish.sh publish.sh
 RUN chmod +x publish.sh
 
@@ -22,15 +21,6 @@ ADD project project
 RUN sbt update
 
 # These are needed for dynver to create proper versioning
-ADD .git .git
-COPY .gitignore .gitignore
+COPY . .
 
-ADD bigquery bigquery
-ADD mssql mssql
-ADD redshift redshift
-ADD test test
-ADD common common
-ADD postgresql postgresql
-ADD mysql mysql
-
-RUN sbt clean compile test:compile it:compile
+RUN sbt +clean +compile +test:compile +it:compile

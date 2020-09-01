@@ -1,10 +1,10 @@
 package com.emarsys.rdb.connector.mssql
 
+import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import org.scalatest.{Matchers, WordSpecLike}
-import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.mssql.MsSqlWriters._
+import org.scalatest.{Matchers, WordSpecLike}
 
 class MsSqlWritersSpec extends WordSpecLike with Matchers {
   "MsSqlWriters" when {

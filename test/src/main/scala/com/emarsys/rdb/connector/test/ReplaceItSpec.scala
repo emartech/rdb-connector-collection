@@ -4,15 +4,15 @@ import akka.NotUsed
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import com.emarsys.rdb.connector.common.ConnectorResponse
+import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, StringValue}
 import com.emarsys.rdb.connector.common.models.DataManipulation.Record
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 
-import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 
 trait ReplaceItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
   val connector: Connector
@@ -23,8 +23,8 @@ trait ReplaceItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach w
   val uuid      = uuidGenerate
   val tableName = s"replace_tables_table_$uuid"
 
-  val awaitTimeout = 5.seconds
-  val queryTimeout = 5.seconds
+  val awaitTimeout = 10.seconds
+  val queryTimeout = 10.seconds
 
   override def beforeEach(): Unit = {
     initDb()

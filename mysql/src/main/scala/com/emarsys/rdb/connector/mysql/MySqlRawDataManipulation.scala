@@ -1,8 +1,8 @@
 package com.emarsys.rdb.connector.mysql
 
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, FieldValueWrapper, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
+import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, FieldValueWrapper, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.NullValue
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.mysql.MySqlWriters._
@@ -144,7 +144,7 @@ trait MySqlRawDataManipulation {
 
     And(
       criteria
-        .mapValues(_.toSimpleSelectValue)
+        .map { case (a, b) => a -> b.toSimpleSelectValue }
         .map {
           case (field, Some(value)) => EqualToValue(FieldName(field), value)
           case (field, None)        => IsNull(FieldName(field))
@@ -158,7 +158,7 @@ trait MySqlRawDataManipulation {
     import fieldValueConverters._
 
     criteria
-      .mapValues(_.toSimpleSelectValue)
+      .map { case (a, b) => a -> b.toSimpleSelectValue }
       .map {
         case (field, Some(value)) => EqualToValue(FieldName(field), value).toSql
         case (field, None)        => FieldName(field).toSql + "=NULL"

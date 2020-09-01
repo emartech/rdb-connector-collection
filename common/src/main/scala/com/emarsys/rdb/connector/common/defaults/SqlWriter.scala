@@ -1,6 +1,5 @@
 package com.emarsys.rdb.connector.common.defaults
 
-import scala.language.implicitConversions
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 
@@ -125,11 +124,18 @@ trait DefaultSqlWriters {
   }
 
   implicit lazy val simpleSelectWriter: SqlWriter[SimpleSelect] = (ss: SimpleSelect) => {
-    val distinct = if (ss.distinct.getOrElse(false)) "DISTINCT " else ""
-    val head     = s"SELECT $distinct${ss.fields.toSql} FROM ${ss.table.toSql}"
-    val where    = ss.where.map(_.toSql).map(" WHERE " + _).getOrElse("")
-    val limit    = ss.limit.map(" LIMIT " + _).getOrElse("")
-    val orderBy  = ss.orderBy.toSql
+    import SqlWriter._
+
+    val distinct      = if (ss.distinct.getOrElse(false)) "DISTINCT " else ""
+    val orderedFields = ss.orderBy.map(_.field)
+    val fields: Fields = ss.fields match {
+      case SimpleSelect.AllField  => SimpleSelect.AllField
+      case SpecificFields(fields) => SpecificFields((fields ++ orderedFields).distinct)
+    }
+    val head    = s"SELECT $distinct${fields.toSql} FROM ${ss.table.toSql}"
+    val where   = ss.where.map(_.toSql).map(" WHERE " + _).getOrElse("")
+    val limit   = ss.limit.map(" LIMIT " + _).getOrElse("")
+    val orderBy = ss.orderBy.toSql
 
     s"$head$where$orderBy$limit"
   }

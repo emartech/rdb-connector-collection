@@ -3,8 +3,8 @@ package com.emarsys.rdb.connector.mysql
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.Sink
 import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.scaladsl.Sink
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{IntValue, NullValue, StringValue}
 import com.emarsys.rdb.connector.common.models.DataManipulation.Record
@@ -34,8 +34,8 @@ class MySqlUpsertItSpec
 
   implicit val materializer: Materializer = ActorMaterializer()
 
-  val awaitTimeout = 5.seconds
-  val queryTimeout = 5.seconds
+  val awaitTimeout = 10.seconds
+  val queryTimeout = 10.seconds
 
   override def afterAll(): Unit = {
     shutdown()

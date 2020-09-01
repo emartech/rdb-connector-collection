@@ -1,10 +1,10 @@
 package com.emarsys.rdb.connector.mysql
 
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import slick.jdbc.MySQLProfile.api._
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
-import MySqlWriters._
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
+import com.emarsys.rdb.connector.mysql.MySqlWriters._
+import slick.jdbc.MySQLProfile.api._
 
 trait MySqlIsOptimized {
   self: MySqlConnector =>
@@ -15,7 +15,7 @@ trait MySqlIsOptimized {
         sql"SHOW INDEX FROM #${TableName(table).toSql}"
           .as[(String, String, String, String, String, String, String, String, String, String, String, String, String)]
       )
-      .map(_.groupBy(_._3).mapValues(_.map(_._5)).values)
+      .map(_.groupBy(_._3).map { case (_, b) => b.map(_._5) })
       .map(_.exists(indexGroup => indexGroup.toSet == fieldSet || Set(indexGroup.head) == fieldSet))
       .map(Right(_))
       .recover(handleNotExistingTable(table))

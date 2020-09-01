@@ -5,6 +5,7 @@ import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.SimpleSelect.FieldName
 import slick.jdbc.MySQLProfile.api._
+import slick.jdbc.{GetResult, PositionedResult}
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
@@ -14,6 +15,8 @@ trait MySqlRawSelect extends MySqlStreamingQuery {
 
   import MySqlWriters._
   import com.emarsys.rdb.connector.common.defaults.SqlWriter._
+
+  private val ignoredResult: GetResult[Vector[AnyRef]] = (_: PositionedResult) => Vector.empty
 
   private val analyzeQueryTimeout: FiniteDuration = 5.seconds
 
@@ -37,7 +40,7 @@ trait MySqlRawSelect extends MySqlStreamingQuery {
   }
 
   private def runQueryOnDb(modifiedSql: String) = {
-    db.run(sql"#$modifiedSql".as[Any])
+    db.run(sql"#$modifiedSql".as[Vector[AnyRef]](ignoredResult))
   }
 
   private def wrapInExplain(sqlWithoutSemicolon: String) = {
@@ -76,11 +79,13 @@ trait MySqlRawSelect extends MySqlStreamingQuery {
     runProjectedSelectWith(rawSql, fields, limit, allowNullFieldValue, streamingQuery(timeout))
 
   override def validateProjectedRawSelect(rawSql: String, fields: Seq[String]): ConnectorResponse[Unit] = {
-    val wrapInExplainThenRunOnDb = wrapInExplain _ andThen runQueryOnDb
     runProjectedSelectWith(rawSql, fields, None, allowNullFieldValue = true, wrapInExplainThenRunOnDb)
       .map(_ => Right(()))
       .recover(eitherErrorHandler())
   }
+
+  private def wrapInExplainThenRunOnDb(query: String) =
+    runQueryOnDb(wrapInExplain(query))
 
   private def concatenateProjection(fields: Seq[String]) =
     fields.map("t." + FieldName(_).toSql).mkString(", ")

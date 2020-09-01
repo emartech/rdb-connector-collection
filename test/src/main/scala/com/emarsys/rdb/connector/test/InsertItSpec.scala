@@ -2,11 +2,11 @@ package com.emarsys.rdb.connector.test
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
+import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, NullValue, StringValue}
 import com.emarsys.rdb.connector.common.models.DataManipulation.Record
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest._
 
 import scala.concurrent.Await
@@ -21,8 +21,8 @@ trait InsertItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach wi
   val uuid      = uuidGenerate
   val tableName = s"insert_tables_table_$uuid"
 
-  val awaitTimeout = 5.seconds
-  val queryTimeout = 5.seconds
+  val awaitTimeout = 10.seconds
+  val queryTimeout = 10.seconds
 
   override def beforeEach(): Unit = {
     initDb()

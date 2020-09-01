@@ -1,20 +1,11 @@
 package com.emarsys.rdb.connector.mssql.utils
 
-import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.mssql.MsSqlConnector
-
 import scala.concurrent.Await
-import scala.concurrent.duration._
 
-trait SelectDbInitHelper {
-
-  import scala.concurrent.ExecutionContext.Implicits.global
+trait SelectDbInitHelper extends BaseDbSpec {
 
   val aTableName: String
   val bTableName: String
-
-  val connector: Connector =
-    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 5.seconds).right.get
 
   def initDb(): Unit = {
     val createATableSql =
@@ -67,7 +58,7 @@ trait SelectDbInitHelper {
         _ <- TestHelper.executeQuery(addIndex1)
         _ <- TestHelper.executeQuery(addIndex2)
       } yield (),
-      5.seconds
+      timeout
     )
   }
 
@@ -77,6 +68,6 @@ trait SelectDbInitHelper {
     Await.result(for {
       _ <- TestHelper.executeQuery(dropATableSql)
       _ <- TestHelper.executeQuery(dropBTableSql)
-    } yield (), 5.seconds)
+    } yield (), timeout)
   }
 }

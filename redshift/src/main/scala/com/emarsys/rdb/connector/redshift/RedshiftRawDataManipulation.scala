@@ -3,8 +3,8 @@ package com.emarsys.rdb.connector.redshift
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.defaults.DefaultSqlWriters._
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
-import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.NullValue
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, FieldValueWrapper, Record, UpdateDefinition}
+import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.NullValue
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import slick.jdbc.PostgresProfile.api._
 
@@ -63,12 +63,10 @@ trait RedshiftRawDataManipulation {
     val dropTableQuery   = sqlu"DROP TABLE IF EXISTS #$newTable"
 
     db.run(createTableQuery)
-      .flatMap(
-        _ =>
-          rawInsertData(newTableName, definitions).flatMap(
-            insertedCount =>
-              swapTableNames(tableName, newTableName).flatMap(_ => db.run(dropTableQuery).map(_ => insertedCount))
-          )
+      .flatMap(_ =>
+        rawInsertData(newTableName, definitions).flatMap(insertedCount =>
+          swapTableNames(tableName, newTableName).flatMap(_ => db.run(dropTableQuery).map(_ => insertedCount))
+        )
       )
       .recover(eitherErrorHandler)
   }
@@ -78,7 +76,6 @@ trait RedshiftRawDataManipulation {
     val tablePairs         = Seq((tableName, temporaryTableName), (newTableName, tableName), (temporaryTableName, newTableName))
     val queries = tablePairs.map({
       case (from, to) =>
-        TableName(from).toSql + " TO " + TableName(to).toSql
         sqlu"ALTER TABLE #${TableName(from).toSql} RENAME TO #${TableName(to).toSql}"
     })
     db.run(DBIO.sequence(queries).transactionally)
@@ -109,7 +106,7 @@ trait RedshiftRawDataManipulation {
 
     And(
       criteria
-        .mapValues(_.toSimpleSelectValue)
+        .map { case (field, fieldValueWrapper) => field -> fieldValueWrapper.toSimpleSelectValue }
         .map {
           case (field, Some(value)) => EqualToValue(FieldName(field), value)
           case (field, None)        => IsNull(FieldName(field))
@@ -123,7 +120,7 @@ trait RedshiftRawDataManipulation {
     import fieldValueConverters._
 
     criteria
-      .mapValues(_.toSimpleSelectValue)
+      .map { case (field, fieldValueWrapper) => field -> fieldValueWrapper.toSimpleSelectValue }
       .map {
         case (field, Some(value)) => EqualToValue(FieldName(field), value).toSql
         case (field, None)        => FieldName(field).toSql + "=NULL"

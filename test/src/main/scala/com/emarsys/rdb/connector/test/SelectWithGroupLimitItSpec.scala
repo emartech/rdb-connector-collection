@@ -1,9 +1,10 @@
 package com.emarsys.rdb.connector.test
 
 import akka.stream.Materializer
+import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
+import com.emarsys.rdb.connector.test.util.EitherValues
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
@@ -31,7 +32,7 @@ D:
 
 
  */
-trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
+trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
   val uuid = uuidGenerate
 
   val postfixTableName = s"_select_w_grouplimit_table_$uuid"
@@ -40,8 +41,8 @@ trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeA
 
   val connector: Connector
 
-  val awaitTimeout = 5.seconds
-  val queryTimeout = 5.seconds
+  val awaitTimeout = 10.seconds
+  val queryTimeout = 10.seconds
 
   implicit val materializer: Materializer
 
@@ -142,7 +143,7 @@ trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeA
         DatabaseError(ErrorCategory.Internal, ErrorName.SimpleSelectIsNotGroupableFormat, simpleSelect.toString)
       val result = Await.result(connector.selectWithGroupLimit(simpleSelect, 2, queryTimeout), awaitTimeout)
       result shouldBe a[Left[_, _]]
-      result.left.get shouldBe databaseError
+      result.left.value shouldBe databaseError
     }
 
     "gets a good OR query but no results" in {
@@ -213,7 +214,7 @@ trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeA
       result.head.map(_.toUpperCase) shouldBe Seq("ID", "NAME", "DATA")
       val grouped = result.tail.groupBy(s => (s(0), s(1)))
       grouped.size shouldBe 3
-      grouped.keys shouldBe Set(("2", "test3"), ("2", "test2"),("1", "test1"))
+      grouped.keys shouldBe Set(("2", "test3"), ("2", "test2"), ("1", "test1"))
     }
   }
 }

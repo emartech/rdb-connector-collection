@@ -1,16 +1,16 @@
 package com.emarsys.rdb.connector.redshift
 
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.Sink
 import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.scaladsl.Sink
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.redshift.utils.SelectDbWithSchemaInitHelper
 import com.emarsys.rdb.connector.test.uuidGenerate
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 
-import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration._
 
 class MultipleQueryWithSchemaSpec
     extends TestKit(ActorSystem("MultipleQueryWithSchemaSpec"))
@@ -37,7 +37,7 @@ class MultipleQueryWithSchemaSpec
 
   override def afterAll(): Unit = {
     connector.close()
-    system.terminate()
+    shutdown()
   }
 
   val aTableName: String = tableName
@@ -45,7 +45,7 @@ class MultipleQueryWithSchemaSpec
 
   s"MultipleQueryWithSchemaSpec $uuid" when {
 
-    "run parallelly multiple query" in {
+    "run parallelly multiple query" ignore {
 
       val slowQuery = s"""SELECT A1 FROM "$aTableName";"""
 

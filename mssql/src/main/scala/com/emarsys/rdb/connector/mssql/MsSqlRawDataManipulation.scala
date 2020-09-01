@@ -2,8 +2,8 @@ package com.emarsys.rdb.connector.mssql
 
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
-import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.NullValue
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, FieldValueWrapper, Record, UpdateDefinition}
+import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.NullValue
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.mssql.MsSqlWriters._
 import slick.jdbc.MySQLProfile.api._
@@ -13,8 +13,8 @@ import scala.concurrent.Future
 trait MsSqlRawDataManipulation {
   self: MsSqlConnector =>
 
-  import cats.instances.list._
   import cats.instances.future._
+  import cats.instances.list._
   import cats.syntax.traverse._
 
   override def rawUpdate(tableName: String, definitions: Seq[UpdateDefinition]): ConnectorResponse[Int] = {
@@ -79,12 +79,10 @@ trait MsSqlRawDataManipulation {
     val dropTableQuery   = sqlu"IF OBJECT_ID(#${Value(newTableName).toSql}, 'U') IS NOT NULL DROP TABLE #$newTable;"
 
     db.run(createTableQuery)
-      .flatMap(
-        _ =>
-          rawInsertData(newTableName, definitions).flatMap(
-            insertedCount =>
-              swapTableNames(tableName, newTableName).flatMap(_ => db.run(dropTableQuery).map(_ => insertedCount))
-          )
+      .flatMap(_ =>
+        rawInsertData(newTableName, definitions).flatMap(insertedCount =>
+          swapTableNames(tableName, newTableName).flatMap(_ => db.run(dropTableQuery).map(_ => insertedCount))
+        )
       )
       .recover(eitherErrorHandler())
   }
@@ -134,7 +132,7 @@ trait MsSqlRawDataManipulation {
 
     And(
       criteria
-        .mapValues(_.toSimpleSelectValue)
+        .map { case (field, fieldValueWrapper) => field -> fieldValueWrapper.toSimpleSelectValue }
         .map {
           case (field, Some(value)) => EqualToValue(FieldName(field), value)
           case (field, None)        => IsNull(FieldName(field))
@@ -148,7 +146,7 @@ trait MsSqlRawDataManipulation {
     import fieldValueConverters._
 
     criteria
-      .mapValues(_.toSimpleSelectValue)
+      .map { case (field, fieldValueWrapper) => field -> fieldValueWrapper.toSimpleSelectValue }
       .map {
         case (field, Some(value)) => EqualToValue(FieldName(field), value).toSql
         case (field, None)        => FieldName(field).toSql + "=NULL"

@@ -3,42 +3,23 @@ package com.emarsys.rdb.connector.mysql
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.mysql.utils.TestHelper
-import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
+import com.emarsys.rdb.connector.mysql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SearchItSpec
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class MySqlSearchItSpec extends TestKit(ActorSystem("MySqlSearchItSpec")) with SearchItSpec {
-  import scala.concurrent.ExecutionContext.Implicits.global
-
-  val connector: Connector =
-    Await
-      .result(
-        MySqlConnector.create(
-          TestHelper.TEST_CONNECTION_CONFIG,
-          MySqlConnectorConfig(
-            configPath = "mysqldb",
-            verifyServerCertificate = false
-          )
-        ),
-        5.seconds
-      )
-      .right
-      .get
-
-  override implicit val materializer: Materializer = ActorMaterializer()
+class MySqlSearchItSpec extends TestKit(ActorSystem("MySqlSearchItSpec")) with SearchItSpec with BaseDbSpec {
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override val awaitTimeout = 15.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 
-  def initDb(): Unit = {
+  override def initDb(): Unit = {
     val createZTableSql =
       s"""CREATE TABLE `$tableName` (
          |    z1 varchar(255) NOT NULL,
@@ -74,7 +55,7 @@ class MySqlSearchItSpec extends TestKit(ActorSystem("MySqlSearchItSpec")) with S
     )
   }
 
-  def cleanUpDb(): Unit = {
+  override def cleanUpDb(): Unit = {
     val dropZTableSql = s"""DROP TABLE `$tableName`;"""
     Await.result(for {
       _ <- TestHelper.executeQuery(dropZTableSql)

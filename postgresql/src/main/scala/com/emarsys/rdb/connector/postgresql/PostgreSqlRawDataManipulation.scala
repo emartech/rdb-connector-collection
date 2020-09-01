@@ -1,12 +1,12 @@
 package com.emarsys.rdb.connector.postgresql
 
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, FieldValueWrapper, Record, UpdateDefinition}
-import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import slick.jdbc.PostgresProfile.api._
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
-import PostgreSqlWriters._
+import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, FieldValueWrapper, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.NullValue
+import com.emarsys.rdb.connector.common.models.SimpleSelect._
+import com.emarsys.rdb.connector.postgresql.PostgreSqlWriters._
+import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
@@ -86,7 +86,6 @@ trait PostgreSqlRawDataManipulation {
     val tablePairs         = Seq((tableName, temporaryTableName), (newTableName, tableName), (temporaryTableName, newTableName))
     val queries = tablePairs.map({
       case (from, to) =>
-        TableName(from).toSql + " TO " + TableName(to).toSql
         sqlu"ALTER TABLE #${TableName(from).toSql} RENAME TO #${TableName(to).toSql}"
     })
     db.run(DBIO.sequence(queries).transactionally)
@@ -117,7 +116,7 @@ trait PostgreSqlRawDataManipulation {
 
     And(
       criteria
-        .mapValues(_.toSimpleSelectValue)
+        .map { case (field, fieldValueWrapper) => field -> fieldValueWrapper.toSimpleSelectValue }
         .map {
           case (field, Some(value)) => EqualToValue(FieldName(field), value)
           case (field, None)        => IsNull(FieldName(field))
@@ -131,7 +130,7 @@ trait PostgreSqlRawDataManipulation {
     import fieldValueConverters._
 
     criteria
-      .mapValues(_.toSimpleSelectValue)
+      .map { case (field, fieldValueWrapper) => field -> fieldValueWrapper.toSimpleSelectValue }
       .map {
         case (field, Some(value)) => EqualToValue(FieldName(field), value).toSql
         case (field, None)        => FieldName(field).toSql + "=NULL"

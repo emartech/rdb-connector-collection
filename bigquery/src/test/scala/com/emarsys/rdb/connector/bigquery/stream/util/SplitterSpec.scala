@@ -1,9 +1,9 @@
 package com.emarsys.rdb.connector.bigquery.stream.util
 
 import akka.actor.ActorSystem
+import akka.stream.{ActorMaterializer, ClosedShape}
 import akka.stream.scaladsl.{GraphDSL, RunnableGraph, Sink, Source}
 import akka.stream.testkit.scaladsl.TestSink
-import akka.stream.{ActorMaterializer, ClosedShape}
 import akka.testkit.TestKit
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
@@ -13,7 +13,7 @@ import scala.util.Try
 
 class SplitterSpec extends TestKit(ActorSystem("SplitterSpec")) with WordSpecLike with Matchers with BeforeAndAfterAll {
 
-  override def afterAll = {
+  override def afterAll() = {
     shutdown()
   }
 

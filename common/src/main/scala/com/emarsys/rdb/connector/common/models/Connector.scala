@@ -2,6 +2,7 @@ package com.emarsys.rdb.connector.common.models
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
+import com.emarsys.rdb.connector.common.{notImplementedOperation, ConnectorResponse}
 import com.emarsys.rdb.connector.common.Models.MetaData
 import com.emarsys.rdb.connector.common.defaults.{
   DefaultFieldValueConverters,
@@ -12,10 +13,9 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Recor
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors._
-import com.emarsys.rdb.connector.common.{ConnectorResponse, notImplementedOperation}
 
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.FiniteDuration
 
 trait Connector {
 
@@ -143,7 +143,7 @@ trait Connector {
 
     And(
       criteria
-        .mapValues(_.toSimpleSelectValue)
+        .map { case (field, fieldValueWrapper) => field -> fieldValueWrapper.toSimpleSelectValue }
         .map {
           case (field, Some(value)) => EqualToValue(FieldName(field), value)
           case (field, None)        => IsNull(FieldName(field))

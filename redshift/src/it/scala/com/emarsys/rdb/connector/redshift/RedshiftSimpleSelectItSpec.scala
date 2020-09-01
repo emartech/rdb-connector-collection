@@ -8,21 +8,20 @@ import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.redshift.utils.{SelectDbInitHelper, SelectDbWithSchemaInitHelper, TestHelper}
 import com.emarsys.rdb.connector.test._
 
-import concurrent.duration._
+import scala.concurrent.duration._
 import scala.concurrent.Await
 
 class RedshiftSimpleSelectItSpec
     extends TestKit(ActorSystem("RedshiftSimpleSelectItSpec"))
     with SimpleSelectItSpec
     with SelectDbInitHelper {
-  import scala.concurrent.ExecutionContext.Implicits.global
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override val awaitTimeout = 15.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 
@@ -74,14 +73,13 @@ class RedshiftSimpleSelectWithSchemaItSpec
     extends TestKit(ActorSystem("RedshiftSimpleSelectWithSchemaItSpec"))
     with SimpleSelectItSpec
     with SelectDbWithSchemaInitHelper {
-  import scala.concurrent.ExecutionContext.Implicits.global
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override val awaitTimeout = 15.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

@@ -11,13 +11,13 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
 
-class DelaySpec
-    extends TestKit(ActorSystem("PageTokenGeneratorSpec"))
-    with WordSpecLike
-    with Matchers
-    with BeforeAndAfterAll {
+class DelaySpec extends TestKit(ActorSystem("DelaySpec")) with WordSpecLike with Matchers with BeforeAndAfterAll {
 
   implicit val materializer: ActorMaterializer = ActorMaterializer()
+
+  override protected def afterAll(): Unit = {
+    shutdown()
+  }
 
   "Delay" should {
     "work as passthrough if should delay returns false" in {

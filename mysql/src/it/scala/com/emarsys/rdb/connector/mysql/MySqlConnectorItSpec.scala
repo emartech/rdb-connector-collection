@@ -8,10 +8,10 @@ import akka.testkit.TestKit
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
-import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
 import com.emarsys.rdb.connector.mysql.utils.TestHelper
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
-import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}
+import com.emarsys.rdb.connector.test.util.EitherValues
+import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, Matchers}
 
 import scala.concurrent.duration._
 
@@ -23,7 +23,7 @@ class MySqlConnectorItSpec
     with EitherValues {
 
   implicit val mat: ActorMaterializer = ActorMaterializer()
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     shutdown()
   }
 
@@ -31,16 +31,15 @@ class MySqlConnectorItSpec
 
   "MySqlConnectorItSpec" when {
 
-    val testConnection = TestHelper.TEST_CONNECTION_CONFIG
-
-    val config = MySqlConnectorConfig(configPath = "mysqldb", verifyServerCertificate = false)
+    val testConnectorConfig = TestHelper.TEST_CONNECTOR_CONFIG
+    val testConnection      = TestHelper.TEST_CONNECTION_CONFIG
 
     "create connector" should {
 
       "connect success" in {
         withClue("We should have received back a connector") {
-          MySqlConnector.create(testConnection, config).map { connector =>
-            connector.right.value.close()
+          MySqlConnector.create(testConnection, testConnectorConfig).map { connector =>
+            connector.value.close()
             succeed
           }
         }
@@ -51,14 +50,13 @@ class MySqlConnectorItSpec
         val expectedError =
           DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SSLError, "Wrong SSL cert format", None, None)
 
-        MySqlConnector.create(conn).map { result =>
+        MySqlConnector.create(conn, testConnectorConfig).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
         }
       }
 
       "connect fail when wrong certificate" in {
-        val conn = testConnection.copy(certificate =
-          """
+        val conn = testConnection.copy(certificate = """
             |-----BEGIN CERTIFICATE-----
             |MIICljCCAX4CCQDTYHFbvff7nTANBgkqhkiG9w0BAQsFADANMQswCQYDVQQGEwJh
             |czAeFw0xOTExMjcxMDIxMjlaFw0yMDExMjYxMDIxMjlaMA0xCzAJBgNVBAYTAmFz
@@ -78,20 +76,25 @@ class MySqlConnectorItSpec
             |
             |""".stripMargin)
         val expectedError =
-          DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, "Connection is not available, request timed out after", None, None)
+          DatabaseError(
+            ErrorCategory.Timeout,
+            ErrorName.ConnectionTimeout,
+            "Connection is not available, request timed out after",
+            None,
+            None
+          )
 
-        MySqlConnector.create(conn).map { result =>
+        MySqlConnector.create(conn, testConnectorConfig.copy(verifyServerCertificate = true)).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
         }
       }
-
 
       "connect fail when wrong host" in {
         val conn = testConnection.copy(host = "wrong")
         val expectedError =
           DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, timeoutMessage, None, None)
 
-        MySqlConnector.create(conn).map { result =>
+        MySqlConnector.create(conn, testConnectorConfig).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
         }
       }
@@ -101,7 +104,7 @@ class MySqlConnectorItSpec
         val expectedError =
           DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, timeoutMessage, None, None)
 
-        MySqlConnector.create(conn).map { result =>
+        MySqlConnector.create(conn, testConnectorConfig).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
         }
       }
@@ -111,7 +114,7 @@ class MySqlConnectorItSpec
         val expectedError =
           DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, timeoutMessage, None, None)
 
-        MySqlConnector.create(conn).map { result =>
+        MySqlConnector.create(conn, testConnectorConfig).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
         }
       }
@@ -122,8 +125,8 @@ class MySqlConnectorItSpec
 
       "return success" in {
         for {
-          result <- MySqlConnector.create(testConnection, config)
-          connector = result.right.value
+          result <- MySqlConnector.create(testConnection, testConnectorConfig)
+          connector = result.value
           _ <- connector.testConnection()
           _ <- connector.close()
         } yield succeed
@@ -133,7 +136,7 @@ class MySqlConnectorItSpec
         import cats.instances.future._
         def runSelect(q: String): ConnectorResponse[Unit] =
           (for {
-            connector <- EitherT(MySqlConnector.create(testConnection, config))
+            connector <- EitherT(MySqlConnector.create(testConnection, testConnectorConfig))
             source    <- EitherT(connector.rawSelect(q, limit = None, timeout = 1.second))
             res       <- EitherT(sinkOrLeft(source))
             _ = connector.close()
@@ -141,7 +144,7 @@ class MySqlConnectorItSpec
 
         def runQuery(q: String): ConnectorResponse[Int] =
           (for {
-            connector <- EitherT(MySqlConnector.create(testConnection, config))
+            connector <- EitherT(MySqlConnector.create(testConnection, testConnectorConfig))
             source    <- EitherT(connector.rawQuery(q, timeout = 1.second))
             _ = connector.close()
           } yield source).value

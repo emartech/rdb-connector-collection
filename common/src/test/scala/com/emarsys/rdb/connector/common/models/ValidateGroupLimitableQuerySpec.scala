@@ -26,6 +26,8 @@ class ValidateGroupLimitableQuerySpec extends WordSpecLike with Matchers {
     }
 
     "all OR has the same fields => Groupable" in {
+      val references = Seq("b", "a")
+      val expected   = Groupable(references)
       val select = SimpleSelect(
         AllField,
         TableName("table"),
@@ -38,7 +40,10 @@ class ValidateGroupLimitableQuerySpec extends WordSpecLike with Matchers {
           )
         )
       )
-      ValidateGroupLimitableQuery.validate(select) shouldBe Groupable(Seq("b", "a"))
+      ValidateGroupLimitableQuery.validate(select) match {
+        case Groupable(references) => references should contain theSameElementsAs (references)
+        case other                 => fail(s"$other was not equal to $expected")
+      }
     }
 
     "OR has no inner And => Groupable" in {

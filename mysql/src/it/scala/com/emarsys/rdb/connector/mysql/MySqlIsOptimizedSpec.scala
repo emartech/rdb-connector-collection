@@ -2,39 +2,21 @@ package com.emarsys.rdb.connector.mysql
 
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
-import com.emarsys.rdb.connector.mysql.utils.TestHelper
+import com.emarsys.rdb.connector.mysql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
 import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
+class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues with BaseDbSpec {
 
   val uuid = UUID.randomUUID().toString
 
   val tableName  = s"is_optimized_table_$uuid"
   val index1Name = s"is_optimized_index1_$uuid"
   val index2Name = s"is_optimized_index2_$uuid"
-
-  val connector: Connector =
-    Await
-      .result(
-        MySqlConnector.create(
-          TestHelper.TEST_CONNECTION_CONFIG,
-          MySqlConnectorConfig(
-            configPath = "mysqldb",
-            verifyServerCertificate = false
-          )
-        ),
-        5.seconds
-      )
-      .right
-      .get
 
   override def beforeAll(): Unit = {
     initDb()
@@ -66,7 +48,7 @@ class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
         _ <- TestHelper.executeQuery(createIndex1Sql)
         _ <- TestHelper.executeQuery(createIndex2Sql)
       } yield (),
-      5.seconds
+      10.seconds
     )
   }
 
@@ -79,7 +61,7 @@ class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
       _ <- TestHelper.executeQuery(dropIndex2Sql)
       _ <- TestHelper.executeQuery(dropIndex1Sql)
       _ <- TestHelper.executeQuery(dropTableSql)
-    } yield (), 5.seconds)
+    } yield (), 10.seconds)
   }
 
   "#isOptimized" when {
@@ -89,28 +71,28 @@ class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
       "if simple index exists in its own" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A0")), 5.seconds)
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
+        val result = resultE.value
         result shouldBe true
       }
 
       "if simple index exists in complex index as first member" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A1")), 5.seconds)
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
+        val result = resultE.value
         result shouldBe true
       }
 
       "if complex index exists" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A1", "A2")), 5.seconds)
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
+        val result = resultE.value
         result shouldBe true
       }
 
       "if complex index exists but in different order" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A2", "A1")), 5.seconds)
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
+        val result = resultE.value
         result shouldBe true
       }
     }
@@ -120,21 +102,21 @@ class MySqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfte
       "if simple index does not exists at all" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A3")), 5.seconds)
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
+        val result = resultE.value
         result shouldBe false
       }
 
       "if simple index exists in complex index but not as first member" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A2")), 5.seconds)
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
+        val result = resultE.value
         result shouldBe false
       }
 
       "if complex index exists only as part of another complex index" in {
         val resultE = Await.result(connector.isOptimized(tableName, Seq("A4", "A5")), 5.seconds)
         resultE shouldBe a[Right[_, _]]
-        val result = resultE.right.get
+        val result = resultE.value
         result shouldBe false
       }
     }

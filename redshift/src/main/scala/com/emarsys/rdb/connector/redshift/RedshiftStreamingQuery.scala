@@ -5,10 +5,9 @@ import java.sql.Types
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import slick.jdbc.PostgresProfile.api._
 import slick.jdbc.{GetResult, PositionedResult}
+import slick.jdbc.PostgresProfile.api._
 
-import com.emarsys.rdb.connector.common._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 

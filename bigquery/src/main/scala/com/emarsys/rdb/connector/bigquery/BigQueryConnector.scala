@@ -1,5 +1,7 @@
 package com.emarsys.rdb.connector.bigquery
 
+import java.time.Clock
+
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
@@ -7,13 +9,13 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.util.Timeout
 import com.emarsys.rdb.connector.bigquery.BigQueryConnector.BigQueryConnectionConfig
+import com.emarsys.rdb.connector.common.{notImplementedOperation, ConnectorResponse}
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.models.DataManipulation.Criteria
-import com.emarsys.rdb.connector.common.{ConnectorResponse, notImplementedOperation}
 
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
 
 class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQueryConnectionConfig)(
     implicit val executionContext: ExecutionContext
@@ -28,6 +30,7 @@ class BigQueryConnector(protected val actorSystem: ActorSystem, val config: BigQ
   implicit val sys: ActorSystem                = actorSystem
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val timeout: Timeout                = Timeout(3.seconds)
+  implicit val clock: Clock                    = java.time.Clock.systemUTC()
 
   val googleSession                  = new GoogleSession(config.clientEmail, config.privateKey, new GoogleTokenApi(Http()))
   val bigQueryClient: BigQueryClient = new BigQueryClient(googleSession, config.projectId, config.dataset)
@@ -48,6 +51,9 @@ object BigQueryConnector extends BigQueryConnectorTrait {
 
   case class BigQueryConnectionConfig(projectId: String, dataset: String, clientEmail: String, privateKey: String)
       extends ConnectionConfig {
+
+    protected def getPublicFieldsForId = List(projectId, dataset, clientEmail)
+    protected def getSecretFieldsForId = List(privateKey)
 
     def toCommonFormat: CommonConnectionReadableData =
       CommonConnectionReadableData("bigquery", projectId, dataset, clientEmail)

@@ -10,10 +10,10 @@ class MsSqlDeleteItSpec extends TestKit(ActorSystem("MsSqlDeleteItSpec")) with D
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

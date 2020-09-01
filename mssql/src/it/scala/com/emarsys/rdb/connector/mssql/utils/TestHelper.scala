@@ -1,15 +1,18 @@
 package com.emarsys.rdb.connector.mssql.utils
+
 import java.util.Properties
 
-import com.emarsys.rdb.connector.mssql.CertificateUtil
-import com.emarsys.rdb.connector.mssql.MsSqlConnector.{MsSqlConnectionConfig, createUrl}
+import com.emarsys.rdb.connector.common.Models.PoolConfig
+import com.emarsys.rdb.connector.mssql.MsSqlConnector.{createUrl, MsSqlConnectionConfig, MsSqlConnectorConfig}
 import slick.jdbc.MySQLProfile.api._
 import slick.util.AsyncExecutor
 
 import scala.concurrent.Future
 
 object TestHelper {
+
   import com.typesafe.config.ConfigFactory
+
   lazy val config = ConfigFactory.load()
 
   lazy val TEST_CONNECTION_CONFIG = MsSqlConnectionConfig(
@@ -22,14 +25,16 @@ object TestHelper {
     connectionParams = config.getString("dbconf.connectionParams")
   )
 
+  lazy val TEST_CONNECTOR_CONFIG = MsSqlConnectorConfig(
+    configPath = "mssqldb",
+    trustServerCertificate = true,
+    poolConfig = PoolConfig(2, 100)
+  )
+
   private lazy val db: Database = {
-
-    val certPath = CertificateUtil.createTrustStoreTempFile(TEST_CONNECTION_CONFIG.certificate)
-
     val prop = new Properties()
-    prop.setProperty("encrypt", "true")
+    prop.setProperty("encrypt", "false")
     prop.setProperty("trustServerCertificate", "false")
-    prop.setProperty("trustStore", certPath.get)
 
     val url = createUrl(
       TEST_CONNECTION_CONFIG.host,

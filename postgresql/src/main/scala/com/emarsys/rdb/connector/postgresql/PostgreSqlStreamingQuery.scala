@@ -5,9 +5,8 @@ import java.sql.Types
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import slick.jdbc.PostgresProfile.api._
 import slick.jdbc.{GetResult, PositionedResult}
-import com.emarsys.rdb.connector.common._
+import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -25,7 +24,6 @@ trait PostgreSqlStreamingQuery {
         fetchSize = connectorConfig.streamChunkSize,
         statementInit = _.setQueryTimeout(timeout.toSeconds.toInt)
       )
-
     val publisher = db.stream(sql)
     val dbSource = Source
       .fromPublisher(publisher)

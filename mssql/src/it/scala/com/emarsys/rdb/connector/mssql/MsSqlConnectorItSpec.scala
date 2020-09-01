@@ -8,9 +8,9 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mssql.utils.TestHelper
-import com.emarsys.rdb.connector.mssql.MsSqlConnector.MsSqlConnectorConfig
 import com.emarsys.rdb.connector.test.CustomMatchers._
-import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.test.util.EitherValues
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -23,28 +23,28 @@ class MsSqlConnectorItSpec
     with BeforeAndAfterAll
     with EitherValues {
 
-  implicit val mat      = ActorMaterializer()
-  override def afterAll = TestKit.shutdownActorSystem(system)
-
-  private val timeout = 10.seconds
+  val timeout             = 30.seconds
+  implicit val mat        = ActorMaterializer()
+  override def afterAll() = shutdown()
 
   "MsSqlConnectorItSpec" when {
 
-    val testConnection = TestHelper.TEST_CONNECTION_CONFIG
+    val connectorConfig = TestHelper.TEST_CONNECTOR_CONFIG
+    val testConnection  = TestHelper.TEST_CONNECTION_CONFIG
 
     "create connector" should {
 
       "connect success" in {
-        val connectorEither = Await.result(MsSqlConnector.create(testConnection), timeout)
+        val connectorEither = Await.result(MsSqlConnector.create(testConnection, connectorConfig), timeout)
 
         connectorEither shouldBe a[Right[_, _]]
 
-        connectorEither.right.get.close()
+        connectorEither.value.close()
       }
 
       "connect fail when wrong host" in {
         val conn            = testConnection.copy(host = "wrong")
-        val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
+        val connectorEither = Await.result(MsSqlConnector.create(conn, connectorConfig), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.Timeout,
@@ -54,7 +54,7 @@ class MsSqlConnectorItSpec
 
       "connect fail when wrong user" in {
         val conn            = testConnection.copy(dbUser = "")
-        val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
+        val connectorEither = Await.result(MsSqlConnector.create(conn, connectorConfig), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,
@@ -64,7 +64,7 @@ class MsSqlConnectorItSpec
 
       "connect fail when wrong password" in {
         val conn            = testConnection.copy(dbPassword = "")
-        val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
+        val connectorEither = Await.result(MsSqlConnector.create(conn, connectorConfig), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,
@@ -75,7 +75,7 @@ class MsSqlConnectorItSpec
       "connect fail when wrong certificate format" in {
         val conn = testConnection.copy(certificate = "")
 
-        val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
+        val connectorEither = Await.result(MsSqlConnector.create(conn, connectorConfig), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,
@@ -104,7 +104,8 @@ class MsSqlConnectorItSpec
          |
          |""".stripMargin)
 
-        val connectorEither = Await.result(MsSqlConnector.create(conn, MsSqlConnectorConfig("mssqldb", false)), timeout)
+        val connectorEither =
+          Await.result(MsSqlConnector.create(conn, connectorConfig.copy(trustServerCertificate = false)), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.Timeout,
@@ -115,7 +116,7 @@ class MsSqlConnectorItSpec
       "connect fail when ssl disabled" in {
         val conn = testConnection.copy(connectionParams = "encrypt=false")
 
-        val connectorEither = Await.result(MsSqlConnector.create(conn), timeout)
+        val connectorEither = Await.result(MsSqlConnector.create(conn, connectorConfig), timeout)
 
         connectorEither.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,
@@ -127,11 +128,11 @@ class MsSqlConnectorItSpec
     "test connection" should {
 
       "success" in {
-        val connectorEither = Await.result(MsSqlConnector.create(testConnection), timeout)
+        val connectorEither = Await.result(MsSqlConnector.create(testConnection, connectorConfig), timeout)
 
         connectorEither shouldBe a[Right[_, _]]
 
-        val connector = connectorEither.right.get
+        val connector = connectorEither.value
 
         val result = Await.result(connector.testConnection(), timeout)
 
@@ -148,7 +149,7 @@ class MsSqlConnectorItSpec
 
       def runQuery(q: String): ConnectorResponse[Unit] =
         for {
-          Right(connector) <- MsSqlConnector.create(connectionConfig)
+          Right(connector) <- MsSqlConnector.create(connectionConfig, connectorConfig)
           Right(source)    <- connector.rawSelect(q, limit = None, queryTimeout)
           res              <- sinkOrLeft(source)
           _ = connector.close()
@@ -165,13 +166,13 @@ class MsSqlConnectorItSpec
 
     "Custom error handling" should {
       "recognize query timeouts" in new QueryRunnerScope {
-        val result = Await.result(runQuery("waitfor delay '00:00:06.000'; select 1"), 6.second)
+        val result = Await.result(runQuery("waitfor delay '00:00:08.000'; select 1"), timeout)
 
         result.left.value should haveErrorCategoryAndErrorName(ErrorCategory.Timeout, ErrorName.QueryTimeout)
       }
 
       "recognize syntax errors" in new QueryRunnerScope {
-        val result = Await.result(runQuery("select from table"), 1.second)
+        val result = Await.result(runQuery("select from table"), timeout)
 
         result.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,
@@ -185,7 +186,7 @@ class MsSqlConnectorItSpec
           dbPassword = "unprivileged1!"
         )
 
-        val result = Await.result(runQuery("select * from access_denied"), 1.second)
+        val result = Await.result(runQuery("select * from access_denied"), timeout)
 
         result.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,
@@ -194,7 +195,7 @@ class MsSqlConnectorItSpec
       }
 
       "recognize if a table is not found" in new QueryRunnerScope {
-        val result = Await.result(runQuery("select * from a_non_existing_table"), 1.second)
+        val result = Await.result(runQuery("select * from a_non_existing_table"), timeout)
 
         result.left.value should haveErrorCategoryAndErrorName(
           ErrorCategory.FatalQueryExecution,

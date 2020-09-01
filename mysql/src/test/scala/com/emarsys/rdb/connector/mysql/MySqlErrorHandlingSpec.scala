@@ -3,12 +3,11 @@ package com.emarsys.rdb.connector.mysql
 import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionException}
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
-import com.emarsys.rdb.connector.common.models.Errors.DatabaseError
-import com.emarsys.rdb.connector.common.models.Errors.{ErrorCategory => C, ErrorName => N}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
 import com.mysql.cj.exceptions.MysqlErrorNumbers._
 import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
-import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.{EitherValues, Matchers, PartialFunctionValues, WordSpecLike}
+import org.scalatest.prop.TableDrivenPropertyChecks
 import slick.SlickException
 
 class MySqlErrorHandlingSpec
@@ -34,7 +33,8 @@ class MySqlErrorHandlingSpec
     """View 'compose.PostPurchaseView' references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them"""
 
   private val slickExceptionWrongUpdate           = new SlickException("Update statements should not return a ResultSet")
-  private val accessDeniedException               = new SQLSyntaxErrorException(accessDeniedMsg)
+  private val accessDeniedExceptionSyntaxError    = new SQLSyntaxErrorException(accessDeniedMsg)
+  private val accessDeniedExceptionSQLE           = new SQLException(accessDeniedMsg)
   private val queryTimeoutException               = new MySQLTimeoutException(queryTimeoutMsg)
   private val connectionTimeoutException          = new MySQLTimeoutException("Other timeout error")
   private val noPermissionForExplainShowException = new SQLException(noPermissionForExplainShowMsg)
@@ -54,7 +54,13 @@ class MySqlErrorHandlingSpec
   private val mySqlErrorCases = Table(
     ("error", "exception", "errorCategory", "errorName"),
     ("SlickException with wrong update statement", slickExceptionWrongUpdate, C.FatalQueryExecution, N.SqlSyntaxError),
-    ("access denied exception", accessDeniedException, C.FatalQueryExecution, N.AccessDeniedError),
+    (
+      "access denied exception (SQLSyntaxErrorException)",
+      accessDeniedExceptionSyntaxError,
+      C.FatalQueryExecution,
+      N.AccessDeniedError
+    ),
+    ("access denied exception (SQLException)", accessDeniedExceptionSQLE, C.FatalQueryExecution, N.AccessDeniedError),
     ("query timeout exception", queryTimeoutException, C.Timeout, N.QueryTimeout),
     ("connection time out exception", connectionTimeoutException, C.Timeout, N.ConnectionTimeout),
     ("no permission for EXPLAIN/SHOW", noPermissionForExplainShowException, C.FatalQueryExecution, N.AccessDeniedError),

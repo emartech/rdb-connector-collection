@@ -10,10 +10,10 @@ class MsSqlUpdateItSpec extends TestKit(ActorSystem("MsSqlUpdateItSpec")) with U
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

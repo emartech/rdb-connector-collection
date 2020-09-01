@@ -5,8 +5,8 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import akka.util.Timeout
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest.{Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -16,10 +16,15 @@ class UpstreamFinishHandlerSpec
     extends TestKit(ActorSystem("UpstreamFinishHandlerSpec"))
     with WordSpecLike
     with Matchers
-    with MockitoSugar {
+    with MockitoSugar
+    with BeforeAndAfterAll {
 
   implicit val materializer = ActorMaterializer()
   implicit val timeout      = Timeout(1.second)
+
+  override protected def afterAll(): Unit = {
+    shutdown()
+  }
 
   trait TestScope {
 

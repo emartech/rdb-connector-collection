@@ -3,17 +3,19 @@ package com.emarsys.rdb.connector.postgresql
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.Sink
 import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.scaladsl.Sink
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.postgresql.utils.SelectDbInitHelper
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
-import org.scalatest._
+import com.emarsys.rdb.connector.test.util.EitherValues
+import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, BeforeAndAfterEach, Matchers}
 
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
 class PostgreSqlRawQueryItSpec
     extends TestKit(ActorSystem("PostgreSqlRawQueryItSpec"))
@@ -23,6 +25,8 @@ class PostgreSqlRawQueryItSpec
     with BeforeAndAfterEach
     with BeforeAndAfterAll
     with EitherValues {
+
+  implicit val excon: ExecutionContext = ec
 
   val uuid = UUID.randomUUID().toString.replace("-", "")
 
@@ -94,7 +98,7 @@ class PostgreSqlRawQueryItSpec
   private def selectAll(tableName: String) = {
     connector
       .simpleSelect(SimpleSelect(AllField, TableName(tableName)), queryTimeout)
-      .flatMap(result => result.right.value.runWith(Sink.seq))
+      .flatMap(result => result.value.runWith(Sink.seq))
       .map(_.drop(1))
   }
 }

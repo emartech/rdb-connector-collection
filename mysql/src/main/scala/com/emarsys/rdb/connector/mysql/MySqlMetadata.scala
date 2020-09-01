@@ -1,13 +1,13 @@
 package com.emarsys.rdb.connector.mysql
 
+import cats.data.EitherT
+import cats.implicits._
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
 import com.emarsys.rdb.connector.mysql.MySqlWriters._
 import slick.jdbc.MySQLProfile.api._
-import cats.data.EitherT
-import cats.implicits._
 
 trait MySqlMetadata {
   self: MySqlConnector =>
@@ -21,7 +21,7 @@ trait MySqlMetadata {
 
   override def listFields(tableName: String): ConnectorResponse[Seq[FieldModel]] = {
     db.run(sql"DESC #${TableName(tableName).toSql}".as[(String, String, String, String, String, String)])
-      .map(_.map(parseToFiledModel))
+      .map(_.map(parseToFieldModel))
       .map(Right(_))
       .recover(handleNotExistingTable(tableName))
       .recover(eitherErrorHandler())
@@ -36,10 +36,10 @@ trait MySqlMetadata {
 
   private def listAllFieldsByTable(): ConnectorResponse[Map[String, Seq[FieldModel]]] = {
     db.run(
-        sql"select TABLE_NAME, COLUMN_NAME, DATA_TYPE from information_schema.columns where table_schema = DATABASE();"
+        sql"select TABLE_NAME, COLUMN_NAME, COLUMN_TYPE from information_schema.columns where table_schema = DATABASE() ORDER BY ORDINAL_POSITION;"
           .as[(String, String, String)]
       )
-      .map(_.groupBy(_._1).mapValues(_.map(x => parseToFiledModel(x._2 -> x._3)).toSeq))
+      .map(_.groupBy(_._1).map { case (a, b) => a -> b.map(x => parseToFieldModel(x._2 -> x._3)) })
       .map(Right(_))
       .recover(eitherErrorHandler())
   }
@@ -55,11 +55,11 @@ trait MySqlMetadata {
       }
   }
 
-  private def parseToFiledModel(f: (String, String)): FieldModel = {
+  private def parseToFieldModel(f: (String, String)): FieldModel = {
     FieldModel(f._1, f._2)
   }
 
-  private def parseToFiledModel(f: (String, String, String, String, String, String)): FieldModel = {
+  private def parseToFieldModel(f: (String, String, String, String, String, String)): FieldModel = {
     FieldModel(f._1, f._2)
   }
 

@@ -3,13 +3,13 @@ package com.emarsys.rdb.connector.common.models
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.StringValue
 import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
-import com.emarsys.rdb.connector.common.models.Errors.ErrorName.NoIndexOnFields
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.models.Errors.ErrorName.NoIndexOnFields
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.TableModel
 import org.mockito.Mockito._
+import org.scalatest.{EitherValues, Matchers, WordSpecLike}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest.{EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -6,7 +6,7 @@ import akka.testkit.TestKit
 import com.emarsys.rdb.connector.redshift.utils.{SelectDbInitHelper, SelectDbWithSchemaInitHelper}
 import com.emarsys.rdb.connector.test.UpdateItSpec
 
-import concurrent.duration._
+import scala.concurrent.duration._
 
 class RedshiftUpdateItSpec
     extends TestKit(ActorSystem("RedshiftUpdateItSpec"))
@@ -17,10 +17,10 @@ class RedshiftUpdateItSpec
 
   override val awaitTimeout = 15.seconds
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 }
@@ -34,10 +34,10 @@ class RedshiftUpdateWithSchemaItSpec
 
   override val awaitTimeout = 15.seconds
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+  implicit override val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 }

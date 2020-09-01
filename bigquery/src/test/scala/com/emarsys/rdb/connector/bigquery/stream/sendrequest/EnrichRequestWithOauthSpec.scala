@@ -8,7 +8,9 @@ import akka.util.Timeout
 import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.bigquery.stream.sendrequest.EnrichRequestWithOauth.TokenErrorException
 import org.mockito.Mockito._
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.duration._
@@ -16,7 +18,7 @@ import scala.concurrent.{Await, Future}
 
 class EnrichRequestWithOauthSpec
     extends TestKit(ActorSystem("EnrichRequestWithOauthSpec"))
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with BeforeAndAfterAll
     with MockitoSugar {

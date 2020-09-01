@@ -5,11 +5,13 @@ import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
 import org.scalatest.prop.TableDrivenPropertyChecks
-import org.scalatest.{EitherValues, Matchers, PartialFunctionValues, WordSpec}
+import org.scalatest.{EitherValues, PartialFunctionValues}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import slick.SlickException
 
 class PostgreSqlErrorHandlingSpec
-    extends WordSpec
+    extends AnyWordSpecLike
     with Matchers
     with TableDrivenPropertyChecks
     with EitherValues

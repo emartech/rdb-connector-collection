@@ -8,7 +8,9 @@ import akka.util.Timeout
 import com.emarsys.rbd.connector.bigquery.utils.MetaDbInitHelper
 import com.emarsys.rdb.connector.common.models.Errors.{ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.test.CustomMatchers._
-import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}
+import org.scalatest.{BeforeAndAfterAll, EitherValues}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpecLike
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}

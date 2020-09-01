@@ -8,7 +8,9 @@ import com.emarsys.rdb.connector.common.models.Errors.ErrorName.QueryTimeout
 import com.emarsys.rdb.connector.snowflake.utils.{SelectDbInitHelper, TestHelper}
 import com.emarsys.rdb.connector.test.CustomMatchers.haveErrorCategoryAndErrorName
 import com.emarsys.rdb.connector.test._
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
@@ -17,7 +19,7 @@ class SnowflakeRawSelectItSpec
   extends TestKit(ActorSystem("SnowflakeRawSelectItSpec"))
     with RawSelectItSpec
     with SelectDbInitHelper
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with BeforeAndAfterAll {
 

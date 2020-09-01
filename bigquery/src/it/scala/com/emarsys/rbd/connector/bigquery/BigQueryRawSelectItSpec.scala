@@ -5,7 +5,9 @@ import akka.testkit.TestKit
 import akka.util.Timeout
 import com.emarsys.rbd.connector.bigquery.utils.{SelectDbInitHelper, TestHelper}
 import com.emarsys.rdb.connector.test._
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
@@ -14,7 +16,7 @@ class BigQueryRawSelectItSpec
     extends TestKit(ActorSystem("BigQueryRawSelectItSpec"))
     with RawSelectItSpec
     with SelectDbInitHelper
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with BeforeAndAfterAll {
 

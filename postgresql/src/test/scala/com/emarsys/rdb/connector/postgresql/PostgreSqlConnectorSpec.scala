@@ -7,12 +7,13 @@ import com.emarsys.rdb.connector.common.Models.{MetaData, PoolConfig}
 import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.{PostgreSqlConnectionConfig, PostgreSqlConnectorConfig}
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.mockito.MockitoSugar
 import slick.jdbc.PostgresProfile.api._
 import spray.json._
 
-class PostgreSqlConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
+class PostgreSqlConnectorSpec extends AnyWordSpecLike with Matchers with MockitoSugar {
 
   lazy val connectorConfig = PostgreSqlConnectorConfig(
     streamChunkSize = 5000,

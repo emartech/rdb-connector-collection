@@ -14,7 +14,9 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.mockito.MockitoSugar
 import pdi.jwt.{Jwt, JwtAlgorithm}
 
@@ -23,7 +25,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 
 class GoogleTokenApiSpec
     extends TestKit(ActorSystem("GoogleTokenApiSpec"))
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with ScalaFutures
     with MockitoSugar

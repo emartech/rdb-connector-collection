@@ -4,7 +4,9 @@ import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.mssql.utils.SelectDbInitHelper
 import com.emarsys.rdb.connector.test._
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -12,7 +14,7 @@ class MsSqlRawSelectItSpec
     extends TestKit(ActorSystem("MsSqlRawSelectItSpec"))
     with RawSelectItSpec
     with SelectDbInitHelper
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with BeforeAndAfterAll {
 

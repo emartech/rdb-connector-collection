@@ -4,8 +4,9 @@ import akka.actor.ActorSystem
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
-import com.emarsys.rdb.connector.test.util.EitherValues
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, EitherValues}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -32,7 +33,7 @@ D:
 
 
  */
-trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
+trait SelectWithGroupLimitItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
   val uuid = uuidGenerate
 
   val postfixTableName = s"_select_w_grouplimit_table_$uuid"

@@ -5,14 +5,16 @@ import akka.testkit.TestKit
 import akka.util.Timeout
 import com.emarsys.rbd.connector.bigquery.utils.MetaDbInitHelper
 import com.emarsys.rdb.connector.test.MetadataItSpec
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.duration._
 
 class BigQueryMetadataItSpec
     extends TestKit(ActorSystem("BigQueryMetadataItSpec"))
     with MetadataItSpec
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with BeforeAndAfterAll
     with MetaDbInitHelper {

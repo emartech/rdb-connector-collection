@@ -6,11 +6,13 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.Source
 import akka.stream.testkit.scaladsl.TestSink
 import akka.testkit._
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.duration._
 
-class DelaySpec extends TestKit(ActorSystem("DelaySpec")) with WordSpecLike with Matchers with BeforeAndAfterAll {
+class DelaySpec extends TestKit(ActorSystem("DelaySpec")) with AnyWordSpecLike with Matchers with BeforeAndAfterAll {
 
   override protected def afterAll(): Unit = {
     shutdown()

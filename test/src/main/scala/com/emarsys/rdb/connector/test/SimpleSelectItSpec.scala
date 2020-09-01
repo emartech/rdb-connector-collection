@@ -3,7 +3,9 @@ package com.emarsys.rdb.connector.test
 import akka.actor.ActorSystem
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.duration._
 
@@ -42,7 +44,7 @@ C:
   ("c3")
 
  */
-trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
+trait SimpleSelectItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAll {
   val uuid = uuidGenerate
 
   val postfixTableName = s"_simple_select_table_$uuid"

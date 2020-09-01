@@ -6,8 +6,8 @@ import akka.NotUsed
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.test.util.EitherValues
-import org.scalatest.Matchers
+import org.scalatest.EitherValues
+import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration

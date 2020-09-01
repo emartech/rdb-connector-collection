@@ -3,12 +3,14 @@ package com.emarsys.rdb.connector.snowflake
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.snowflake.utils.TestHelper
 import com.emarsys.rdb.connector.test.CustomMatchers._
-import org.scalatest.{EitherValues, Matchers, WordSpecLike}
+import org.scalatest.EitherValues
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class SnowflakeConnectorItSpec extends WordSpecLike with EitherValues with Matchers {
+class SnowflakeConnectorItSpec extends AnyWordSpecLike with EitherValues with Matchers {
   "The SnowflakeConnector's companion" can {
     implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
     val timeout                   = 12.seconds
@@ -39,7 +41,7 @@ class SnowflakeConnectorItSpec extends WordSpecLike with EitherValues with Match
             )
 
           connectorEither shouldBe a[Right[_, _]]
-          connectorEither.right.value.close()
+          connectorEither.value.close()
         }
       }
     }

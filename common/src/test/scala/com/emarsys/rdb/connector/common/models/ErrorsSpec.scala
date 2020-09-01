@@ -1,9 +1,10 @@
 package com.emarsys.rdb.connector.common.models
 
 import com.emarsys.rdb.connector.common.models.Errors._
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class ErrorsSpec extends WordSpecLike with Matchers {
+class ErrorsSpec extends AnyWordSpecLike with Matchers {
   "ErrorNames" should {
     "have a nice unapply for strings" in {
       val results = for {

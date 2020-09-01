@@ -4,9 +4,11 @@ import java.sql.{SQLException, SQLTransientConnectionException}
 
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.test.CustomMatchers._
-import org.scalatest.{EitherValues, Matchers, WordSpecLike}
+import org.scalatest.EitherValues
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class RedshiftErrorHandlingSpec extends WordSpecLike with Matchers with EitherValues {
+class RedshiftErrorHandlingSpec extends AnyWordSpecLike with Matchers with EitherValues {
 
   val possibleSQLErrors: Seq[(String, String, DatabaseError)] = Seq(
     (

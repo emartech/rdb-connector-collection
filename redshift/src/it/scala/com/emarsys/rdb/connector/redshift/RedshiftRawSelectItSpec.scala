@@ -4,7 +4,9 @@ import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.redshift.utils.{SelectDbInitHelper, SelectDbWithSchemaInitHelper}
 import com.emarsys.rdb.connector.test._
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration._
@@ -13,7 +15,7 @@ class RedshiftRawSelectItSpec
     extends TestKit(ActorSystem("RedshiftRawSelectItSpec"))
     with RawSelectItSpec
     with SelectDbInitHelper
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with BeforeAndAfterAll {
 
@@ -49,7 +51,7 @@ class RedshiftRawSelectWithSchemaItSpec
     extends TestKit(ActorSystem("RedshiftRawSelectWithSchemaItSpec"))
     with RawSelectItSpec
     with SelectDbWithSchemaInitHelper
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with BeforeAndAfterAll {
 

@@ -13,7 +13,9 @@ import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCateg
 import com.emarsys.rdb.connector.test.CustomMatchers._
 import org.mockito.Mockito._
 import org.scalatest.prop.TableDrivenPropertyChecks
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.duration._
@@ -21,7 +23,7 @@ import scala.concurrent.{Await, Future}
 
 class SendRequestWithOauthHandlingSpec
     extends TestKit(ActorSystem("SendRequestWithOauthHandlingSpec"))
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with BeforeAndAfterAll
     with MockitoSugar

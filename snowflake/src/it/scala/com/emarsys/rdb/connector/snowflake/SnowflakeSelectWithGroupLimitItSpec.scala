@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.snowflake.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
-import org.scalatest.Matchers
+import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

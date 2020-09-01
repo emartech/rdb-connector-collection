@@ -9,7 +9,7 @@ import com.emarsys.rdb.connector.common.models.SimpleSelect.{AllField, FieldName
 import com.emarsys.rdb.connector.snowflake.utils.{SelectDbInitHelper, TestHelper}
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
 import com.emarsys.rdb.connector.test.SimpleSelectItSpec
-import org.scalatest.Matchers
+import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

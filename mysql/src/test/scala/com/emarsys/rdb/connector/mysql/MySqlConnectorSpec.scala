@@ -8,12 +8,13 @@ import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCateg
 import com.emarsys.rdb.connector.mysql.MySqlConnector.{MySqlConnectionConfig, MySqlConnectorConfig}
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.mockito.MockitoSugar
 import slick.jdbc.MySQLProfile.api._
 import spray.json._
 
-class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
+class MySqlConnectorSpec extends AnyWordSpecLike with Matchers with MockitoSugar {
 
   "MySqlConnector" when {
 

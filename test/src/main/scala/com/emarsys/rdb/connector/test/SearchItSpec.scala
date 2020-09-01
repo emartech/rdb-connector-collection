@@ -2,8 +2,15 @@ package com.emarsys.rdb.connector.test
 
 import akka.actor.ActorSystem
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, IntValue, NullValue, StringValue}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{
+  BooleanValue,
+  IntValue,
+  NullValue,
+  StringValue
+}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.duration._
 
@@ -27,7 +34,7 @@ Z:
   ("r4", 45, true, "s4")
   ("r5", 45, true, "s5")
  */
-trait SearchItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
+trait SearchItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAll {
   val uuid = uuidGenerate
 
   val tableName = s"search_table_$uuid"

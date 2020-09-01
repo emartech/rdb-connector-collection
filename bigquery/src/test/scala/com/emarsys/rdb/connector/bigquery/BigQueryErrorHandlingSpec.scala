@@ -1,11 +1,13 @@
 package com.emarsys.rdb.connector.bigquery
 
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import org.scalatest.{Matchers, PartialFunctionValues, WordSpecLike}
+import org.scalatest.PartialFunctionValues
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.TimeoutException
 
-class BigQueryErrorHandlingSpec extends WordSpecLike with Matchers with PartialFunctionValues {
+class BigQueryErrorHandlingSpec extends AnyWordSpecLike with Matchers with PartialFunctionValues {
 
   "BigQueryErrorHandling" should {
     "convert timeout exception to QueryTimeout" in new BigQueryErrorHandling {

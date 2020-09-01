@@ -8,14 +8,16 @@ import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.redshift.utils.TestHelper
 import com.emarsys.rdb.connector.test.CustomMatchers._
-import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, EitherValues}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class RedshiftConnectorItSpec
     extends TestKit(ActorSystem("connector-it-test"))
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with EitherValues
     with BeforeAndAfterAll {

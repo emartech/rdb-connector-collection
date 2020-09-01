@@ -3,8 +3,9 @@ package com.emarsys.rdb.connector.test
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.Sink
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.test.util.EitherValues
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, EitherValues}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContextExecutor}
@@ -13,7 +14,7 @@ import scala.concurrent.{Await, ExecutionContextExecutor}
 For positive results use the A and B table definitions and preloaded data defined in the SimpleSelect.
  */
 
-trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
+trait RawSelectItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
 
   implicit val executionContext: ExecutionContextExecutor
 

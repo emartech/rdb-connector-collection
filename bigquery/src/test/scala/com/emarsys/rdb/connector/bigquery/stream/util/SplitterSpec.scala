@@ -4,12 +4,14 @@ import akka.actor.ActorSystem
 import akka.stream.ClosedShape
 import akka.stream.scaladsl.{GraphDSL, RunnableGraph, Sink, Source}
 import akka.testkit.TestKit
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class SplitterSpec extends TestKit(ActorSystem("SplitterSpec")) with WordSpecLike with Matchers with BeforeAndAfterAll {
+class SplitterSpec extends TestKit(ActorSystem("SplitterSpec")) with AnyWordSpecLike with Matchers with BeforeAndAfterAll {
 
   override def afterAll() = {
     shutdown()

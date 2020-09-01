@@ -5,11 +5,13 @@ import java.util.UUID
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mssql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
-import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, EitherValues}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.Await
 
-class MsSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues with BaseDbSpec {
+class MsSqlIsOptimizedSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAll with EitherValues with BaseDbSpec {
 
   val uuid = UUID.randomUUID().toString
 

@@ -2,7 +2,7 @@ package com.emarsys.rdb.connector.mysql.utils
 
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.mysql.MySqlConnector
-import com.emarsys.rdb.connector.test.util.EitherValues
+import org.scalatest.EitherValues
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._

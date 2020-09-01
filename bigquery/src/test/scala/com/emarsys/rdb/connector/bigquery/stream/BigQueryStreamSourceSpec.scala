@@ -12,7 +12,9 @@ import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.bigquery.stream.parser.PagingInfo
 import org.mockito.captor.ArgCaptor
 import org.mockito.{ArgumentMatchersSugar, IdiomaticMockito}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import spray.json.JsObject
 
 import scala.concurrent.duration._
@@ -21,7 +23,7 @@ import scala.util.Try
 
 class BigQueryStreamSourceSpec
     extends TestKit(ActorSystem("BigQueryStreamSourceSpec"))
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with BeforeAndAfterAll
     with ArgumentMatchersSugar

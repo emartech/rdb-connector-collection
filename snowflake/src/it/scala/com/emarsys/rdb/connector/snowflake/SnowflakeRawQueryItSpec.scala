@@ -10,8 +10,9 @@ import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.snowflake.utils.SelectDbInitHelper
 import com.emarsys.rdb.connector.test.CustomMatchers.{beDatabaseErrorEqualWithoutCause, haveErrorCategoryAndErrorName}
-import com.emarsys.rdb.connector.test.util.EitherValues
-import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, BeforeAndAfterEach, Matchers}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, EitherValues}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpecLike
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

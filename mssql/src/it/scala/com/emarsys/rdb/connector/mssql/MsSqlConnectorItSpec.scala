@@ -8,16 +8,17 @@ import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mssql.utils.TestHelper
 import com.emarsys.rdb.connector.test.CustomMatchers._
-import com.emarsys.rdb.connector.test.util.EitherValues
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, EitherValues}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class MsSqlConnectorItSpec
-    extends TestKit(ActorSystem("connector-it-soec"))
-    with WordSpecLike
+    extends TestKit(ActorSystem("connector-it-spec"))
+    with AnyWordSpecLike
     with Matchers
     with BeforeAndAfterAll
     with EitherValues {

@@ -4,9 +4,10 @@ import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.mysql.MySqlWriters._
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class MySqlWritersSpec extends WordSpecLike with Matchers {
+class MySqlWritersSpec extends AnyWordSpecLike with Matchers {
   "MySqlWriters" when {
 
     "SimpleSelect" should {

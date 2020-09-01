@@ -1,8 +1,9 @@
 package com.emarsys.rdb.connector.mssql
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class MsSqlConnectorHelperSpec extends WordSpec with Matchers {
+class MsSqlConnectorHelperSpec extends AnyWordSpecLike with Matchers {
 
   "MsSqlConnectorHelperSpec" when {
 

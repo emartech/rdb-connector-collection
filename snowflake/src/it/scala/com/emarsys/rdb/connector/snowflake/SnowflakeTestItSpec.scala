@@ -3,14 +3,15 @@ package com.emarsys.rdb.connector.snowflake
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.snowflake.utils.BaseDbSpec
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class SnowflakeTestItSpec
     extends TestKit(ActorSystem("SnowflakeTestItSpec"))
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with BaseDbSpec {
 

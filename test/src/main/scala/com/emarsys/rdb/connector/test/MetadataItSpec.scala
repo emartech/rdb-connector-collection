@@ -4,8 +4,9 @@ import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
-import com.emarsys.rdb.connector.test.util.EitherValues
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, EitherValues}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -16,7 +17,7 @@ The table must have "PersonID", "LastName", "FirstName", "Address", "City" colum
 The view must have "PersonID", "LastName", "FirstName" columns.
 In addition, if the database supports it, a table with the given name should be created in a schema different from the default with an arbitrary schema.
  */
-trait MetadataItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
+trait MetadataItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
   val uuid      = uuidGenerate
   val otherSchema = s"other_schema_$uuid"
   val tableName = s"metadata_list_tables_table_$uuid"

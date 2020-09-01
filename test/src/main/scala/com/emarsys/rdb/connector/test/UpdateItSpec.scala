@@ -7,7 +7,9 @@ import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -17,7 +19,7 @@ For positive results use the A table definition and preloaded data defined in th
 Make sure you have index on A3.
  */
 
-trait UpdateItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
+trait UpdateItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
   val connector: Connector
   def initDb(): Unit
   def cleanUpDb(): Unit

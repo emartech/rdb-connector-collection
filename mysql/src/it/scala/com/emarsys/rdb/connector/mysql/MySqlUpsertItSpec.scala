@@ -11,7 +11,9 @@ import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName,
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.mysql.utils.{SelectDbInitHelper, TestHelper}
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -19,7 +21,7 @@ import scala.concurrent.duration._
 class MySqlUpsertItSpec
     extends TestKit(ActorSystem("MySqlUpsertItSpec"))
     with SelectDbInitHelper
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with BeforeAndAfterEach
     with BeforeAndAfterAll {

@@ -6,7 +6,9 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import akka.util.Timeout
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Await
@@ -15,7 +17,7 @@ import scala.util.Try
 
 class UpstreamFailureHandlerSpec
     extends TestKit(ActorSystem("UpstreamFinishHandlerSpec"))
-    with WordSpecLike
+    with AnyWordSpecLike
     with Matchers
     with MockitoSugar
     with BeforeAndAfterAll {

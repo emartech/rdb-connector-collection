@@ -2,9 +2,10 @@ package com.emarsys.rdb.connector.postgresql
 
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class PostgreSqlWriterSpec extends WordSpecLike with Matchers {
+class PostgreSqlWriterSpec extends AnyWordSpecLike with Matchers {
 
   "selectWithGroupLimitWriter" in {
     import PostgreSqlWriters._

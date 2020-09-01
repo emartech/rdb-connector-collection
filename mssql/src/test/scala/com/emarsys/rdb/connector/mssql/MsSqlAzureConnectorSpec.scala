@@ -1,10 +1,11 @@
 package com.emarsys.rdb.connector.mssql
 
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.mockito.MockitoSugar
 
-class MsSqlAzureConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
+class MsSqlAzureConnectorSpec extends AnyWordSpecLike with Matchers with MockitoSugar {
 
   "MsSqlAzureConnectorSpec" when {
 

@@ -9,8 +9,9 @@ import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.mysql.utils.TestHelper
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
-import com.emarsys.rdb.connector.test.util.EitherValues
-import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, Matchers}
+import org.scalatest.{BeforeAndAfterAll, EitherValues}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpecLike
 
 import scala.concurrent.duration._
 

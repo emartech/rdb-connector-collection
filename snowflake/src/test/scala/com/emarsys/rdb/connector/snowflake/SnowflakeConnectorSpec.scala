@@ -7,12 +7,13 @@ import com.emarsys.rdb.connector.common.Models.{MetaData, PoolConfig}
 import com.emarsys.rdb.connector.snowflake.SnowflakeConnector.{SnowflakeConnectionConfig, SnowflakeConnectorConfig}
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.mockito.MockitoSugar
 import slick.jdbc.JdbcBackend.Database
 import spray.json._
 
-class SnowflakeConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
+class SnowflakeConnectorSpec extends AnyWordSpecLike with Matchers with MockitoSugar {
   val connectorConfig = SnowflakeConnectorConfig(
     streamChunkSize = 5000,
     configPath = "snowflakedb",

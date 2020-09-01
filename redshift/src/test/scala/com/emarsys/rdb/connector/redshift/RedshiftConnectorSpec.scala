@@ -7,12 +7,13 @@ import com.emarsys.rdb.connector.common.Models.{MetaData, PoolConfig}
 import com.emarsys.rdb.connector.redshift.RedshiftConnector.{RedshiftConnectionConfig, RedshiftConnectorConfig}
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.mockito.MockitoSugar
 import slick.jdbc.PostgresProfile.api._
 import spray.json._
 
-class RedshiftConnectorSpec extends WordSpecLike with Matchers with MockitoSugar {
+class RedshiftConnectorSpec extends AnyWordSpecLike with Matchers with MockitoSugar {
   val connectorConfig = RedshiftConnectorConfig(
     streamChunkSize = 5000,
     configPath = "redshiftdb",

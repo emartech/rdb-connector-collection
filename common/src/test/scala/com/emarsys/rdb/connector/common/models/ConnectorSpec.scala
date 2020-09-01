@@ -10,15 +10,17 @@ import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.common.models.SimpleSelect.{AllField, TableName}
 import org.mockito.Answers
 import org.mockito.Mockito._
-import org.scalatest.{EitherValues, Matchers, WordSpecLike}
+import org.scalatest.EitherValues
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar with ScalaFutures with EitherValues {
+class ConnectorSpec extends AnyWordSpecLike with Matchers with MockitoSugar with ScalaFutures with EitherValues {
 
   val tableName                      = "tableName"
   val viewName                       = "viewName"

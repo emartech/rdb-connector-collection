@@ -21,9 +21,10 @@ object Dependencies {
   val jwtVersion               = "4.3.0"
   val enumeratumVersion        = "1.6.1"
 
-  val scalatestVersion    = "3.0.8"
-  val mockitoScalaVersion = "1.10.6"
-  val mockitoVersion      = "3.7.7"
+  val scalatestVersion        = "3.2.2"
+  val mockitoScalaVersion     = "1.10.6"
+  val mockitoVersion          = "3.7.7"
+  val scalatestMockitoVersion = "3.2.3.0"
 
   private val defaultScalacOptions = Seq(
     "-encoding",
@@ -52,11 +53,12 @@ object Dependencies {
       "com.typesafe.akka"      %% "akka-stream"             % akkaVersion,
       "org.typelevel"          %% "cats-core"               % catsCoreVersion,
       "com.beachape"           %% "enumeratum"              % enumeratumVersion,
-      "com.typesafe.akka"      %% "akka-stream-testkit"     % akkaVersion % Test,
-      "org.scalatest"          %% "scalatest"               % scalatestVersion % Test,
-      "org.mockito"            %% "mockito-scala"           % mockitoScalaVersion % Test,
-      "com.typesafe.akka"      %% "akka-http-spray-json"    % akkaHttpVersion % Test,
-      "com.typesafe.akka"      %% "akka-stream-testkit"     % akkaVersion % Test,
+      "com.typesafe.akka"      %% "akka-stream-testkit"     % akkaVersion             % Test,
+      "org.scalatest"          %% "scalatest"               % scalatestVersion        % Test,
+      "org.mockito"            %% "mockito-scala"           % mockitoScalaVersion     % Test,
+      "org.scalatestplus"      %% "mockito-3-4"             % scalatestMockitoVersion % Test,
+      "com.typesafe.akka"      %% "akka-http-spray-json"    % akkaHttpVersion         % Test,
+      "com.typesafe.akka"      %% "akka-stream-testkit"     % akkaVersion             % Test,
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6"
     )
   )
@@ -65,7 +67,8 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion,
       "org.scalatest"     %% "scalatest"            % scalatestVersion,
-      "org.mockito"       % "mockito-core"          % mockitoVersion,
+      "org.mockito"        % "mockito-core"         % mockitoVersion,
+      "org.scalatestplus" %% "mockito-3-4"          % scalatestMockitoVersion % Test,
       "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion
     )
   )
@@ -82,10 +85,10 @@ object Dependencies {
 
   val Mssql = Seq(
     libraryDependencies ++= Seq(
-      "com.typesafe.slick"      %% "slick"          % slickVersion,
-      "com.typesafe.slick"      %% "slick-hikaricp" % slickVersion,
-      "com.microsoft.sqlserver" % "mssql-jdbc"      % mssqlVersion,
-      "org.typelevel"           %% "cats-core"      % catsCoreVersion
+      "com.typesafe.slick"     %% "slick"          % slickVersion,
+      "com.typesafe.slick"     %% "slick-hikaricp" % slickVersion,
+      "com.microsoft.sqlserver" % "mssql-jdbc"     % mssqlVersion,
+      "org.typelevel"          %% "cats-core"      % catsCoreVersion
     ),
     // disable parallel test run to prevent random deadlocks
     Test / parallelExecution := false
@@ -93,10 +96,10 @@ object Dependencies {
 
   val Mysql = Seq(
     libraryDependencies ++= Seq(
-      "com.typesafe.slick" %% "slick"               % slickVersion,
-      "com.typesafe.slick" %% "slick-hikaricp"      % slickVersion,
-      "mysql"              % "mysql-connector-java" % mysqlVersion,
-      "org.typelevel"      %% "cats-core"           % catsCoreVersion
+      "com.typesafe.slick" %% "slick"                % slickVersion,
+      "com.typesafe.slick" %% "slick-hikaricp"       % slickVersion,
+      "mysql"               % "mysql-connector-java" % mysqlVersion,
+      "org.typelevel"      %% "cats-core"            % catsCoreVersion
     )
   )
 
@@ -104,7 +107,7 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.slick" %% "slick"          % slickVersion,
       "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
-      "org.postgresql"     % "postgresql"      % postgresVersion,
+      "org.postgresql"      % "postgresql"     % postgresVersion,
       "org.typelevel"      %% "cats-core"      % catsCoreVersion
     )
   )
@@ -112,10 +115,10 @@ object Dependencies {
   val Redshift = Seq(
     resolvers ++= Seq(("Amazon" at "https://s3.amazonaws.com/redshift-maven-repository/release")),
     libraryDependencies ++= Seq(
-      "com.typesafe.slick"  %% "slick"          % slickVersion,
-      "com.typesafe.slick"  %% "slick-hikaricp" % slickVersion,
+      "com.typesafe.slick" %% "slick"           % slickVersion,
+      "com.typesafe.slick" %% "slick-hikaricp"  % slickVersion,
       "com.amazon.redshift" % "redshift-jdbc42" % redshiftVersion,
-      "org.typelevel"       %% "cats-core"      % catsCoreVersion
+      "org.typelevel"      %% "cats-core"       % catsCoreVersion
     )
   )
 
@@ -123,7 +126,7 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.slick" %% "slick"          % slickVersion,
       "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
-      "net.snowflake"      % "snowflake-jdbc"  % snowflakeVersion,
+      "net.snowflake"       % "snowflake-jdbc" % snowflakeVersion,
       "org.typelevel"      %% "cats-core"      % catsCoreVersion
     )
   )

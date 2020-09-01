@@ -12,7 +12,7 @@ import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.GoogleApi._
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.bigquery.{BigQueryConnector, GoogleSession, GoogleTokenApi}
-import com.emarsys.rdb.connector.test.util.EitherValues
+import org.scalatest.EitherValues
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 

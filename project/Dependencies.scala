@@ -23,7 +23,7 @@ object Dependencies {
 
   val scalatestVersion    = "3.0.8"
   val mockitoScalaVersion = "1.10.2"
-  val mockitoVersion      = "3.2.4"
+  val mockitoVersion      = "3.5.7"
 
   private val defaultScalacOptions = Seq(
     "-encoding",

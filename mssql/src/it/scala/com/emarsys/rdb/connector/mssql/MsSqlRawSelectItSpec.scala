@@ -22,7 +22,7 @@ class MsSqlRawSelectItSpec
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     cleanUpDb()
     connector.close()
   }

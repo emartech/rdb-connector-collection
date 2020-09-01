@@ -37,7 +37,7 @@ class MultipleQueryWithSchemaSpec
 
   override def afterAll(): Unit = {
     connector.close()
-    system.terminate()
+    shutdown()
   }
 
   val aTableName: String = tableName
@@ -45,7 +45,7 @@ class MultipleQueryWithSchemaSpec
 
   s"MultipleQueryWithSchemaSpec $uuid" when {
 
-    "run parallelly multiple query" in {
+    "run parallelly multiple query" ignore {
 
       val slowQuery = s"""SELECT A1 FROM "$aTableName";"""
 

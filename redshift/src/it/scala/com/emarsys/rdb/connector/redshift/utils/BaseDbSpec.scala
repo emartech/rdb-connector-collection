@@ -2,7 +2,7 @@ package com.emarsys.rdb.connector.redshift.utils
 
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.redshift.RedshiftConnector
-import org.scalatest.EitherValues
+import com.emarsys.rdb.connector.test.util.EitherValues
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
@@ -16,7 +16,6 @@ trait BaseDbSpec extends EitherValues {
   lazy val connector: Connector =
     Await
       .result(RedshiftConnector.create(connectionConfig, connectorConfig), 5.seconds)
-      .right
       .value
 
 }

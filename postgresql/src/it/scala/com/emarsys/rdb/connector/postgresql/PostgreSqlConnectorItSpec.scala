@@ -11,7 +11,8 @@ import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector.PostgreSqlConnec
 import com.emarsys.rdb.connector.postgresql.utils.TestHelper
 import com.emarsys.rdb.connector.postgresql.utils.TestHelper.TEST_CONNECTION_CONFIG
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
-import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}
+import com.emarsys.rdb.connector.test.util.EitherValues
+import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, Matchers}
 
 import scala.concurrent.duration._
 
@@ -26,7 +27,7 @@ class PostgreSqlConnectorItSpec
 
   private val timeoutMessage = "Connection is not available, request timed out after"
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     shutdown()
   }
 
@@ -38,7 +39,7 @@ class PostgreSqlConnectorItSpec
 
       "connect success" in {
         PostgreSqlConnector.create(defaultConnection, TestHelper.TEST_CONNECTOR_CONFIG).map { result =>
-          result.right.value
+          result.value
           succeed
         }
       }
@@ -120,7 +121,7 @@ class PostgreSqlConnectorItSpec
       "success" in {
         for {
           result <- PostgreSqlConnector.create(defaultConnection, TestHelper.TEST_CONNECTOR_CONFIG)
-          connector = result.right.value
+          connector = result.value
           _ <- connector.testConnection()
           _ <- connector.close()
         } yield succeed

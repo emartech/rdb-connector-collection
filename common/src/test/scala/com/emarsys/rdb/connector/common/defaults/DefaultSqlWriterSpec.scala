@@ -449,6 +449,21 @@ class DefaultSqlWriterSpec extends WordSpecLike with Matchers {
         select.toSql shouldEqual """SELECT * FROM "TABLE1" ORDER BY "name" ASC, "age" DESC"""
       }
 
+      "use default writer - order by adds projection fields" in {
+        import DefaultSqlWriters._
+
+        val select = SimpleSelect(
+          fields = SpecificFields(Seq(FieldName("FIELD1"))),
+          table = TableName("TABLE1"),
+          where = Some(And(Seq(IsNull(FieldName("FIELD1"))))),
+          limit = Some(100),
+          distinct = Some(true),
+          orderBy = List(SortCriteria(FieldName("FIELD2"), Direction.Descending))
+        )
+
+        select.toSql shouldEqual """SELECT DISTINCT "FIELD1","FIELD2" FROM "TABLE1" WHERE "FIELD1" IS NULL ORDER BY "FIELD2" DESC LIMIT 100"""
+      }
+
       "use default writer - full" in {
         import DefaultSqlWriters._
 

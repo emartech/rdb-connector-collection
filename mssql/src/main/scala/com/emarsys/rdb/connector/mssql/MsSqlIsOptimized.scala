@@ -23,7 +23,7 @@ trait MsSqlIsOptimized {
                      INNER JOIN sys.tables t ON ind.object_id = t.object_id
                      WHERE t.name = #${Value(table).toSql}
                      ORDER BY ind.name, ic.index_column_id;""".as[(String, String)])
-          .map(_.groupBy(_._1).mapValues(_.map(_._2)).values)
+          .map(_.groupBy(_._1).map(_._2.map { case (_, column) => column }))
           .map(_.exists(indexGroup => indexGroup.toSet == fieldSet || Set(indexGroup.head) == fieldSet))
           .map(Right(_))
 

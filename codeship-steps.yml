@@ -2,8 +2,8 @@
   steps:
     - name: Unit test all
       service: rdb-allconnector
-      command: sbt test
-      tag: ^(master|update)
+      command: sbt +test
+      tag: ^(master|feature|update|snowflake)
     - type: parallel
       name: It tests
       steps:
@@ -11,39 +11,43 @@
           name: It tests (1/3)
           steps:
             - name: Redshift
-              tag: ^(master|update/redshift-jdbc42)
+              tag: ^(master|feature|update/redshift-jdbc42)
               service: rdb-allconnector
-              command: sbt redshift/it:test
+              command: sbt "project redshift; +it:test"
         - type: serial
           name: It tests (2/3)
           steps:
             - name: MySql 8
-              tag: ^(master|update/mysql-connector-java)
+              tag: ^(master|feature|update/mysql-connector-java)
               service: rdb-mysql-connector-8
-              command: sbt mysql/it:test
+              command: sbt "project mysql; +it:test"
             - name: MySql 5.6
-              tag: ^(master|update/mysql-connector-java)
+              tag: ^(master|feature|update/mysql-connector-java)
               service: rdb-mysql-connector-56
-              command: sbt mysql/it:test
+              command: sbt "project mysql; +it:test"
             - name: MySql 5.7
-              tag: ^(master|update/mysql-connector-java)
+              tag: ^(master|feature|update/mysql-connector-java)
               service: rdb-mysql-connector-57
-              command: sbt mysql/it:test
+              command: sbt "project mysql; +it:test"
             - name: PostgreSQL 9.5
-              tag: ^(master|update/postgresql)
+              tag: ^(master|feature|update/postgresql)
               service: rdb-postgresql-connector
-              command: sbt postgresql/it:test
+              command: sbt "project postgresql; +it:test"
         - type: serial
           name: It tests (3/3)
           steps:
             - name: MS SQL
-              tag: ^(master|update/mssql-jdbc)
+              tag: ^(master|feature|update/mssql-jdbc)
               service: rdb-mssql-connector
-              command: sbt mssql/it:test
+              command: sbt "project mssql; +it:test"
             - name: BigQuery
-              tag: ^(master|update/akka-stream-contrib|update/jwt-core|update/akka-http-core)
+              tag: ^(master|feature|update/akka-stream-contrib|update/jwt-core|update/akka-http-core)
               service: rdb-allconnector
-              command: sbt bigquery/it:test
+              command: sbt "project bigquery; +it:test"
+            - name: Snowflake
+              tag: ^(master|feature|update/snowflake-jdbc)
+              service: rdb-allconnector
+              command: sbt "project snowflake; +it:test"
     - name: Publish connectors
       tag: ^(v\d+\.\d+\.\d+)$
       service: rdb-publisher

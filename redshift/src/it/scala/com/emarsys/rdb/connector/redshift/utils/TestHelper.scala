@@ -3,7 +3,11 @@ package com.emarsys.rdb.connector.redshift.utils
 import java.util.Properties
 
 import com.emarsys.rdb.connector.common.Models.PoolConfig
-import com.emarsys.rdb.connector.redshift.RedshiftConnector.{createUrl, RedshiftConnectionConfig, RedshiftConnectorConfig}
+import com.emarsys.rdb.connector.redshift.RedshiftConnector.{
+  createUrl,
+  RedshiftConnectionConfig,
+  RedshiftConnectorConfig
+}
 import slick.jdbc.PostgresProfile.api._
 import slick.util.AsyncExecutor
 

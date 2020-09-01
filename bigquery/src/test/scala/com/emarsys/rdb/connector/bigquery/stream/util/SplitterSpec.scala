@@ -13,7 +13,7 @@ import scala.util.Try
 
 class SplitterSpec extends TestKit(ActorSystem("SplitterSpec")) with WordSpecLike with Matchers with BeforeAndAfterAll {
 
-  override def afterAll = {
+  override def afterAll() = {
     shutdown()
   }
 

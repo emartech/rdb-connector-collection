@@ -4,7 +4,11 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.{notImplementedOperation, ConnectorResponse}
 import com.emarsys.rdb.connector.common.Models.MetaData
-import com.emarsys.rdb.connector.common.defaults.{DefaultFieldValueConverters, FieldValueConverters, GroupWithLimitStage}
+import com.emarsys.rdb.connector.common.defaults.{
+  DefaultFieldValueConverters,
+  FieldValueConverters,
+  GroupWithLimitStage
+}
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
@@ -139,7 +143,7 @@ trait Connector {
 
     And(
       criteria
-        .mapValues(_.toSimpleSelectValue)
+        .map { case (field, fieldValueWrapper) => field -> fieldValueWrapper.toSimpleSelectValue }
         .map {
           case (field, Some(value)) => EqualToValue(FieldName(field), value)
           case (field, None)        => IsNull(FieldName(field))

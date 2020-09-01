@@ -41,9 +41,9 @@ trait PostgreSqlErrorHandling {
     "Update statements should not return a ResultSet" == message
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[DatabaseError, T]] =
-    (errorHandler orElse default) andThen Left.apply
+    errorHandler.orElse(default).andThen(Left.apply(_))
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    (errorHandler orElse default) andThen Source.failed
+    errorHandler.orElse(default).andThen(Source.failed(_))
 
 }

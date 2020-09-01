@@ -15,7 +15,7 @@ class MySqlSearchItSpec extends TestKit(ActorSystem("MySqlSearchItSpec")) with S
   override val awaitTimeout = 15.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

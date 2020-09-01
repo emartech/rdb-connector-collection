@@ -28,8 +28,8 @@ class DeleteItSpecSpec
 
   override def cleanUpDb(): Unit = ()
 
-  override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+  override def afterAll() = {
+    shutdown()
   }
 
   when(connector.delete(tableName, simpleDeleteCiterion)).thenReturn(Future.successful(Right(1)))

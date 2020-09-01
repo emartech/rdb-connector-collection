@@ -23,8 +23,8 @@ trait ReplaceItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach w
   val uuid      = uuidGenerate
   val tableName = s"replace_tables_table_$uuid"
 
-  val awaitTimeout = 5.seconds
-  val queryTimeout = 5.seconds
+  val awaitTimeout = 10.seconds
+  val queryTimeout = 10.seconds
 
   override def beforeEach(): Unit = {
     initDb()

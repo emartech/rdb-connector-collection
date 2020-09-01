@@ -21,15 +21,6 @@ ADD project project
 RUN sbt update
 
 # These are needed for dynver to create proper versioning
-ADD .git .git
-COPY .gitignore .gitignore
+COPY . .
 
-ADD bigquery bigquery
-ADD mssql mssql
-ADD redshift redshift
-ADD test test
-ADD common common
-ADD postgresql postgresql
-ADD mysql mysql
-
-RUN sbt clean compile test:compile it:compile
+RUN sbt +clean +compile +test:compile +it:compile

@@ -9,7 +9,8 @@ import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mssql.utils.TestHelper
 import com.emarsys.rdb.connector.test.CustomMatchers._
-import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.test.util.EitherValues
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -22,9 +23,9 @@ class MsSqlConnectorItSpec
     with BeforeAndAfterAll
     with EitherValues {
 
-  val timeout           = 30.seconds
-  implicit val mat      = ActorMaterializer()
-  override def afterAll = TestKit.shutdownActorSystem(system)
+  val timeout             = 30.seconds
+  implicit val mat        = ActorMaterializer()
+  override def afterAll() = shutdown()
 
   "MsSqlConnectorItSpec" when {
 
@@ -38,7 +39,7 @@ class MsSqlConnectorItSpec
 
         connectorEither shouldBe a[Right[_, _]]
 
-        connectorEither.right.get.close()
+        connectorEither.value.close()
       }
 
       "connect fail when wrong host" in {
@@ -131,7 +132,7 @@ class MsSqlConnectorItSpec
 
         connectorEither shouldBe a[Right[_, _]]
 
-        val connector = connectorEither.right.get
+        val connector = connectorEither.value
 
         val result = Await.result(connector.testConnection(), timeout)
 

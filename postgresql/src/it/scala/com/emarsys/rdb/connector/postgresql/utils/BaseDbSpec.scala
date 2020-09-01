@@ -2,7 +2,7 @@ package com.emarsys.rdb.connector.postgresql.utils
 
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.postgresql.PostgreSqlConnector
-import org.scalatest.EitherValues
+import com.emarsys.rdb.connector.test.util.EitherValues
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
@@ -18,7 +18,6 @@ trait BaseDbSpec extends EitherValues {
         PostgreSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG, TestHelper.TEST_CONNECTOR_CONFIG),
         5.seconds
       )
-      .right
       .value
 
 }

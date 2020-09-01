@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.common.defaults
 
-import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionException}
+import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransactionRollbackException, SQLTransientConnectionException}
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
@@ -14,7 +14,8 @@ class ErrorConverterSpec extends WordSpecLike with Matchers with PartialFunction
     ("rejected with no active threads", new RejectedExecutionException("active threads = 0"), C.RateLimit, N.StuckPool),
     ("any sql syntax error", new SQLSyntaxErrorException("nope"), C.FatalQueryExecution, N.SqlSyntaxError),
     ("comm link failure", new SQLException("Communications link failure"), C.Transient, N.CommunicationsLinkFailure),
-    ("transient connection times out", new SQLTransientConnectionException("timed out"), C.Timeout, N.ConnectionTimeout)
+    ("transient connection times out", new SQLTransientConnectionException("timed out"), C.Timeout, N.ConnectionTimeout),
+    ("deadlock", new SQLTransactionRollbackException("Any transaction rollback exception"), C.Transient, N.TransientDbError)
   )
 
   val commonErrorCases: TableFor4[String, Exception, C, N] = Table(

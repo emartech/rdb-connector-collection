@@ -18,7 +18,7 @@ class RedshiftSelectWithGroupLimitItSpec
   override val queryTimeout                        = 20.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 
@@ -65,7 +65,7 @@ class RedshiftSelectWithGroupLimitWithSchemaItSpec
   override val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

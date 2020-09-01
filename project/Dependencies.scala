@@ -57,7 +57,7 @@ object Dependencies {
       "org.mockito"            %% "mockito-scala"           % mockitoScalaVersion % Test,
       "com.typesafe.akka"      %% "akka-http-spray-json"    % akkaHttpVersion % Test,
       "com.typesafe.akka"      %% "akka-stream-testkit"     % akkaVersion % Test,
-      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.4"
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6"
     )
   )
 

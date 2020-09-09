@@ -21,7 +21,7 @@ object Dependencies {
   val jwtVersion               = "4.1.0"
   val enumeratumVersion        = "1.5.15"
 
-  val scalatestVersion    = "3.0.8"
+  val scalatestVersion    = "3.0.9"
   val mockitoScalaVersion = "1.10.2"
   val mockitoVersion      = "3.2.4"
 

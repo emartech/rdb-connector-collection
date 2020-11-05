@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.snowflake
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.ErrorCategory.FatalQueryExecution
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName}
@@ -22,7 +21,7 @@ class SnowflakeSimpleSelectItSpec
   with SelectDbInitHelper
   with Matchers {
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override val booleanValue0 = "FALSE"
   override val booleanValue1 = "TRUE"

@@ -1,7 +1,6 @@
 package com.emarsys.rbd.connector.bigquery
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import akka.util.Timeout
 import com.emarsys.rbd.connector.bigquery.utils.MetaDbInitHelper
@@ -19,7 +18,7 @@ class BigQueryMetadataItSpec
     with MetaDbInitHelper {
 
   implicit override val sys: ActorSystem                = system
-  implicit override val materializer: ActorMaterializer = ActorMaterializer()
+
   implicit override val timeout: Timeout                = Timeout(30.second)
 
   override val awaitTimeout = 30.seconds

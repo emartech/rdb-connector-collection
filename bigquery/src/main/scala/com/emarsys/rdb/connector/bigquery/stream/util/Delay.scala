@@ -3,10 +3,10 @@ package com.emarsys.rdb.connector.bigquery.stream.util
 import java.util.concurrent.TimeUnit
 
 import akka.NotUsed
-import akka.stream.{FlowShape, Graph}
 import akka.stream.contrib.DelayFlow
 import akka.stream.contrib.DelayFlow.DelayStrategy
 import akka.stream.scaladsl.{GraphDSL, Merge}
+import akka.stream.{FlowShape, Graph}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -19,10 +19,9 @@ object Delay {
     GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
 
-      val splitter = builder.add(Splitter[T](shouldDelay)())
-      val delayFlow =
-        builder.add(DelayFlow[T](() => new FibonacciStrategy[T](delayUnit, maxDelay)))
-      val merge = builder.add(Merge[T](2, true))
+      val splitter  = builder.add(Splitter[T](shouldDelay)())
+      val delayFlow = builder.add(DelayFlow[T](() => new FibonacciStrategy[T](delayUnit, maxDelay)))
+      val merge     = builder.add(Merge[T](2))
 
       splitter.out(0) ~> delayFlow
       delayFlow ~> merge.in(0)

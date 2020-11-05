@@ -2,7 +2,6 @@ package com.emarsys.rdb.connector.mysql
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import cats.data.EitherT
@@ -22,7 +21,7 @@ class MySqlConnectorItSpec
     with BeforeAndAfterAll
     with EitherValues {
 
-  implicit val mat: ActorMaterializer = ActorMaterializer()
+
   override def afterAll(): Unit = {
     shutdown()
   }

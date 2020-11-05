@@ -4,23 +4,22 @@ import java.time.Clock
 
 import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
-import akka.http.scaladsl.{HttpExt, HttpsConnectionContext}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorMaterializer
+import akka.http.scaladsl.{HttpExt, HttpsConnectionContext}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.bigquery.GoogleTokenApi.AccessTokenExpiry
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import org.scalatestplus.mockito.MockitoSugar
 import pdi.jwt.{Jwt, JwtAlgorithm}
 
-import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class GoogleTokenApiSpec
     extends TestKit(ActorSystem("GoogleTokenApiSpec"))
@@ -36,8 +35,6 @@ class GoogleTokenApiSpec
     PatienceConfig(timeout = 2.seconds, interval = 50.millis)
 
   implicit val executionContext: ExecutionContext = system.dispatcher
-
-  implicit val materializer = ActorMaterializer()
 
   //http://travistidwell.com/jsencrypt/demo/
   val privateKey =

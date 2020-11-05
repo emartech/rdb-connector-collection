@@ -4,7 +4,6 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequest}
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.BigQueryClient.DryRunJsonProtocol.DryRunResponse
@@ -23,10 +22,9 @@ import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 class BigQueryClient(val googleSession: GoogleSession, projectId: String, dataset: String)(
-    implicit materializer: ActorMaterializer
+    implicit system: ActorSystem
 ) extends BigQueryErrorHandling {
 
-  implicit val system: ActorSystem  = materializer.system
   implicit val ec: ExecutionContext = system.dispatcher
 
   def streamingQuery(query: String, dryRun: Boolean = false): Source[Seq[String], NotUsed] = {
@@ -117,7 +115,7 @@ class BigQueryClient(val googleSession: GoogleSession, projectId: String, datase
       Source
         .single(HttpRequest(HttpMethods.POST, cancellationUrl(projectId, jobId)))
         .via(SendRequestWithOauthHandling(googleSession, Http()))
-        .runWith(Sink.ignore)(materializer)
+        .runWith(Sink.ignore)
     })
   }
 }
@@ -125,7 +123,7 @@ class BigQueryClient(val googleSession: GoogleSession, projectId: String, datase
 object BigQueryClient {
 
   def apply(googleSession: GoogleSession, projectId: String, dataset: String)(
-      implicit materializer: ActorMaterializer
+      implicit system: ActorSystem
   ): BigQueryClient =
     new BigQueryClient(googleSession, projectId, dataset)
 

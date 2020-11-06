@@ -1,16 +1,15 @@
 package com.emarsys.rdb.connector.test
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.stream.scaladsl.Source
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
+import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.mockito.MockitoSugar
 
-import scala.collection.immutable //TODO remove this after 2.13
+import scala.collection.immutable
 import scala.concurrent.Future
 
 class SimpleSelectItSpecSpec
@@ -18,8 +17,6 @@ class SimpleSelectItSpecSpec
     with SimpleSelectItSpec
     with MockitoSugar
     with BeforeAndAfterAll {
-
-  implicit val materializer: Materializer = ActorMaterializer()
 
   implicit val executionContext = system.dispatcher
 

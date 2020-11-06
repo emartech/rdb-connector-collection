@@ -1,7 +1,6 @@
 package com.emarsys.rbd.connector.bigquery
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import akka.util.Timeout
 import com.emarsys.rbd.connector.bigquery.utils.{SelectDbInitHelper, TestHelper}
@@ -20,7 +19,6 @@ class BigQueryRawSelectItSpec
     with BeforeAndAfterAll {
 
   implicit override val sys: ActorSystem                           = system
-  implicit override val materializer: ActorMaterializer            = ActorMaterializer()
   implicit override val timeout: Timeout                           = Timeout(30.second)
   implicit override val queryTimeout: FiniteDuration               = timeout.duration
   implicit override val executionContext: ExecutionContextExecutor = sys.dispatcher

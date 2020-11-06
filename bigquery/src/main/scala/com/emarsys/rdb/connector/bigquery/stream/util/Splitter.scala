@@ -11,7 +11,7 @@ object Splitter {
   ): Graph[UniformFanOutShape[T, T], NotUsed] = GraphDSL.create() { implicit builder =>
     import GraphDSL.Implicits._
 
-    val broadcast  = builder.add(Broadcast[T](2, true))
+    val broadcast  = builder.add(Broadcast[T](2, eagerCancel = true))
     val filterOut0 = builder.add(Flow[T].filter(out0Predicate(_)))
     val filterOut1 = builder.add(Flow[T].filter(out1Predicate(_)))
 

@@ -2,7 +2,6 @@ package com.emarsys.rdb.connector.test
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.stream.scaladsl.Source
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.ConnectorResponse
@@ -10,16 +9,14 @@ import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.mockito.MockitoSugar
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ExecutionContext, Future}
 
 class SelectWithGroupLimitItSpecSpec
     extends TestKit(ActorSystem("SelectWithGroupLimitItSpecSpec"))
     with SelectWithGroupLimitItSpec
     with MockitoSugar
     with BeforeAndAfterAll {
-
-  implicit val materializer: Materializer = ActorMaterializer()
 
   implicit val executionContext = system.dispatcher
 

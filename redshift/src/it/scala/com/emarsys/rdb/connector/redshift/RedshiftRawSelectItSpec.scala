@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.redshift
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.redshift.utils.{SelectDbInitHelper, SelectDbWithSchemaInitHelper}
 import com.emarsys.rdb.connector.test._
@@ -17,8 +16,6 @@ class RedshiftRawSelectItSpec
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll {
-
-  implicit val materializer: Materializer = ActorMaterializer()
 
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
@@ -55,8 +52,6 @@ class RedshiftRawSelectWithSchemaItSpec
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll {
-
-  implicit val materializer: Materializer = ActorMaterializer()
 
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 

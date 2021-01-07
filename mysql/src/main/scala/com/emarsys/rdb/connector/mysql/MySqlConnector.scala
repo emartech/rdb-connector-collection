@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.mysql
 
 import java.util.UUID
-
 import cats.data.EitherT
 import cats.syntax.applicativeError._
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
@@ -10,9 +9,14 @@ import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mysql.CertificateUtil.createTrustStoreTempUrl
 import com.emarsys.rdb.connector.mysql.MySqlConnector.{MySqlConnectionConfig, MySqlConnectorConfig}
+import com.emarsys.rdb.connector.mysql.hack.RouterJdbcDataSource
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.config.ConfigValueFactory.fromAnyRef
+import slick.jdbc.JdbcDataSource
 import slick.jdbc.MySQLProfile.api._
+import slick.jdbc.hikaricp.HikariCPJdbcDataSource
+import slick.util.ClassLoaderUtil
+import slick.util.ConfigExtensionMethods.configExtensionMethods
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -117,7 +121,7 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
       trustStoreUrl <- createTrustStoreUrl(config.certificate)
       poolName = UUID.randomUUID.toString
       dbConfig = createDbConfig(config, poolName, connectorConfig, trustStoreUrl)
-      database = Database.forConfig("", dbConfig)
+      database = createDbHack(dbConfig)
       mySqlConnector <- createMySqlConnector(connectorConfig, poolName, database)
     } yield mySqlConnector).value
   }
@@ -163,6 +167,19 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
   private def isSslUsedForConnection(db: Database)(implicit e: ExecutionContext): Future[Boolean] = {
     db.run(sql"SHOW STATUS LIKE 'ssl_cipher'".as[(String, String)])
       .map(ssl => ssl.head._2.contains("RSA-AES") || ssl.head._2.matches(".*AES\\d+-SHA.*"))
+  }
+
+  private def createDbHack(config: Config) = {
+    val path = ""
+    val source = JdbcDataSource.forConfig(config, null, path, ClassLoaderUtil.defaultClassLoader)
+    val poolName = config.getStringOr("poolName", path)
+    val numThreads = config.getIntOr("numThreads", 20)
+    val maxConnections = source.maxConnections.getOrElse(numThreads)
+    val registerMbeans = config.getBooleanOr("registerMbeans", false)
+    val executor = AsyncExecutor(poolName, numThreads, numThreads, config.getIntOr("queueSize", 1000),
+      maxConnections, registerMbeans = registerMbeans)
+    val wrappedSource = new RouterJdbcDataSource(source)
+    Database.forSource(wrappedSource, executor)
   }
 
   private def createDbConfig(

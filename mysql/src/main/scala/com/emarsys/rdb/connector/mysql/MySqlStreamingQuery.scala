@@ -1,10 +1,10 @@
 package com.emarsys.rdb.connector.mysql
 
 import java.sql.Types
-
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.ConnectorResponse
+import com.emarsys.rdb.connector.mysql.hack.{QueryExecutionTracker, RouterPreparedStatement}
 import slick.jdbc.{GetResult, PositionedResult}
 import slick.jdbc.MySQLProfile.api._
 
@@ -17,12 +17,15 @@ trait MySqlStreamingQuery {
   protected def streamingQuery(
       timeout: FiniteDuration
   )(query: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
+    val tracker = new QueryExecutionTracker(query)
+    tracker.queued(System.nanoTime())
     val sql = sql"#$query"
       .as(resultConverter)
       .transactionally
       .withStatementParameters(
         fetchSize = Int.MinValue,
-        statementInit = _.setQueryTimeout(timeout.toSeconds.toInt)
+        statementInit =
+          RouterPreparedStatement.setQueryExecutionTracker(_, tracker).setQueryTimeout(timeout.toSeconds.toInt)
       )
     val publisher = db.stream(sql)
     val dbSource = Source
@@ -39,6 +42,7 @@ trait MySqlStreamingQuery {
       }
       .recoverWithRetries(1, streamErrorHandler)
 
+    tracker.stats.foreach(println)
     Future.successful(Right(dbSource))
   }
 

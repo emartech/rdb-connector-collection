@@ -3,10 +3,12 @@ package com.emarsys.rdb.connector.mysql.hack
 import java.io.{InputStream, Reader}
 import java.net.URL
 import java.sql
-import java.sql.{Blob, Clob, Connection, Date, NClob, ParameterMetaData, PreparedStatement, Ref, ResultSet, ResultSetMetaData, RowId, SQLType, SQLWarning, SQLXML, Time, Timestamp}
+import java.sql.{Blob, Clob, Connection, Date, NClob, ParameterMetaData, PreparedStatement, Ref, ResultSet, ResultSetMetaData, RowId, SQLType, SQLWarning, SQLXML, Statement, Time, Timestamp}
 import java.util.Calendar
 
-class RouterPreparedStatement(val preparedStatement: PreparedStatement) extends PreparedStatement {
+class RouterPreparedStatement(val preparedStatement: PreparedStatement, val query: String) extends PreparedStatement {
+  private var tracker: Option[QueryExecutionTracker] = None
+
   override def executeQuery(): ResultSet = measure("prepareStatement.executeQuery()")(preparedStatement.executeQuery())
 
   override def executeUpdate(): Int = measure("prepareStatement.executeUpdate()")(preparedStatement.executeUpdate())
@@ -52,7 +54,7 @@ class RouterPreparedStatement(val preparedStatement: PreparedStatement) extends 
   override def setObject(parameterIndex: Int, x: Any): Unit = preparedStatement.setObject(parameterIndex, x)
 
   override def execute(): Boolean = {
-    measure("prepareStatement.execute()")(preparedStatement.execute())
+    measure(s"prepareStatement.execute($query)")(preparedStatement.execute())
   }
 
   override def addBatch(): Unit = preparedStatement.addBatch()
@@ -155,7 +157,7 @@ class RouterPreparedStatement(val preparedStatement: PreparedStatement) extends 
 
   override def execute(sql: String): Boolean = measure("prepareStatement.execute(sql)")(preparedStatement.execute(sql))
 
-  override def getResultSet: ResultSet = preparedStatement.getResultSet // TODO: track full query time, we are only done when ResultSet#next returns false
+  override def getResultSet: ResultSet = new RouterResultSet(preparedStatement.getResultSet, tracker)
 
   override def getUpdateCount: Int = preparedStatement.getUpdateCount
 
@@ -237,12 +239,30 @@ class RouterPreparedStatement(val preparedStatement: PreparedStatement) extends 
 
   override def isWrapperFor(iface: Class[_]): Boolean = preparedStatement.isWrapperFor(iface)
 
+  def setQueryExecutionTracker(tracker: QueryExecutionTracker): Unit = {
+    if(this.tracker.isDefined) {
+      println("wat" * 80)
+    }
+    this.tracker = Some(tracker)
+  }
+
   private def measure[A](name: String)(f: => A): A = {
+    tracker.foreach(_.started(System.nanoTime()))
     val start = System.nanoTime()
     val res = f
+    tracker.foreach(_.executed(System.nanoTime()))
     val end = System.nanoTime()
 
     println(s"$name: ${(end - start) / 1e6f}ms")
     res
+  }
+}
+
+object RouterPreparedStatement {
+  def setQueryExecutionTracker(statement: Statement, tracker: QueryExecutionTracker): Statement = {
+    statement match {
+      case rps: RouterPreparedStatement => rps.setQueryExecutionTracker(tracker)
+    }
+    statement
   }
 }

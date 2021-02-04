@@ -83,7 +83,6 @@ object RedshiftConnector extends RedshiftConnectorTrait {
 }
 
 trait RedshiftConnectorTrait extends ConnectorCompanion with RedshiftErrorHandling {
-  import cats.instances.future._
   import cats.syntax.functor._
   import com.emarsys.rdb.connector.common.defaults.DefaultSqlWriters._
   import com.emarsys.rdb.connector.common.defaults.SqlWriter._

@@ -12,8 +12,6 @@ import scala.concurrent.duration.FiniteDuration
 trait BigQuerySimpleSelect {
   self: BigQueryConnector with BigQueryMetadata =>
 
-  import cats.instances.future._
-
   override def simpleSelect(
       select: SimpleSelect,
       timeout: FiniteDuration

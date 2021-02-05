@@ -48,6 +48,7 @@ object SendRequestWithOauthHandling {
     case NotFoundDataSet(msg) => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, msg)
     case NotFoundProject(msg) => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, msg)
     case AccessDenied(msg)    => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, msg)
+    case QuotaExceeded(msg)   => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.QueryRejected, msg)
     case _ =>
       DatabaseError(
         ErrorCategory.Unknown,
@@ -104,6 +105,14 @@ object SendRequestWithOauthHandling {
       def unapply(r: (HttpResponse, String)): Option[String] = {
         val (response, body) = r
         if (response.status == Forbidden && body.contains("Access Denied")) errorMessageFrom(body)
+        else None
+      }
+    }
+
+    object QuotaExceeded {
+      def unapply(r: (HttpResponse, String)): Option[String] = {
+        val (response, body) = r
+        if (response.status == Forbidden && body.contains("Quota exceeded")) errorMessageFrom(body)
         else None
       }
     }

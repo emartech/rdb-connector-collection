@@ -19,7 +19,6 @@ class DataManipulationValidatorSpec
     with MockitoSugar
     with EitherValues
     with ScalaFutures {
-  import cats.instances.future._
 
   implicit val executionContext: ExecutionContext = ExecutionContext.global
 

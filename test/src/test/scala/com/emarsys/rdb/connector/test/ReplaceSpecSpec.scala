@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.test
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
@@ -18,8 +17,6 @@ class ReplaceSpecSpec
     with BeforeAndAfterAll {
 
   import com.emarsys.rdb.connector.utils.TestHelper._
-
-  implicit val materializer: Materializer = ActorMaterializer()
 
   implicit val executionContext = system.dispatcher
 

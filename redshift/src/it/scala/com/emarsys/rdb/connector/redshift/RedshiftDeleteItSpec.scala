@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.redshift
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.redshift.utils.{SelectDbInitHelper, SelectDbWithSchemaInitHelper}
 import com.emarsys.rdb.connector.test.DeleteItSpec
@@ -17,7 +16,7 @@ class RedshiftDeleteItSpec
 
   override val awaitTimeout = 15.seconds
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override def afterAll(): Unit = {
     shutdown()
@@ -35,7 +34,7 @@ class RedshiftDeleteWithCurrentSchemaItSpec
 
   override val awaitTimeout = 15.seconds
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override def afterAll(): Unit = {
     shutdown()

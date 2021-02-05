@@ -1,8 +1,8 @@
 package com.emarsys.rdb.connector.test
 
-import akka.stream.Materializer
-import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
+import akka.actor.ActorSystem
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
+import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
@@ -58,7 +58,7 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
   val booleanValue0 = "0"
   val booleanValue1 = "1"
 
-  implicit val materializer: Materializer
+  implicit val system: ActorSystem
 
   override def beforeAll(): Unit = {
     initDb()

@@ -1,11 +1,13 @@
 package com.emarsys.rdb.connector.bigquery.stream.downstreamfinishhandler
 
+import java.util.concurrent.TimeoutException
+
 import akka.stream._
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 
-case class UpstreamFinishHandler[T](callBack: T => Unit) extends GraphStage[FlowShape[T, T]] {
+case class UpstreamFailureHandler[T](callBack: T => Unit) extends GraphStage[FlowShape[T, T]] {
 
-  val in  = Inlet[T]("TimeoutHandler.in")
+  val in = Inlet[T]("TimeoutHandler.in")
   val out = Outlet[T]("TimeoutHandler.out")
 
   override val shape = FlowShape.of(in, out)
@@ -22,9 +24,12 @@ case class UpstreamFinishHandler[T](callBack: T => Unit) extends GraphStage[Flow
           push(out, element)
         }
 
-        override def onUpstreamFinish(): Unit = {
-          lastData.foreach(callBack)
-          super.onUpstreamFinish()
+        override def onUpstreamFailure(ex: Throwable) = {
+          ex match {
+            case _: TimeoutException => lastData.foreach(callBack)
+            case _ =>
+          }
+          super.onUpstreamFailure(ex)
         }
       }
     )
@@ -32,6 +37,14 @@ case class UpstreamFinishHandler[T](callBack: T => Unit) extends GraphStage[Flow
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
         pull(in)
+      }
+
+      override def onDownstreamFinish(cause: Throwable): Unit = {
+        cause match {
+          case _: TimeoutException => lastData.foreach(callBack)
+          case _ =>
+        }
+        super.onDownstreamFinish(cause)
       }
     })
   }

@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.redshift
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.redshift.utils.{SelectDbInitHelper, SelectDbWithSchemaInitHelper}
 import com.emarsys.rdb.connector.test.InsertItSpec
@@ -15,7 +14,7 @@ class RedshiftInsertSpec extends TestKit(ActorSystem("RedshiftInsertSpec")) with
 
   override val awaitTimeout = 15.seconds
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override def afterAll(): Unit = {
     shutdown()
@@ -33,7 +32,7 @@ class RedshiftInsertWithSchemaSpec
 
   override val awaitTimeout = 15.seconds
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override def afterAll(): Unit = {
     shutdown()

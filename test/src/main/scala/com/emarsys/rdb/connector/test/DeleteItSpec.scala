@@ -1,10 +1,10 @@
 package com.emarsys.rdb.connector.test
 
-import akka.stream.Materializer
+import akka.actor.ActorSystem
 import akka.stream.scaladsl.Sink
-import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, NullValue, StringValue}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
+import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
@@ -19,7 +19,8 @@ trait DeleteItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach wi
   val connector: Connector
   def initDb(): Unit
   def cleanUpDb(): Unit
-  implicit val materializer: Materializer
+
+  implicit val system: ActorSystem
 
   val uuid      = uuidGenerate
   val tableName = s"delete_tables_table_$uuid"

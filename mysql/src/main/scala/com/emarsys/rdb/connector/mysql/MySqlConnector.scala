@@ -104,7 +104,6 @@ object MySqlConnector extends MySqlConnectorTrait {
 }
 
 trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
-  import cats.instances.future._
   import cats.syntax.flatMap._
 
   override def meta(): MetaData = MetaData("`", "'", "\\")

@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.mssql
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.mssql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
@@ -13,7 +12,7 @@ class MsSqlSelectWithGroupLimitItSpec
     with SelectWithGroupLimitItSpec
     with BaseDbSpec {
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override def afterAll(): Unit = {
     shutdown()

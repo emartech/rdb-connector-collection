@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.test
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.stream.scaladsl.Source
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
@@ -19,8 +18,6 @@ class InsertIgnoreItSpecSpec
     with BeforeAndAfterAll {
 
   import com.emarsys.rdb.connector.utils.TestHelper._
-
-  implicit val materializer: Materializer = ActorMaterializer()
 
   implicit val executionContext = system.dispatcher
 

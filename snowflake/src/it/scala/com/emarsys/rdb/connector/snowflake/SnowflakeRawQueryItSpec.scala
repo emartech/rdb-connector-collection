@@ -4,13 +4,12 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.Sink
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.snowflake.utils.SelectDbInitHelper
-import com.emarsys.rdb.connector.test.CustomMatchers.{ beDatabaseErrorEqualWithoutCause, haveErrorCategoryAndErrorName }
+import com.emarsys.rdb.connector.test.CustomMatchers.{beDatabaseErrorEqualWithoutCause, haveErrorCategoryAndErrorName}
 import com.emarsys.rdb.connector.test.util.EitherValues
 import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, BeforeAndAfterEach, Matchers}
 
@@ -32,8 +31,6 @@ class SnowflakeRawQueryItSpec
 
   val aTableName: String = s"raw_query_tables_table_$uuid"
   val bTableName: String = s"temp_$uuid"
-
-  implicit val materializer: Materializer = ActorMaterializer()
 
   val awaitTimeout = 10.seconds
   val queryTimeout = 5.seconds

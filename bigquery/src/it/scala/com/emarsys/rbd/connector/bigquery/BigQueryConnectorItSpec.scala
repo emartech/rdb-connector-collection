@@ -2,7 +2,6 @@ package com.emarsys.rbd.connector.bigquery
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import com.emarsys.rbd.connector.bigquery.utils.TestHelper
@@ -22,7 +21,7 @@ class BigQueryConnectorItSpec
     with BeforeAndAfterAll
     with EitherValues {
 
-  implicit val mat        = ActorMaterializer()
+
   override def afterAll() = shutdown()
 
   val testConnection = TestHelper.TEST_CONNECTION_CONFIG

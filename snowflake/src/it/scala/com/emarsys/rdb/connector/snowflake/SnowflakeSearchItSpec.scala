@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.snowflake
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.snowflake.utils.BaseDbSpec
 import com.emarsys.rdb.connector.snowflake.utils.TestHelper.executeQuery
@@ -12,7 +11,7 @@ import scala.concurrent.duration._
 
 class SnowflakeSearchItSpec extends TestKit(ActorSystem("SnowflakeSearchItSpec")) with SearchItSpec with BaseDbSpec {
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override val awaitTimeout = 15.seconds
 

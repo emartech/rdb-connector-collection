@@ -1,14 +1,13 @@
 package com.emarsys.rdb.connector.common.defaults
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.testkit.scaladsl.{TestSink, TestSource}
 import akka.testkit.TestKit
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class GroupWithLimitStageSpec
     extends TestKit(ActorSystem("GroupWithLimitStageSpec"))
@@ -16,8 +15,7 @@ class GroupWithLimitStageSpec
     with Matchers
     with BeforeAndAfterAll {
 
-  implicit val materializer = ActorMaterializer()
-  val timeout               = 3.seconds
+  val timeout: FiniteDuration = 3.seconds
 
   override protected def afterAll(): Unit = {
     shutdown()

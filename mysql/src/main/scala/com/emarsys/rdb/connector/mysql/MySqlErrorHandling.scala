@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.mysql
 
-import java.sql.{SQLException, SQLSyntaxErrorException}
+import java.sql.SQLException
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source

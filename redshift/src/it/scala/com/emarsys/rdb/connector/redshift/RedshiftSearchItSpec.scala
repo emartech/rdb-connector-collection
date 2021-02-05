@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.redshift
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.redshift.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SearchItSpec
@@ -11,7 +10,7 @@ import scala.concurrent.duration._
 
 class RedshiftSearchItSpec extends TestKit(ActorSystem("RedshiftSearchItSpec")) with SearchItSpec with BaseDbSpec {
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override val awaitTimeout = 15.seconds
 
@@ -61,7 +60,7 @@ class RedshiftSearchWithSchemaItSpec
 
   override val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override val awaitTimeout = 15.seconds
 

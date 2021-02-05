@@ -2,22 +2,21 @@ package com.emarsys.rdb.connector.bigquery.stream
 
 import akka.actor.{ActorSystem, ExtendedActorSystem}
 import akka.event.LoggingAdapter
-import akka.http.scaladsl.{HttpExt, HttpsConnectionContext}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.settings.ConnectionPoolSettings
-import akka.stream.ActorMaterializer
+import akka.http.scaladsl.{HttpExt, HttpsConnectionContext}
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.bigquery.stream.parser.PagingInfo
-import org.mockito.{ArgumentMatchersSugar, IdiomaticMockito}
 import org.mockito.captor.ArgCaptor
+import org.mockito.{ArgumentMatchersSugar, IdiomaticMockito}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import spray.json.JsObject
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.util.Try
 
 class BigQueryStreamSourceSpec
@@ -33,7 +32,6 @@ class BigQueryStreamSourceSpec
   }
 
   val timeout                   = 3.seconds
-  implicit val materializer     = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
   trait Scope {
@@ -169,6 +167,7 @@ class BigQueryStreamSourceSpec
         HttpResponse(entity = HttpEntity("{}"))
       })
 
+      @volatile
       var isDummyHandlerCallbackCalled = false
 
       val dummyHandlerCallback = (x: (Boolean, PagingInfo)) => isDummyHandlerCallbackCalled = true
@@ -179,7 +178,7 @@ class BigQueryStreamSourceSpec
       val resultF = bigQuerySource.completionTimeout(1.second).runWith(Sink.ignore)
 
       Try(Await.result(resultF, timeout))
-      Await.result(Future(Thread.sleep(500)), timeout)
+      Thread.sleep(500)
 
       isDummyHandlerCallbackCalled shouldBe true
     }

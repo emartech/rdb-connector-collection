@@ -1,13 +1,13 @@
 package com.emarsys.rdb.connector.test
 
+import akka.actor.ActorSystem
 import akka.stream.scaladsl.Sink
-import akka.stream.Materializer
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.test.util.EitherValues
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContextExecutor}
 
 /*
 For positive results use the A and B table definitions and preloaded data defined in the SimpleSelect.
@@ -17,7 +17,7 @@ trait RawSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll 
 
   implicit val executionContext: ExecutionContextExecutor
 
-  implicit val materializer: Materializer
+  implicit val system: ActorSystem
 
   val connector: Connector
 

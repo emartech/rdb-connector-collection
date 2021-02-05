@@ -1,7 +1,7 @@
 import org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings
 
 mappings in (Compile, packageDoc) := Seq() // disable javadoc generation to speedup stage
-sources in (Compile,doc) := Seq.empty
+sources in (Compile, doc) := Seq.empty
 publishArtifact in (Compile, packageDoc) := false
 
 lazy val connectors: Seq[ProjectReference] = Seq(
@@ -97,10 +97,10 @@ lazy val meta =
 
 lazy val publishSettings = Seq(
   useGpgPinentry := true,
-  publishTo := Some("releases" at "https://nexus.service.emarsys.net/repository/emartech/"),
+  publishTo := Some("releases" at "https://repository.eservice.emarsys.net/repository/emartech/"),
   credentials += Credentials(
     "Sonatype Nexus Repository Manager",
-    "nexus.service.emarsys.net",
+    "repository.eservice.emarsys.net",
     sys.env.getOrElse("NEXUS_USERNAME", ""),
     sys.env.getOrElse("NEXUS_PASSWORD", "")
   ),

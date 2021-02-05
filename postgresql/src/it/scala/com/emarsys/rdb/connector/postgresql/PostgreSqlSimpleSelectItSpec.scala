@@ -1,14 +1,13 @@
 package com.emarsys.rdb.connector.postgresql
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect.{FieldName, SpecificFields, TableName}
 import com.emarsys.rdb.connector.postgresql.utils.{SelectDbInitHelper, TestHelper}
-import com.emarsys.rdb.connector.test.{getConnectorResult, SimpleSelectItSpec}
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
+import com.emarsys.rdb.connector.test.{SimpleSelectItSpec, getConnectorResult}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -18,7 +17,7 @@ class PostgreSqlSimpleSelectItSpec
     with SimpleSelectItSpec
     with SelectDbInitHelper {
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override val awaitTimeout = 15.seconds
 

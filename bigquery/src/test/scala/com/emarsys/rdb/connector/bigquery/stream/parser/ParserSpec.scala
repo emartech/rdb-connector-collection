@@ -2,7 +2,7 @@ package com.emarsys.rdb.connector.bigquery.stream.parser
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpEntity, HttpResponse}
-import akka.stream.{ActorMaterializer, ClosedShape}
+import akka.stream.ClosedShape
 import akka.stream.scaladsl.{GraphDSL, RunnableGraph, Sink, Source}
 import akka.stream.testkit.scaladsl.TestSink
 import akka.testkit.TestKit
@@ -10,13 +10,12 @@ import cats.syntax.option._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import spray.json.JsObject
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 class ParserSpec extends TestKit(ActorSystem("ParserSpec")) with WordSpecLike with Matchers with BeforeAndAfterAll {
 
   implicit val ec: ExecutionContext            = system.dispatcher
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   override def afterAll() = {
     shutdown()

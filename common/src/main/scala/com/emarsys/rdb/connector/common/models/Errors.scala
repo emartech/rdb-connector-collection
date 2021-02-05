@@ -57,6 +57,7 @@ object Errors {
     case object NotImplementedOperation extends ErrorName
     case object SSLError                extends ErrorName
     case object ConnectionConfigError   extends ErrorName
+    case object QueryRejected           extends ErrorName
     // ======================================
     //              Transient
     // ======================================

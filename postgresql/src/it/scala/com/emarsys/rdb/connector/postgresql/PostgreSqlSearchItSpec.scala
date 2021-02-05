@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.postgresql
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.postgresql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SearchItSpec
@@ -11,7 +10,7 @@ import scala.concurrent.duration._
 
 class PostgreSqlSearchItSpec extends TestKit(ActorSystem("PostgreSqlSearchItSpec")) with SearchItSpec with BaseDbSpec {
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override val awaitTimeout = 15.seconds
 

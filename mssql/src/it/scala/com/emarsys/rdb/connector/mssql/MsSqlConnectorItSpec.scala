@@ -2,7 +2,6 @@ package com.emarsys.rdb.connector.mssql
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.ConnectorResponse
@@ -24,7 +23,7 @@ class MsSqlConnectorItSpec
     with EitherValues {
 
   val timeout             = 30.seconds
-  implicit val mat        = ActorMaterializer()
+
   override def afterAll() = shutdown()
 
   "MsSqlConnectorItSpec" when {

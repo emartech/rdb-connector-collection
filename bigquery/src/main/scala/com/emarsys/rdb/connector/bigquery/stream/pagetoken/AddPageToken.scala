@@ -27,12 +27,13 @@ object AddPageToken {
   }
 
   private def addPath(getReq: HttpRequest, path: String) =
-    getReq.copy(uri = getReq.uri.withPath(getReq.uri.path ?/ path))
+    getReq.withUri(getReq.uri.withPath(getReq.uri.path ?/ path))
 
-  private def convertRequestToGet(req: HttpRequest) = req.copy(method = HttpMethods.GET, entity = HttpEntity.Empty)
+  private def convertRequestToGet(req: HttpRequest) = req.withMethod(HttpMethods.GET).withEntity(HttpEntity.Empty)
 
-  private def addPageToken(request: HttpRequest, pagingInfo: PagingInfo) = request.copy(
-    uri = request.uri
-      .withQuery(Uri.Query(pagingInfo.pageToken.map(token => s"pageToken=${URLEncoder.encode(token, "utf-8")}")))
+  private def addPageToken(request: HttpRequest, pagingInfo: PagingInfo) = request.withUri(
+    request.uri.withQuery(
+      Uri.Query(pagingInfo.pageToken.map(token => s"pageToken=${URLEncoder.encode(token, "utf-8")}"))
+    )
   )
 }

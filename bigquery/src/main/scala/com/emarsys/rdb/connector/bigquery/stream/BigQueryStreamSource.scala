@@ -6,7 +6,7 @@ import akka.http.scaladsl.model._
 import akka.stream._
 import akka.stream.scaladsl.{GraphDSL, Source, Zip}
 import com.emarsys.rdb.connector.bigquery.GoogleSession
-import com.emarsys.rdb.connector.bigquery.stream.downstreamfinishhandler.UpstreamFinishHandler
+import com.emarsys.rdb.connector.bigquery.stream.downstreamfinishhandler.UpstreamFailureHandler
 import com.emarsys.rdb.connector.bigquery.stream.pagetoken.{AddPageToken, EndOfStreamDetector}
 import com.emarsys.rdb.connector.bigquery.stream.parser.{PagingInfo, Parser}
 import com.emarsys.rdb.connector.bigquery.stream.sendrequest.SendRequestWithOauthHandling
@@ -21,29 +21,29 @@ object BigQueryStreamSource {
       parserFn: JsObject => Option[T],
       googleSession: GoogleSession,
       http: HttpExt,
-      upstreamFinishFn: ((Boolean, PagingInfo)) => Unit = (x: (Boolean, PagingInfo)) => ()
+      upstreamFinishFn: ((Boolean, PagingInfo)) => Unit = (_: (Boolean, PagingInfo)) => ()
   )(
-      implicit mat: ActorMaterializer
+      implicit mat: Materializer
   ): Source[T, NotUsed] =
     Source.fromGraph(GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
 
       implicit val ec: ExecutionContext = mat.executionContext
 
-      val in                   = builder.add(Source.repeat(httpRequest))
-      val requestSender        = builder.add(SendRequestWithOauthHandling(googleSession, http))
-      val parser               = builder.add(Parser(parserFn))
-      val uptreamFinishHandler = builder.add(UpstreamFinishHandler[(Boolean, PagingInfo)](upstreamFinishFn))
-      val endOfStreamDetector  = builder.add(EndOfStreamDetector())
-      val flowInitializer      = builder.add(FlowInitializer((false, PagingInfo(None, None))))
-      val delay                = builder.add(Delay[(Boolean, PagingInfo)](_._1, 60))
-      val zip                  = builder.add(Zip[HttpRequest, (Boolean, PagingInfo)]())
-      val addPageTokenNode     = builder.add(AddPageToken())
+      val in                     = builder.add(Source.repeat(httpRequest))
+      val requestSender          = builder.add(SendRequestWithOauthHandling(googleSession, http))
+      val parser                 = builder.add(Parser(parserFn))
+      val upstreamFailureHandler = builder.add(UpstreamFailureHandler[(Boolean, PagingInfo)](upstreamFinishFn))
+      val endOfStreamDetector    = builder.add(EndOfStreamDetector())
+      val flowInitializer        = builder.add(FlowInitializer((false, PagingInfo(None, None))))
+      val delay                  = builder.add(Delay[(Boolean, PagingInfo)](_._1, 60))
+      val zip                    = builder.add(Zip[HttpRequest, (Boolean, PagingInfo)]())
+      val addPageTokenNode       = builder.add(AddPageToken())
 
       in ~> zip.in0
       requestSender ~> parser.in
-      parser.out1 ~> uptreamFinishHandler
-      uptreamFinishHandler ~> endOfStreamDetector
+      parser.out1 ~> upstreamFailureHandler
+      upstreamFailureHandler ~> endOfStreamDetector
       endOfStreamDetector ~> delay
       delay ~> flowInitializer
       flowInitializer ~> zip.in1
@@ -59,7 +59,7 @@ object BigQueryStreamSource {
         |        |           |            |          |       |         |      |
         +--------+           +-----+------+          +-------+         +---+--+
                                    ^                                       |
-                                   |                                       |
+                                   |                                       v
                                    |     +-----------+                +----+------+
                                    |     |   Flow    |                | UpStream  |
                                    +<----+Initializer|                |  Finish   |

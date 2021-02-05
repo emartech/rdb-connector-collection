@@ -2,7 +2,7 @@ package com.emarsys.rdb.connector.bigquery
 
 import cats.Traverse
 import cats.data.EitherT
-import cats.implicits._
+import cats.syntax.all._
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
 

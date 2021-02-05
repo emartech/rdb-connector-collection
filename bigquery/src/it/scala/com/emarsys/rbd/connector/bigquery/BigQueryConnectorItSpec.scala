@@ -2,7 +2,6 @@ package com.emarsys.rbd.connector.bigquery
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import com.emarsys.rbd.connector.bigquery.utils.TestHelper
@@ -10,7 +9,8 @@ import com.emarsys.rdb.connector.bigquery.BigQueryConnector
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.test.CustomMatchers.haveErrorCategoryAndErrorName
-import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, EitherValues, Matchers}
+import com.emarsys.rdb.connector.test.util.EitherValues
+import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, Matchers}
 
 import scala.concurrent.duration._
 
@@ -21,8 +21,8 @@ class BigQueryConnectorItSpec
     with BeforeAndAfterAll
     with EitherValues {
 
-  implicit val mat      = ActorMaterializer()
-  override def afterAll = shutdown()
+
+  override def afterAll() = shutdown()
 
   val testConnection = TestHelper.TEST_CONNECTION_CONFIG
 
@@ -33,7 +33,7 @@ class BigQueryConnectorItSpec
       "return ok in happy case" in {
         for {
           connector <- BigQueryConnector(testConnection)(system)
-          _         <- connector.right.value.testConnection()
+          _         <- connector.value.testConnection()
         } yield succeed
       }
 
@@ -42,7 +42,7 @@ class BigQueryConnectorItSpec
 
         for {
           connector <- BigQueryConnector(badConnection)(system)
-          error     <- connector.right.value.testConnection()
+          error     <- connector.value.testConnection()
         } yield {
           error.left.value should haveErrorCategoryAndErrorName(
             ErrorCategory.FatalQueryExecution,
@@ -56,7 +56,7 @@ class BigQueryConnectorItSpec
 
         for {
           connector <- BigQueryConnector(badConnection)(system)
-          error     <- connector.right.value.testConnection()
+          error     <- connector.value.testConnection()
         } yield {
           error.left.value should haveErrorCategoryAndErrorName(
             ErrorCategory.FatalQueryExecution,
@@ -68,32 +68,29 @@ class BigQueryConnectorItSpec
 
     "custom error handling" should {
       "recognize syntax errors" in {
-        rawSelect("select from test.table").map(
-          error =>
-            error.left.value should haveErrorCategoryAndErrorName(
-              ErrorCategory.FatalQueryExecution,
-              ErrorName.SqlSyntaxError
-            )
+        rawSelect("select from test.table").map(error =>
+          error.left.value should haveErrorCategoryAndErrorName(
+            ErrorCategory.FatalQueryExecution,
+            ErrorName.SqlSyntaxError
+          )
         )
       }
 
       "recognize not found tables" in {
-        rawSelect("select * from test.a_non_existing_table").map(
-          error =>
-            error.left.value should haveErrorCategoryAndErrorName(
-              ErrorCategory.FatalQueryExecution,
-              ErrorName.TableNotFound
-            )
+        rawSelect("select * from test.a_non_existing_table").map(error =>
+          error.left.value should haveErrorCategoryAndErrorName(
+            ErrorCategory.FatalQueryExecution,
+            ErrorName.TableNotFound
+          )
         )
       }
 
       "recognize query timeouts" in {
-        rawSelect("select * from test.test_table", timeout = 100.millis).map(
-          error =>
-            error.left.value should haveErrorCategoryAndErrorName(
-              ErrorCategory.Timeout,
-              ErrorName.QueryTimeout
-            )
+        rawSelect("select * from test.test_table", timeout = 100.millis).map(error =>
+          error.left.value should haveErrorCategoryAndErrorName(
+            ErrorCategory.Timeout,
+            ErrorName.QueryTimeout
+          )
         )
       }
     }
@@ -101,8 +98,8 @@ class BigQueryConnectorItSpec
     def rawSelect(q: String, timeout: FiniteDuration = 3.seconds): ConnectorResponse[Unit] =
       for {
         connector <- BigQueryConnector(testConnection)(system)
-        source    <- connector.right.value.rawSelect(q, limit = None, timeout)
-        res       <- sinkOrLeft(source.right.value)
+        source    <- connector.value.rawSelect(q, limit = None, timeout)
+        res       <- sinkOrLeft(source.value)
       } yield res
 
     def sinkOrLeft[T](source: Source[T, NotUsed]): ConnectorResponse[Unit] =

@@ -1,13 +1,8 @@
 package com.emarsys.rdb.connector.test
 
-import akka.stream.Materializer
+import akka.actor.ActorSystem
 import akka.stream.scaladsl.Sink
-import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{
-  BooleanValue,
-  IntValue,
-  NullValue,
-  StringValue
-}
+import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, IntValue, NullValue, StringValue}
 import com.emarsys.rdb.connector.common.models.DataManipulation.UpdateDefinition
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
@@ -26,13 +21,14 @@ trait UpdateItSpec extends WordSpecLike with Matchers with BeforeAndAfterEach wi
   val connector: Connector
   def initDb(): Unit
   def cleanUpDb(): Unit
-  implicit val materializer: Materializer
+
+  implicit val system: ActorSystem
 
   val uuid      = uuidGenerate
   val tableName = s"update_tables_table_$uuid"
 
-  val awaitTimeout = 5.seconds
-  val queryTimeout = 5.seconds
+  val awaitTimeout = 10.seconds
+  val queryTimeout = 10.seconds
 
   override def beforeEach(): Unit = {
     initDb()

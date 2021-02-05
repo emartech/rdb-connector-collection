@@ -2,27 +2,20 @@ package com.emarsys.rdb.connector.mssql
 
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import com.emarsys.rdb.connector.mssql.utils.TestHelper
+import com.emarsys.rdb.connector.mssql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
 import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
 
-class MsSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
+class MsSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues with BaseDbSpec {
 
   val uuid = UUID.randomUUID().toString
 
   val tableName  = s"is_optimized_table_$uuid"
   val index1Name = s"is_optimized_index1_$uuid"
   val index2Name = s"is_optimized_index2_$uuid"
-
-  val timeout: FiniteDuration = 30.seconds
-  val connector: Connector =
-    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), timeout).right.get
 
   override def beforeAll(): Unit = {
     initDb()

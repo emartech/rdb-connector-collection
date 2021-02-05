@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.mysql
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.ErrorCategory.FatalQueryExecution
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName}
@@ -19,9 +18,7 @@ class MySqlSimpleSelectItSpec
     with SimpleSelectItSpec
     with SelectDbInitHelper {
 
-  import scala.concurrent.ExecutionContext.Implicits.global
 
-  override implicit val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
     shutdown()
@@ -46,7 +43,7 @@ class MySqlSimpleSelectItSpec
     Await.result(for {
       _ <- TestHelper.executeQuery(createCTableSql)
       _ <- TestHelper.executeQuery(insertCDataSql)
-    } yield (), 5.seconds)
+    } yield (), 10.seconds)
   }
 
   override def cleanUpDb(): Unit = {

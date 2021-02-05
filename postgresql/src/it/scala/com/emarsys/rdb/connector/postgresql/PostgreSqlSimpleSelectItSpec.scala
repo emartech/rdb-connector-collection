@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.postgresql
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect
@@ -17,9 +16,8 @@ class PostgreSqlSimpleSelectItSpec
     extends TestKit(ActorSystem("PostgreSqlSimpleSelectItSpec"))
     with SimpleSelectItSpec
     with SelectDbInitHelper {
-  import scala.concurrent.ExecutionContext.Implicits.global
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+
 
   override val awaitTimeout = 15.seconds
 
@@ -60,7 +58,7 @@ class PostgreSqlSimpleSelectItSpec
         _ <- TestHelper.executeQuery(createFunction)
         _ <- TestHelper.executeQuery(createSleepViewSql)
       } yield (),
-      5.seconds
+      10.seconds
     )
   }
 
@@ -69,7 +67,7 @@ class PostgreSqlSimpleSelectItSpec
     Await.result(for {
       _ <- TestHelper.executeQuery(dropCTableSql)
       _ <- TestHelper.executeQuery("DROP VIEW " + sleepViewName)
-    } yield (), 5.seconds)
+    } yield (), 10.seconds)
     super.cleanUpDb()
   }
 

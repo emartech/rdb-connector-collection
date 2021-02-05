@@ -25,6 +25,7 @@ class PostgreSqlErrorHandlingSpec
   private val tableNotFoundException             = new SQLException("msg", "42P01")
   private val invalidAuthorizationException      = new SQLException("msg", "28000")
   private val invalidPasswordException           = new SQLException("msg", "28P01")
+  private val cancellingStatementException       = new SQLException("canceling statement...", "40001")
 
   private val postgresTestCases = Table(
     ("error", "exception", "errorCategory", "errorName"),
@@ -37,7 +38,8 @@ class PostgreSqlErrorHandlingSpec
     ("permission denied error", permissionDeniedException, C.FatalQueryExecution, N.AccessDeniedError),
     ("table not found error", tableNotFoundException, C.FatalQueryExecution, N.TableNotFound),
     ("invalid authorization error", invalidAuthorizationException, C.FatalQueryExecution, N.AccessDeniedError),
-    ("invalid password error", invalidPasswordException, C.FatalQueryExecution, N.AccessDeniedError)
+    ("invalid password error", invalidPasswordException, C.FatalQueryExecution, N.AccessDeniedError),
+    ("canceling statement due to conflict with recovery", cancellingStatementException, C.Transient, N.TransientDbError)
   )
 
   private val sqlErrorCases = Table(
@@ -59,7 +61,7 @@ class PostgreSqlErrorHandlingSpec
 
     forAll(postgresTestCases ++ sqlErrorCases ++ commonErrorCases) {
       case (error, exception, errorCategory, errorName) =>
-        s"convert $error to ${errorCategory}#$errorName" in new PostgreSqlErrorHandling {
+        s"convert $error to $errorCategory#$errorName" in new PostgreSqlErrorHandling {
           val expectedDatabaseError = DatabaseError(errorCategory, errorName, exception)
 
           eitherErrorHandler().valueAt(exception).left.value shouldBe expectedDatabaseError

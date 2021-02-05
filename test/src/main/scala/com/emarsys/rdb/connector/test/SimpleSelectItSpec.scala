@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.test
 
-import akka.stream.Materializer
+import akka.actor.ActorSystem
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
 import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
@@ -55,7 +55,10 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
   val awaitTimeout = 15.seconds
   val queryTimeout = 20.seconds
 
-  implicit val materializer: Materializer
+  val booleanValue0 = "0"
+  val booleanValue1 = "1"
+
+  implicit val system: ActorSystem
 
   override def beforeAll(): Unit = {
     initDb()
@@ -88,11 +91,11 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v4", "-4", "0"),
-            Seq("v5", null, "0"),
+            Seq("v1", "1", booleanValue1),
+            Seq("v2", "2", booleanValue0),
+            Seq("v3", "3", booleanValue1),
+            Seq("v4", "-4", booleanValue0),
+            Seq("v5", null, booleanValue0),
             Seq("v6", "6", null),
             Seq("v7", null, null)
           )
@@ -125,11 +128,11 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A3"),
-            Seq("v1", "1"),
-            Seq("v2", "0"),
-            Seq("v3", "1"),
-            Seq("v4", "0"),
-            Seq("v5", "0"),
+            Seq("v1", booleanValue1),
+            Seq("v2", booleanValue0),
+            Seq("v3", booleanValue1),
+            Seq("v4", booleanValue0),
+            Seq("v5", booleanValue0),
             Seq("v6", null),
             Seq("v7", null)
           )
@@ -178,7 +181,7 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v5", null, "0"),
+            Seq("v5", null, booleanValue0),
             Seq("v7", null, null)
           )
         )
@@ -193,10 +196,10 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v4", "-4", "0"),
+            Seq("v1", "1", booleanValue1),
+            Seq("v2", "2", booleanValue0),
+            Seq("v3", "3", booleanValue1),
+            Seq("v4", "-4", booleanValue0),
             Seq("v6", "6", null)
           )
         )
@@ -212,7 +215,7 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v3", "3", "1")
+            Seq("v3", "3", booleanValue1)
           )
         )
       }
@@ -253,14 +256,22 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v3", "3", "1")
+            Seq("v3", "3", booleanValue1)
           )
         )
       }
 
       "list table values with EQUAL on booleans" in {
-        val simpleSelect =
-          SimpleSelect(AllField, TableName(aTableName), where = Some(EqualToValue(FieldName("A3"), Value("1"))))
+        val simpleSelect = SimpleSelect(
+          AllField,
+          TableName(aTableName),
+          where = Some(
+            EqualToValue(
+              FieldName("A3"),
+              Value(booleanValue1)
+            )
+          )
+        )
 
         val result = getSimpleSelectResult(simpleSelect)
 
@@ -268,8 +279,8 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v3", "3", "1")
+            Seq("v1", "1", booleanValue1),
+            Seq("v3", "3", booleanValue1)
           )
         )
       }
@@ -297,9 +308,9 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v5", null, "0"),
+            Seq("v1", "1", booleanValue1),
+            Seq("v2", "2", booleanValue0),
+            Seq("v5", null, booleanValue0),
             Seq("v7", null, null)
           )
         )
@@ -374,7 +385,7 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
+            Seq("v1", "1", booleanValue1),
             Seq("v7", null, null)
           )
         )
@@ -398,11 +409,11 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
             Seq("A1", "A2", "A3"),
             Seq("v7", null, null),
             Seq("v6", "6", null),
-            Seq("v5", null, "0"),
-            Seq("v4", "-4", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v1", "1", "1")
+            Seq("v5", null, booleanValue0),
+            Seq("v4", "-4", booleanValue0),
+            Seq("v3", "3", booleanValue1),
+            Seq("v2", "2", booleanValue0),
+            Seq("v1", "1", booleanValue1)
           )
         )
       }
@@ -420,11 +431,11 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v4", "-4", "0"),
-            Seq("v5", null, "0"),
+            Seq("v1", "1", booleanValue1),
+            Seq("v2", "2", booleanValue0),
+            Seq("v3", "3", booleanValue1),
+            Seq("v4", "-4", booleanValue0),
+            Seq("v5", null, booleanValue0),
             Seq("v6", "6", null),
             Seq("v7", null, null)
           )
@@ -436,7 +447,10 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           AllField,
           TableName(aTableName),
           where = Some(NotNull(FieldName("A3"))),
-          orderBy = List(SortCriteria(FieldName("A3"), Direction.Ascending), SortCriteria(FieldName("A1"), Direction.Descending))
+          orderBy = List(
+            SortCriteria(FieldName("A3"), Direction.Ascending),
+            SortCriteria(FieldName("A1"), Direction.Descending)
+          )
         )
 
         val result = getSimpleSelectResult(simpleSelect)
@@ -445,12 +459,39 @@ trait SimpleSelectItSpec extends WordSpecLike with Matchers with BeforeAndAfterA
           result,
           Seq(
             Seq("A1", "A2", "A3"),
-            Seq("v5", null, "0"),
-            Seq("v4", "-4", "0"),
-            Seq("v2", "2", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v1", "1", "1")
+            Seq("v5", null, booleanValue0),
+            Seq("v4", "-4", booleanValue0),
+            Seq("v2", "2", booleanValue0),
+            Seq("v3", "3", booleanValue1),
+            Seq("v1", "1", booleanValue1)
           )
+        )
+      }
+
+      "work when simple select does not specify ordered fields as selected" in {
+        val simpleSelect = SimpleSelect(
+          SpecificFields("A2"),
+          TableName(aTableName),
+          orderBy = List(SortCriteria(FieldName("A1"), Direction.Descending)),
+          distinct = Some(true)
+        )
+
+        val result = getSimpleSelectResult(simpleSelect)
+
+        val expectedResult = Seq(
+          Seq("A2", "A1"),
+          Seq(null, "v7"),
+          Seq("6", "v6"),
+          Seq(null, "v5"),
+          Seq("-4", "v4"),
+          Seq("3", "v3"),
+          Seq("2", "v2"),
+          Seq("1", "v1")
+        )
+
+        checkResultWithRowOrder(
+          result,
+          expectedResult
         )
       }
 

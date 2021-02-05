@@ -3,7 +3,6 @@ package com.emarsys.rbd.connector.bigquery
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import akka.util.Timeout
 import com.emarsys.rbd.connector.bigquery.utils.MetaDbInitHelper
@@ -23,7 +22,6 @@ class BigQueryIsOptimizedItSpec
     with EitherValues {
 
   implicit override val sys: ActorSystem                = system
-  implicit override val materializer: ActorMaterializer = ActorMaterializer()
   implicit override val timeout: Timeout                = Timeout(30.second)
   implicit val asyncWordSpecEC: ExecutionContext        = executionContext
 
@@ -48,7 +46,7 @@ class BigQueryIsOptimizedItSpec
 
       "succeed" in {
         connector.isOptimized(tableName, Seq.empty).map { result =>
-          result.right.value shouldBe true
+          result.value shouldBe true
         }
       }
 

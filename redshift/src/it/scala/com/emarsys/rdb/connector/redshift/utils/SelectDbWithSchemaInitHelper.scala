@@ -1,23 +1,15 @@
 package com.emarsys.rdb.connector.redshift.utils
 
-import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.redshift.RedshiftConnector
-
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-trait SelectDbWithSchemaInitHelper {
-
-  import scala.concurrent.ExecutionContext.Implicits.global
+trait SelectDbWithSchemaInitHelper extends BaseDbSpec {
 
   val aTableName: String
   val bTableName: String
 
-  val schema           = "ittestschema"
-  val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")
-
-  val connector: Connector =
-    Await.result(RedshiftConnector.create(connectionConfig), 5.seconds).right.get
+  val schema                    = "ittestschema"
+  override val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")
 
   def initDb(): Unit = {
     val createATableSql =

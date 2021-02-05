@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.test
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName, Fields}
@@ -19,8 +18,6 @@ class ReplaceSpecSpec
 
   import com.emarsys.rdb.connector.utils.TestHelper._
 
-  implicit val materializer: Materializer = ActorMaterializer()
-
   implicit val executionContext = system.dispatcher
 
   override val connector = mock[Connector]
@@ -29,7 +26,7 @@ class ReplaceSpecSpec
 
   override def cleanUpDb(): Unit = ()
 
-  override def afterAll = {
+  override def afterAll() = {
     shutdown()
   }
 

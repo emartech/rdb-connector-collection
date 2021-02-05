@@ -1,14 +1,12 @@
 package com.emarsys.rdb.connector.common.models
 
+import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
 
 import scala.concurrent.ExecutionContext
 
 class DataManipulationValidator(validator: RawDataValidator) {
-  import cats.instances.future._
-  import cats.instances.list._
   import cats.syntax.foldable._
 
   private type DeferredValidation = () => ConnectorResponseET[Unit]

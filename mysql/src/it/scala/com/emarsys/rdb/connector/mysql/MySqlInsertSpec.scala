@@ -2,7 +2,6 @@ package com.emarsys.rdb.connector.mysql
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.Sink
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.SimpleSelect
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
@@ -16,7 +15,7 @@ class MySqlInsertSpec extends TestKit(ActorSystem("MySqlInsertSpec")) with Inser
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
 
-  override implicit val materializer: Materializer = ActorMaterializer()
+
 
   override def afterAll(): Unit = {
     shutdown()

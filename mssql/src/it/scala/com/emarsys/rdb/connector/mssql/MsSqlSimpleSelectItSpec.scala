@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.mssql
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.mssql.utils.{SelectDbInitHelper, TestHelper}
 import com.emarsys.rdb.connector.test.SimpleSelectItSpec
@@ -14,13 +13,11 @@ class MsSqlSimpleSelectItSpec
     with SimpleSelectItSpec
     with SelectDbInitHelper {
 
-  import scala.concurrent.ExecutionContext.Implicits.global
+  override val awaitTimeout: FiniteDuration        = 30.seconds
 
-  override val awaitTimeout: FiniteDuration = 30.seconds
-  override implicit val materializer: Materializer = ActorMaterializer()
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

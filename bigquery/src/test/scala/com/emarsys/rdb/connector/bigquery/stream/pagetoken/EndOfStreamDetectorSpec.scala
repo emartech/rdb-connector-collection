@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.bigquery.stream.pagetoken
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.stream.testkit.scaladsl.TestSink
 import akka.testkit.TestKit
@@ -14,13 +13,11 @@ class EndOfStreamDetectorSpec
     with Matchers
     with BeforeAndAfterAll {
 
-  override def afterAll = {
+  override def afterAll() = {
     shutdown()
   }
 
   "EndOfStreamDetector" should {
-
-    implicit val materializer: ActorMaterializer = ActorMaterializer()
 
     val emptyPagingInfo         = PagingInfo(None, None)
     val pagingInfoWithPageToken = PagingInfo(Some("next page"), None)

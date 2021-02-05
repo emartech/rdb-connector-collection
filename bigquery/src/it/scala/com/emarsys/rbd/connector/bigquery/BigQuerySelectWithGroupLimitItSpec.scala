@@ -1,7 +1,6 @@
 package com.emarsys.rbd.connector.bigquery
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import akka.util.Timeout
 import com.emarsys.rbd.connector.bigquery.utils.{DbInitUtil, TestHelper}
@@ -14,9 +13,9 @@ class BigQuerySelectWithGroupLimitItSpec
     extends TestKit(ActorSystem("BigQuerySelectWithGroupLimitItSpec"))
     with SelectWithGroupLimitItSpec
     with DbInitUtil {
-  override implicit val sys: ActorSystem                = system
-  override implicit val materializer: ActorMaterializer = ActorMaterializer()
-  override implicit val timeout: Timeout                = 20.seconds
+  implicit override val sys: ActorSystem                = system
+
+  implicit override val timeout: Timeout                = 20.seconds
   override val awaitTimeout                             = 20.seconds
   override val queryTimeout                             = 20.seconds
 

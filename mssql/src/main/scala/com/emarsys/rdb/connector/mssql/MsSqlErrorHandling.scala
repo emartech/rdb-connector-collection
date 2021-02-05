@@ -4,9 +4,9 @@ import java.sql.SQLException
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
-import com.microsoft.sqlserver.jdbc.SQLServerException
 import com.emarsys.rdb.connector.common.defaults.ErrorConverter.default
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
+import com.microsoft.sqlserver.jdbc.SQLServerException
 
 trait MsSqlErrorHandling {
 
@@ -50,8 +50,8 @@ trait MsSqlErrorHandling {
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[DatabaseError, T]] =
-    (errorHandler orElse default) andThen Left.apply
+    errorHandler.orElse(default).andThen(Left.apply(_))
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    (errorHandler orElse default) andThen Source.failed
+    errorHandler.orElse(default).andThen(Source.failed(_))
 }

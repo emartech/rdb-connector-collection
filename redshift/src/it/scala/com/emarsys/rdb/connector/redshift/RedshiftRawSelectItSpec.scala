@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.redshift
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.redshift.utils.{SelectDbInitHelper, SelectDbWithSchemaInitHelper}
 import com.emarsys.rdb.connector.test._
@@ -18,14 +17,12 @@ class RedshiftRawSelectItSpec
     with Matchers
     with BeforeAndAfterAll {
 
-  implicit val materializer: Materializer = ActorMaterializer()
-
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
   override val awaitTimeout = 15.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     cleanUpDb()
     connector.close()
   }
@@ -56,14 +53,12 @@ class RedshiftRawSelectWithSchemaItSpec
     with Matchers
     with BeforeAndAfterAll {
 
-  implicit val materializer: Materializer = ActorMaterializer()
-
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
   override val awaitTimeout = 15.seconds
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     cleanUpDb()
     connector.close()
   }

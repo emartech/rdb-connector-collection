@@ -1,13 +1,16 @@
 import org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings
 
 mappings in (Compile, packageDoc) := Seq() // disable javadoc generation to speedup stage
+sources in (Compile, doc) := Seq.empty
+publishArtifact in (Compile, packageDoc) := false
 
 lazy val connectors: Seq[ProjectReference] = Seq(
   bigQuery,
   mssql,
   mysql,
   postgres,
-  redshift
+  redshift,
+  snowflake
 )
 
 lazy val connectorCollection = project
@@ -21,7 +24,8 @@ lazy val connectorCollection = project
   .settings(meta: _*)
   .settings(
     publishArtifact := false,
-    publishTo := Some(Resolver.file("Unused repository", file("target/unused")))
+    publish / skip := true,
+    crossScalaVersions := Nil
   )
 
 lazy val common = Project(id = "common", base = file("common"))
@@ -43,11 +47,12 @@ lazy val connectorTest = Project(id = "connectorTest", base = file("test"))
   .settings(meta: _*)
   .settings(publishSettings: _*)
 
-lazy val bigQuery = connector("bigquery", Dependencies.BigQuery)
-lazy val mssql    = connector("mssql", Dependencies.Mssql)
-lazy val mysql    = connector("mysql", Dependencies.Mysql)
-lazy val postgres = connector("postgresql", Dependencies.Postgresql)
-lazy val redshift = connector("redshift", Dependencies.Redshift)
+lazy val bigQuery  = connector("bigquery", Dependencies.BigQuery)
+lazy val mssql     = connector("mssql", Dependencies.Mssql)
+lazy val mysql     = connector("mysql", Dependencies.Mysql)
+lazy val postgres  = connector("postgresql", Dependencies.Postgresql)
+lazy val redshift  = connector("redshift", Dependencies.Redshift)
+lazy val snowflake = connector("snowflake", Dependencies.Snowflake)
 
 lazy val ItTest = config("it") extend Test
 lazy val itTestSettings = Defaults.itSettings ++ Seq(
@@ -62,9 +67,7 @@ def connector(projectId: String, additionalSettings: sbt.Def.SettingsDefinition*
       AutomaticModuleName.settings(s"com.emarsys.rdb.connector.$projectId")
     )
     .configs(ItTest)
-    .settings(
-      inConfig(ItTest)(itTestSettings)
-    )
+    .settings(inConfig(ItTest)(itTestSettings))
     .dependsOn(common, connectorTest % "test")
     .settings(Dependencies.Common: _*)
     .settings(additionalSettings: _*)
@@ -94,10 +97,10 @@ lazy val meta =
 
 lazy val publishSettings = Seq(
   useGpgPinentry := true,
-  publishTo := Some("releases" at "https://nexus.service.emarsys.net/repository/emartech/"),
+  publishTo := Some("releases" at "https://repository.eservice.emarsys.net/repository/emartech/"),
   credentials += Credentials(
     "Sonatype Nexus Repository Manager",
-    "nexus.service.emarsys.net",
+    "repository.eservice.emarsys.net",
     sys.env.getOrElse("NEXUS_USERNAME", ""),
     sys.env.getOrElse("NEXUS_PASSWORD", "")
   ),

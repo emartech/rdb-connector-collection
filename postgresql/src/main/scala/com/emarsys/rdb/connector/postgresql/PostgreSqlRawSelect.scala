@@ -5,16 +5,18 @@ import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.SimpleSelect.FieldName
 import slick.jdbc.MySQLProfile.api._
+import slick.jdbc.{GetResult, PositionedResult}
 
 import scala.annotation.tailrec
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration.SECONDS
+import scala.concurrent.duration.{FiniteDuration, SECONDS}
 
 trait PostgreSqlRawSelect extends PostgreSqlStreamingQuery {
   self: PostgreSqlConnector =>
 
   import PostgreSqlWriters._
   import com.emarsys.rdb.connector.common.defaults.SqlWriter._
+
+  private val ignoredResult: GetResult[Vector[AnyRef]] = (_: PositionedResult) => Vector.empty
 
   override def rawSelect(
       rawSql: String,
@@ -35,8 +37,8 @@ trait PostgreSqlRawSelect extends PostgreSqlStreamingQuery {
       .recover(eitherErrorHandler())
   }
 
-  private def runQueryOnDb(modifiedSql: String) = {
-    db.run(sql"#$modifiedSql".as[Any])
+  private def runQueryOnDb(sanitized: String) = {
+    db.run(sql"#$sanitized".as[Vector[AnyRef]](ignoredResult))
   }
 
   private def wrapInExplain(sqlWithoutSemicolon: String) = {
@@ -75,11 +77,12 @@ trait PostgreSqlRawSelect extends PostgreSqlStreamingQuery {
     runProjectedSelectWith(rawSql, fields, limit, allowNullFieldValue, streamingQuery(timeout))
 
   override def validateProjectedRawSelect(rawSql: String, fields: Seq[String]): ConnectorResponse[Unit] = {
-    val wrapInExplainThenRunOnDb = wrapInExplain _ andThen runQueryOnDb
     runProjectedSelectWith(rawSql, fields, None, allowNullFieldValue = true, wrapInExplainThenRunOnDb)
       .map(_ => Right(()))
       .recover(eitherErrorHandler())
   }
+  private def wrapInExplainThenRunOnDb(query: String) =
+    runQueryOnDb(wrapInExplain(query))
 
   private def concatenateProjection(fields: Seq[String]) =
     fields.map("t." + FieldName(_).toSql).mkString(", ")

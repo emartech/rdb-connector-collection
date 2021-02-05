@@ -2,18 +2,20 @@ package com.emarsys.rdb.connector.redshift
 
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.{ErrorCategory, ErrorName}
-import com.emarsys.rdb.connector.redshift.utils.TestHelper
+import com.emarsys.rdb.connector.redshift.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.CustomMatchers._
 import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class RedshiftIsOptimizedSpec extends WordSpecLike with EitherValues with Matchers with BeforeAndAfterAll {
-  implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
-
+class RedshiftIsOptimizedSpec
+    extends WordSpecLike
+    with EitherValues
+    with Matchers
+    with BeforeAndAfterAll
+    with BaseDbSpec {
   val uuid      = UUID.randomUUID().toString
   val tableName = s"is_optimized_table_$uuid"
 
@@ -25,9 +27,6 @@ class RedshiftIsOptimizedSpec extends WordSpecLike with EitherValues with Matche
     cleanUpDb()
     connector.close()
   }
-
-  val connector: Connector =
-    Await.result(RedshiftConnector.create(TestHelper.TEST_CONNECTION_CONFIG), 15.seconds).right.get
 
   def initDb(): Unit = {
     val createTableSql =

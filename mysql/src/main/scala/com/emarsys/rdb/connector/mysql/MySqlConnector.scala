@@ -4,14 +4,14 @@ import java.util.UUID
 
 import cats.data.EitherT
 import cats.syntax.applicativeError._
-import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData}
-import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
+import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData, PoolConfig}
+import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
+import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mysql.CertificateUtil.createTrustStoreTempUrl
 import com.emarsys.rdb.connector.mysql.MySqlConnector.{MySqlConnectionConfig, MySqlConnectorConfig}
-import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -82,7 +82,13 @@ object MySqlConnector extends MySqlConnectorTrait {
       connectionParams: String,
       replicaConfig: Option[MySqlConnectionConfig] = None
   ) extends ConnectionConfig {
-    override def replica[C <: MySqlConnectionConfig]: Option[C] = replicaConfig.map(_.asInstanceOf[C])
+    type This = MySqlConnectionConfig
+
+    protected def getPublicFieldsForId =
+      List(host, port.toString, dbName, dbUser, connectionParams, replicaConfig.map(_.getId).getOrElse("_"))
+    protected def getSecretFieldsForId = List(dbPassword, certificate)
+
+    override def replica: Option[MySqlConnectionConfig] = replicaConfig
 
     override def toCommonFormat: CommonConnectionReadableData = {
       CommonConnectionReadableData("mysql", s"$host:$port", dbName, dbUser)
@@ -91,25 +97,20 @@ object MySqlConnector extends MySqlConnectorTrait {
 
   case class MySqlConnectorConfig(
       configPath: String,
-      verifyServerCertificate: Boolean
+      verifyServerCertificate: Boolean,
+      poolConfig: PoolConfig
   )
 
 }
 
 trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
-  import cats.instances.future._
   import cats.syntax.flatMap._
 
-  val defaultConfig =
-    MySqlConnectorConfig(
-      configPath = "mysqldb",
-      verifyServerCertificate = true
-    )
   override def meta(): MetaData = MetaData("`", "'", "\\")
 
   def create(
       config: MySqlConnectionConfig,
-      connectorConfig: MySqlConnectorConfig = defaultConfig
+      connectorConfig: MySqlConnectorConfig
   )(implicit e: ExecutionContext): ConnectorResponse[MySqlConnector] = {
     (for {
       trustStoreUrl <- createTrustStoreUrl(config.certificate)
@@ -125,15 +126,14 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
   )(implicit e: ExecutionContext): ConnectorResponseET[String] = {
     EitherT
       .fromEither[Future](createTrustStoreTempUrl(cert).toEither)
-      .leftMap(
-        ex =>
-          DatabaseError(
-            ErrorCategory.FatalQueryExecution,
-            ErrorName.SSLError,
-            "Wrong SSL cert format",
-            Some(ex),
-            None
-          )
+      .leftMap(ex =>
+        DatabaseError(
+          ErrorCategory.FatalQueryExecution,
+          ErrorName.SSLError,
+          "Wrong SSL cert format",
+          Some(ex),
+          None
+        )
       )
   }
 
@@ -174,6 +174,10 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
     ConfigFactory
       .load()
       .getConfig(connectorConfig.configPath)
+      .withValue("maxConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("minConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("numThreads", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+      .withValue("queueSize", fromAnyRef(connectorConfig.poolConfig.queueSize))
       .withValue("poolName", fromAnyRef(poolName))
       .withValue("registerMbeans", fromAnyRef(true))
       .withValue("jdbcUrl", fromAnyRef(jdbcUrl))

@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.mssql
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.mssql.utils.SelectDbInitHelper
 import com.emarsys.rdb.connector.test._
@@ -17,12 +16,10 @@ class MsSqlRawSelectItSpec
     with Matchers
     with BeforeAndAfterAll {
 
-  implicit val materializer: Materializer = ActorMaterializer()
-
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     cleanUpDb()
     connector.close()
   }

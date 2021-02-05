@@ -1,11 +1,8 @@
 package com.emarsys.rdb.connector.mysql
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.mysql.utils.TestHelper
-import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig
+import com.emarsys.rdb.connector.mysql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
 
 import scala.concurrent.Await
@@ -13,28 +10,13 @@ import scala.concurrent.duration._
 
 class MySqlSelectWithGroupLimitItSpec
     extends TestKit(ActorSystem("MySqlSelectWithGroupLimitItSpec"))
-    with SelectWithGroupLimitItSpec {
-  import scala.concurrent.ExecutionContext.Implicits.global
+    with SelectWithGroupLimitItSpec
+    with BaseDbSpec {
 
-  override implicit val materializer: Materializer = ActorMaterializer()
 
-  val connector: Connector =
-    Await
-      .result(
-        MySqlConnector.create(
-          TestHelper.TEST_CONNECTION_CONFIG,
-          MySqlConnectorConfig(
-            configPath = "mysqldb",
-            verifyServerCertificate = false
-          )
-        ),
-        5.seconds
-      )
-      .right
-      .get
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 
@@ -62,7 +44,7 @@ class MySqlSelectWithGroupLimitItSpec
     Await.result(for {
       _ <- TestHelper.executeQuery(createTableSql)
       _ <- TestHelper.executeQuery(insertDataSql)
-    } yield (), 5.seconds)
+    } yield (), 10.seconds)
   }
 
   override def cleanUpDb(): Unit = {

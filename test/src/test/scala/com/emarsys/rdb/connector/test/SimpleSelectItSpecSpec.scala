@@ -1,15 +1,15 @@
 package com.emarsys.rdb.connector.test
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.stream.scaladsl.Source
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
+import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.mockito.MockitoSugar
 
+import scala.collection.immutable
 import scala.concurrent.Future
 
 class SimpleSelectItSpecSpec
@@ -17,8 +17,6 @@ class SimpleSelectItSpecSpec
     with SimpleSelectItSpec
     with MockitoSugar
     with BeforeAndAfterAll {
-
-  implicit val materializer: Materializer = ActorMaterializer()
 
   implicit val executionContext = system.dispatcher
 
@@ -28,24 +26,24 @@ class SimpleSelectItSpecSpec
 
   override def cleanUpDb(): Unit = ()
 
-  override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+  override def afterAll() = {
+    shutdown()
   }
 
   when(connector.simpleSelect(SimpleSelect(AllField, TableName(aTableName)), queryTimeout)).thenReturn(
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v3", "3", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v6", "6", null),
-            Seq("v4", "-4", "0"),
-            Seq("v5", null, "0"),
-            Seq("v7", null, null)
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v1", "1", "1"),
+            immutable.Seq("v3", "3", "1"),
+            immutable.Seq("v2", "2", "0"),
+            immutable.Seq("v6", "6", null),
+            immutable.Seq("v4", "-4", "0"),
+            immutable.Seq("v5", null, "0"),
+            immutable.Seq("v7", null, null)
+          )
         )
       )
     )
@@ -55,13 +53,13 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("B1", "B2", "B3", "B4"),
-            Seq("b!3", "b@3", "b#3", null),
-            Seq("b;2", "b\\2", "b'2", "b=2"),
-            Seq("b,1", "b.1", "b:1", "b\"1"),
-            Seq("b$4", "b%4", "b 4", null)
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("B1", "B2", "B3", "B4"),
+            immutable.Seq("b!3", "b@3", "b#3", null),
+            immutable.Seq("b;2", "b\\2", "b'2", "b=2"),
+            immutable.Seq("b,1", "b.1", "b:1", "b\"1"),
+            immutable.Seq("b$4", "b%4", "b 4", null)
+          )
         )
       )
     )
@@ -71,12 +69,12 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("C"),
-            Seq("c12"),
-            Seq("c12"),
-            Seq("c3")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("C"),
+            immutable.Seq("c12"),
+            immutable.Seq("c12"),
+            immutable.Seq("c3")
+          )
         )
       )
     )
@@ -87,11 +85,11 @@ class SimpleSelectItSpecSpec
       Future(
         Right(
           Source(
-            Seq(
-              Seq("C"),
-              Seq("c12"),
-              Seq("c3")
-            ).to[scala.collection.immutable.Seq]
+            immutable.Seq(
+              immutable.Seq("C"),
+              immutable.Seq("c12"),
+              immutable.Seq("c3")
+            )
           )
         )
       )
@@ -99,23 +97,23 @@ class SimpleSelectItSpecSpec
 
   when(
     connector.simpleSelect(
-      SimpleSelect(SpecificFields(Seq(FieldName("A1"), FieldName("A3"))), TableName(aTableName)),
+      SimpleSelect(SpecificFields(immutable.Seq(FieldName("A1"), FieldName("A3"))), TableName(aTableName)),
       queryTimeout
     )
   ).thenReturn(
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A3"),
-            Seq("v1", "1"),
-            Seq("v2", "0"),
-            Seq("v6", null),
-            Seq("v3", "1"),
-            Seq("v4", "0"),
-            Seq("v5", "0"),
-            Seq("v7", null)
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A3"),
+            immutable.Seq("v1", "1"),
+            immutable.Seq("v2", "0"),
+            immutable.Seq("v6", null),
+            immutable.Seq("v3", "1"),
+            immutable.Seq("v4", "0"),
+            immutable.Seq("v5", "0"),
+            immutable.Seq("v7", null)
+          )
         )
       )
     )
@@ -125,11 +123,11 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v3", "3", "1"),
-            Seq("v4", "-4", "0")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v3", "3", "1"),
+            immutable.Seq("v4", "-4", "0")
+          )
         )
       )
     )
@@ -142,11 +140,11 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v5", null, "0"),
-            Seq("v7", null, null)
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v5", null, "0"),
+            immutable.Seq("v7", null, null)
+          )
         )
       )
     )
@@ -159,14 +157,14 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v2", "2", "0"),
-            Seq("v4", "-4", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v1", "1", "1"),
-            Seq("v6", "6", null)
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v2", "2", "0"),
+            immutable.Seq("v4", "-4", "0"),
+            immutable.Seq("v3", "3", "1"),
+            immutable.Seq("v1", "1", "1"),
+            immutable.Seq("v6", "6", null)
+          )
         )
       )
     )
@@ -181,10 +179,10 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v3", "3", "1")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v3", "3", "1")
+          )
         )
       )
     )
@@ -207,11 +205,11 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("B1", "B2", "B3", "B4"),
-            Seq("b,1", "b.1", "b:1", "b\"1"),
-            Seq("b;2", "b\\2", "b'2", "b=2")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("B1", "B2", "B3", "B4"),
+            immutable.Seq("b,1", "b.1", "b:1", "b\"1"),
+            immutable.Seq("b;2", "b\\2", "b'2", "b=2")
+          )
         )
       )
     )
@@ -226,10 +224,10 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v3", "3", "1")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v3", "3", "1")
+          )
         )
       )
     )
@@ -244,11 +242,11 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v3", "3", "1")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v1", "1", "1"),
+            immutable.Seq("v3", "3", "1")
+          )
         )
       )
     )
@@ -261,7 +259,7 @@ class SimpleSelectItSpecSpec
         TableName(aTableName),
         where = Some(
           Or(
-            Seq(
+            immutable.Seq(
               EqualToValue(FieldName("A1"), Value("v1")),
               EqualToValue(FieldName("A1"), Value("v2")),
               IsNull(FieldName("A2"))
@@ -275,13 +273,13 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v5", null, "0"),
-            Seq("v2", "2", "0"),
-            Seq("v7", null, null)
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v1", "1", "1"),
+            immutable.Seq("v5", null, "0"),
+            immutable.Seq("v2", "2", "0"),
+            immutable.Seq("v7", null, null)
+          )
         )
       )
     )
@@ -294,7 +292,7 @@ class SimpleSelectItSpecSpec
         TableName(aTableName),
         where = Some(
           And(
-            Seq(
+            immutable.Seq(
               EqualToValue(FieldName("A1"), Value("v7")),
               IsNull(FieldName("A2"))
             )
@@ -307,10 +305,10 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v7", null, null)
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v7", null, null)
+          )
         )
       )
     )
@@ -323,7 +321,7 @@ class SimpleSelectItSpecSpec
         TableName(aTableName),
         where = Some(
           And(
-            Seq(
+            immutable.Seq(
               EqualToValue(FieldName("A1"), Value("v7")),
               NotNull(FieldName("A2"))
             )
@@ -341,10 +339,10 @@ class SimpleSelectItSpecSpec
         TableName(aTableName),
         where = Some(
           Or(
-            Seq(
+            immutable.Seq(
               EqualToValue(FieldName("A1"), Value("v1")),
               And(
-                Seq(
+                immutable.Seq(
                   IsNull(FieldName("A2")),
                   IsNull(FieldName("A3"))
                 )
@@ -359,11 +357,11 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v7", null, null)
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v1", "1", "1"),
+            immutable.Seq("v7", null, null)
+          )
         )
       )
     )
@@ -382,16 +380,16 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v7", null, null),
-            Seq("v6", "6", null),
-            Seq("v5", null, "0"),
-            Seq("v4", "-4", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v1", "1", "1")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v7", null, null),
+            immutable.Seq("v6", "6", null),
+            immutable.Seq("v5", null, "0"),
+            immutable.Seq("v4", "-4", "0"),
+            immutable.Seq("v3", "3", "1"),
+            immutable.Seq("v2", "2", "0"),
+            immutable.Seq("v1", "1", "1")
+          )
         )
       )
     )
@@ -410,16 +408,16 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v1", "1", "1"),
-            Seq("v2", "2", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v4", "-4", "0"),
-            Seq("v5", null, "0"),
-            Seq("v6", "6", null),
-            Seq("v7", null, null)
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v1", "1", "1"),
+            immutable.Seq("v2", "2", "0"),
+            immutable.Seq("v3", "3", "1"),
+            immutable.Seq("v4", "-4", "0"),
+            immutable.Seq("v5", null, "0"),
+            immutable.Seq("v6", "6", null),
+            immutable.Seq("v7", null, null)
+          )
         )
       )
     )
@@ -431,7 +429,8 @@ class SimpleSelectItSpecSpec
         AllField,
         TableName(aTableName),
         where = Some(NotNull(FieldName("A3"))),
-        orderBy = List(SortCriteria(FieldName("A3"), Direction.Ascending), SortCriteria(FieldName("A1"), Direction.Descending))
+        orderBy =
+          List(SortCriteria(FieldName("A3"), Direction.Ascending), SortCriteria(FieldName("A1"), Direction.Descending))
       ),
       queryTimeout
     )
@@ -439,18 +438,46 @@ class SimpleSelectItSpecSpec
     Future(
       Right(
         Source(
-          Seq(
-            Seq("A1", "A2", "A3"),
-            Seq("v5", null, "0"),
-            Seq("v4", "-4", "0"),
-            Seq("v2", "2", "0"),
-            Seq("v3", "3", "1"),
-            Seq("v1", "1", "1")
-          ).to[scala.collection.immutable.Seq]
+          immutable.Seq(
+            immutable.Seq("A1", "A2", "A3"),
+            immutable.Seq("v5", null, "0"),
+            immutable.Seq("v4", "-4", "0"),
+            immutable.Seq("v2", "2", "0"),
+            immutable.Seq("v3", "3", "1"),
+            immutable.Seq("v1", "1", "1")
+          )
         )
       )
     )
   )
 
+  when(
+    connector.simpleSelect(
+      SimpleSelect(
+        SpecificFields("A2"),
+        TableName(aTableName),
+        orderBy = List(SortCriteria(FieldName("A1"), Direction.Descending)),
+        distinct = Some(true)
+      ),
+      queryTimeout
+    )
+  ).thenReturn(
+    Future(
+      Right(
+        Source(
+          immutable.Seq(
+            immutable.Seq("A2", "A1"),
+            immutable.Seq(null, "v7"),
+            immutable.Seq("6", "v6"),
+            immutable.Seq(null, "v5"),
+            immutable.Seq("-4", "v4"),
+            immutable.Seq("3", "v3"),
+            immutable.Seq("2", "v2"),
+            immutable.Seq("1", "v1")
+          )
+        )
+      )
+    )
+  )
 
 }

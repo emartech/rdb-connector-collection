@@ -1,13 +1,8 @@
 package com.emarsys.rdb.connector.test
 
-import akka.stream.Materializer
+import akka.actor.ActorSystem
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{
-  BooleanValue,
-  IntValue,
-  NullValue,
-  StringValue
-}
+import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, IntValue, NullValue, StringValue}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
@@ -39,10 +34,16 @@ trait SearchItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
 
   val connector: Connector
 
-  val awaitTimeout = 5.seconds
-  val queryTimeout = 5.seconds
+  val awaitTimeout = 10.seconds
+  val queryTimeout = 10.seconds
 
-  implicit val materializer: Materializer
+  val booleanValue0 = "0"
+  val booleanValue1 = "1"
+  val stringColumn  = "z1"
+  val intColumn     = "z2"
+  val booleanColumn = "z3"
+
+  implicit val system: ActorSystem
 
   override def beforeAll(): Unit = {
     initDb()
@@ -62,7 +63,7 @@ trait SearchItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
     "#search" should {
       "find by string" in {
         val result = getConnectorResult(
-          connector.search(tableName, Map("z1" -> StringValue("r1")), None, queryTimeout),
+          connector.search(tableName, Map(stringColumn -> StringValue("r1")), None, queryTimeout),
           awaitTimeout
         )
 
@@ -70,27 +71,30 @@ trait SearchItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
           result,
           Seq(
             Seq("Z1", "Z2", "Z3", "Z4"),
-            Seq("r1", "1", "1", "s1")
+            Seq("r1", "1", booleanValue1, "s1")
           )
         )
       }
 
       "find by int" in {
         val result =
-          getConnectorResult(connector.search(tableName, Map("z2" -> IntValue(2)), None, queryTimeout), awaitTimeout)
+          getConnectorResult(
+            connector.search(tableName, Map(intColumn -> IntValue(2)), None, queryTimeout),
+            awaitTimeout
+          )
 
         checkResultWithoutRowOrder(
           result,
           Seq(
             Seq("Z1", "Z2", "Z3", "Z4"),
-            Seq("r2", "2", "0", "s2")
+            Seq("r2", "2", booleanValue0, "s2")
           )
         )
       }
 
       "find by boolean" in {
         val result = getConnectorResult(
-          connector.search(tableName, Map("z3" -> BooleanValue(false)), None, queryTimeout),
+          connector.search(tableName, Map(booleanColumn -> BooleanValue(false)), None, queryTimeout),
           awaitTimeout
         )
 
@@ -98,14 +102,17 @@ trait SearchItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
           result,
           Seq(
             Seq("Z1", "Z2", "Z3", "Z4"),
-            Seq("r2", "2", "0", "s2")
+            Seq("r2", "2", booleanValue0, "s2")
           )
         )
       }
 
       "find by null" in {
         val result =
-          getConnectorResult(connector.search(tableName, Map("z3" -> NullValue), None, queryTimeout), awaitTimeout)
+          getConnectorResult(
+            connector.search(tableName, Map(booleanColumn -> NullValue), None, queryTimeout),
+            awaitTimeout
+          )
 
         checkResultWithoutRowOrder(
           result,
@@ -118,14 +125,17 @@ trait SearchItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
 
       "find by int multiple line" in {
         val result =
-          getConnectorResult(connector.search(tableName, Map("z2" -> IntValue(45)), None, queryTimeout), awaitTimeout)
+          getConnectorResult(
+            connector.search(tableName, Map(intColumn -> IntValue(45)), None, queryTimeout),
+            awaitTimeout
+          )
 
         checkResultWithoutRowOrder(
           result,
           Seq(
             Seq("Z1", "Z2", "Z3", "Z4"),
-            Seq("r4", "45", "1", "s4"),
-            Seq("r5", "45", "1", "s5")
+            Seq("r4", "45", booleanValue1, "s4"),
+            Seq("r5", "45", booleanValue1, "s5")
           )
         )
       }

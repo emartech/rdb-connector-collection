@@ -3,19 +3,26 @@ package com.emarsys.rdb.connector.mysql
 import java.lang.management.ManagementFactory
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.Models.MetaData
+import com.emarsys.rdb.connector.common.Models.{MetaData, PoolConfig}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectionConfig
+import com.emarsys.rdb.connector.mysql.MySqlConnector.{MySqlConnectionConfig, MySqlConnectorConfig}
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{Matchers, WordSpec}
+import org.scalatestplus.mockito.MockitoSugar
 import slick.jdbc.MySQLProfile.api._
 import spray.json._
 
 class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
 
   "MySqlConnector" when {
+
+    val defaultConfig =
+      MySqlConnectorConfig(
+        configPath = "mysqldb",
+        verifyServerCertificate = true,
+        poolConfig = PoolConfig(2, 100)
+      )
 
     val exampleConnection = MySqlConnectionConfig(
       host = "host",
@@ -36,8 +43,20 @@ class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
         DatabaseError(ErrorCategory.Timeout, ErrorName.CompletionTimeout, "whatever", None, None)  -> false,
         DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "Deadlock detected", None, None)   -> true,
         DatabaseError(ErrorCategory.Unknown, ErrorName.Unknown, "whatever else", None, None)       -> false,
-        DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, "No operations allowed after connection closed.", None, None)       -> false,
-        DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, "No operations allowed after statement closed.", None, None)       -> false
+        DatabaseError(
+          ErrorCategory.Transient,
+          ErrorName.TransientDbError,
+          "No operations allowed after connection closed.",
+          None,
+          None
+        ) -> false,
+        DatabaseError(
+          ErrorCategory.Transient,
+          ErrorName.TransientDbError,
+          "No operations allowed after statement closed.",
+          None,
+          None
+        ) -> false
       ).foreach {
         case (e @ DatabaseError(errorCategory, errorName, message, _, _), expected) =>
           s"return $expected for ${errorCategory}#$errorName - $message" in {
@@ -101,7 +120,7 @@ class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
         val mBeanName: ObjectName = new ObjectName(s"com.zaxxer.hikari:type=Pool ($poolName)")
         mbs.registerMBean(mxPool, mBeanName)
 
-        val connector   = new MySqlConnector(db, MySqlConnector.defaultConfig, poolName)
+        val connector   = new MySqlConnector(db, defaultConfig, poolName)
         val metricsJson = connector.innerMetrics().parseJson.asJsObject
 
         metricsJson.fields.size shouldEqual 4
@@ -111,7 +130,7 @@ class MySqlConnectorSpec extends WordSpec with Matchers with MockitoSugar {
       "return Json in sad case" in {
         val db          = mock[Database]
         val poolName    = ""
-        val connector   = new MySqlConnector(db, MySqlConnector.defaultConfig, poolName)
+        val connector   = new MySqlConnector(db, defaultConfig, poolName)
         val metricsJson = connector.innerMetrics().parseJson.asJsObject
         metricsJson.fields.size shouldEqual 0
       }

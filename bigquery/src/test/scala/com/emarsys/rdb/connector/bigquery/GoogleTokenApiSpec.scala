@@ -8,15 +8,14 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.{HttpExt, HttpsConnectionContext}
-import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.bigquery.GoogleTokenApi.AccessTokenExpiry
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatestplus.mockito.MockitoSugar
 import pdi.jwt.{Jwt, JwtAlgorithm}
 
 import scala.concurrent.duration._
@@ -30,14 +29,12 @@ class GoogleTokenApiSpec
     with MockitoSugar
     with BeforeAndAfterAll {
 
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     shutdown()
   implicit val defaultPatience =
     PatienceConfig(timeout = 2.seconds, interval = 50.millis)
 
   implicit val executionContext: ExecutionContext = system.dispatcher
-
-  implicit val materializer = ActorMaterializer()
 
   //http://travistidwell.com/jsencrypt/demo/
   val privateKey =
@@ -104,7 +101,7 @@ class GoogleTokenApiSpec
       )
 
       implicit val clock: Clock = java.time.Clock.systemUTC()
-      val api = new GoogleTokenApi(http)
+      val api                   = new GoogleTokenApi(http)
       Await.result(api.getAccessToken("test@example.com", privateKey), defaultPatience.timeout)
 
       val captor: ArgumentCaptor[HttpRequest] = ArgumentCaptor.forClass(classOf[HttpRequest])

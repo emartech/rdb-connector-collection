@@ -6,26 +6,25 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import akka.util.Timeout
 import cats.syntax.option._
 import com.emarsys.rdb.connector.bigquery.GoogleApi._
 import com.emarsys.rdb.connector.bigquery.stream.BigQueryStreamSource
 import com.emarsys.rdb.connector.bigquery.{BigQueryConnector, GoogleSession, GoogleTokenApi}
+import com.emarsys.rdb.connector.test.util.EitherValues
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 
-trait DbInitUtil {
+trait DbInitUtil extends EitherValues {
   implicit val sys: ActorSystem
-  implicit val materializer: ActorMaterializer
   implicit val timeout: Timeout
   implicit lazy val ec: ExecutionContext = sys.dispatcher
-  implicit val clock: Clock = java.time.Clock.systemUTC()
+  implicit val clock: Clock              = java.time.Clock.systemUTC()
 
   private val testConfig = TestHelper.TEST_CONNECTION_CONFIG
 
-  lazy val connector: BigQueryConnector = Await.result(BigQueryConnector(testConfig)(sys), timeout.duration).right.get
+  lazy val connector: BigQueryConnector = Await.result(BigQueryConnector(testConfig)(sys), timeout.duration).value
 
   def sleep(): Unit = Thread.sleep(1000)
 

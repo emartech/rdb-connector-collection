@@ -24,6 +24,10 @@ trait PostgreSqlErrorHandling {
   private val accessDeniedErrors =
     Seq(PSQL_INSUFFICIENT_PRIVILEGE, PSQL_AUTHORIZATION_NAME_IS_INVALID, PSQL_INVALID_PASSWORD)
 
+  private val PSQL_CANCELLING_STATEMENT_DUE_TO_RECOVERY = "40001"
+  private val transientErrors =
+    Seq(PSQL_CANCELLING_STATEMENT_DUE_TO_RECOVERY)
+
   private def errorHandler(): PartialFunction[Throwable, DatabaseError] = {
     case ex: slick.SlickException if selectQueryWasGivenAsUpdate(ex.getMessage) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
@@ -33,6 +37,8 @@ trait PostgreSqlErrorHandling {
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
     case ex: SQLException if accessDeniedErrors.contains(ex.getSQLState) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, ex)
+    case ex: SQLException if transientErrors.contains(ex.getSQLState) =>
+      DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, ex)
     case ex: SQLException if ex.getSQLState == PSQL_STATE_RELATION_NOT_FOUND =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, ex)
   }
@@ -41,9 +47,9 @@ trait PostgreSqlErrorHandling {
     "Update statements should not return a ResultSet" == message
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[DatabaseError, T]] =
-    (errorHandler orElse default) andThen Left.apply
+    errorHandler.orElse(default).andThen(Left.apply(_))
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    (errorHandler orElse default) andThen Source.failed
+    errorHandler.orElse(default).andThen(Source.failed(_))
 
 }

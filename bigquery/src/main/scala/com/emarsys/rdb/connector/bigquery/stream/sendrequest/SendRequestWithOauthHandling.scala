@@ -2,10 +2,10 @@ package com.emarsys.rdb.connector.bigquery.stream.sendrequest
 
 import akka.NotUsed
 import akka.http.scaladsl.HttpExt
-import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.StatusCodes._
+import akka.stream.{FlowShape, Graph, Materializer}
 import akka.stream.scaladsl.{Flow, GraphDSL}
-import akka.stream.{ActorMaterializer, FlowShape, Graph, Materializer}
 import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 
@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 object SendRequestWithOauthHandling {
   def apply(googleSession: GoogleSession, http: HttpExt)(
       implicit ec: ExecutionContext,
-      mat: ActorMaterializer
+      mat: Materializer
   ): Graph[FlowShape[HttpRequest, HttpResponse], NotUsed] = {
     GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
@@ -47,6 +47,8 @@ object SendRequestWithOauthHandling {
     case RateLimit(msg)       => DatabaseError(ErrorCategory.RateLimit, ErrorName.TooManyQueries, msg)
     case NotFoundDataSet(msg) => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, msg)
     case NotFoundProject(msg) => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, msg)
+    case AccessDenied(msg)    => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, msg)
+    case QuotaExceeded(msg)   => DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.QueryRejected, msg)
     case _ =>
       DatabaseError(
         ErrorCategory.Unknown,
@@ -95,6 +97,22 @@ object SendRequestWithOauthHandling {
         val (response, body) = r
         if (response.status == Forbidden && body.contains("rateLimitExceeded") && body.contains("Exceeded rate limits"))
           errorMessageFrom(body)
+        else None
+      }
+    }
+
+    object AccessDenied {
+      def unapply(r: (HttpResponse, String)): Option[String] = {
+        val (response, body) = r
+        if (response.status == Forbidden && body.contains("Access Denied")) errorMessageFrom(body)
+        else None
+      }
+    }
+
+    object QuotaExceeded {
+      def unapply(r: (HttpResponse, String)): Option[String] = {
+        val (response, body) = r
+        if (response.status == Forbidden && body.contains("Quota exceeded")) errorMessageFrom(body)
         else None
       }
     }

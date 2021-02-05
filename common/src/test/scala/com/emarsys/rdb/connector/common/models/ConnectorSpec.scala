@@ -4,19 +4,19 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.StringValue
 import com.emarsys.rdb.connector.common.models.DataManipulation.{Criteria, Record, UpdateDefinition}
+import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.StringValue
 import com.emarsys.rdb.connector.common.models.Errors._
 import com.emarsys.rdb.connector.common.models.SimpleSelect.{AllField, TableName}
 import org.mockito.Answers
 import org.mockito.Mockito._
+import org.scalatest.{EitherValues, Matchers, WordSpecLike}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest.{EitherValues, Matchers, WordSpecLike}
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
 
 class ConnectorSpec extends WordSpecLike with Matchers with MockitoSugar with ScalaFutures with EitherValues {
 

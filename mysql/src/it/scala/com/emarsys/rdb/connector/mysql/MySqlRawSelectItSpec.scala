@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.mysql
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.ErrorCategory.FatalQueryExecution
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
@@ -20,8 +19,6 @@ class MySqlRawSelectItSpec
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll {
-
-  implicit val materializer: Materializer = ActorMaterializer()
 
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 

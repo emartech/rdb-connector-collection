@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.test
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Connector
 import org.mockito.Mockito.when
@@ -18,8 +17,6 @@ class DeleteItSpecSpec
 
   import com.emarsys.rdb.connector.utils.TestHelper._
 
-  implicit val materializer: Materializer = ActorMaterializer()
-
   implicit val executionContext = system.dispatcher
 
   override val connector = mock[Connector]
@@ -28,8 +25,8 @@ class DeleteItSpecSpec
 
   override def cleanUpDb(): Unit = ()
 
-  override def afterAll = {
-    TestKit.shutdownActorSystem(system)
+  override def afterAll() = {
+    shutdown()
   }
 
   when(connector.delete(tableName, simpleDeleteCiterion)).thenReturn(Future.successful(Right(1)))

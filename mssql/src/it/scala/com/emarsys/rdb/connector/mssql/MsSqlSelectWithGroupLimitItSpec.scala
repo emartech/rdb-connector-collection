@@ -1,28 +1,21 @@
 package com.emarsys.rdb.connector.mssql
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.mssql.utils.TestHelper
+import com.emarsys.rdb.connector.mssql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
 
 import scala.concurrent.Await
-import scala.concurrent.duration._
 
 class MsSqlSelectWithGroupLimitItSpec
     extends TestKit(ActorSystem("MsSqlSelectWithGroupLimitItSpec"))
-    with SelectWithGroupLimitItSpec {
-  import scala.concurrent.ExecutionContext.Implicits.global
+    with SelectWithGroupLimitItSpec
+    with BaseDbSpec {
 
-  override implicit val materializer: Materializer = ActorMaterializer()
 
-  override val awaitTimeout: FiniteDuration = 30.seconds
-  val connector: Connector =
-    Await.result(MsSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), awaitTimeout).right.get
 
   override def afterAll(): Unit = {
-    system.terminate()
+    shutdown()
     super.afterAll()
   }
 

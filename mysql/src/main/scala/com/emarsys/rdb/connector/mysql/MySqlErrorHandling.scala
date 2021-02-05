@@ -1,6 +1,6 @@
 package com.emarsys.rdb.connector.mysql
 
-import java.sql.{SQLException, SQLSyntaxErrorException}
+import java.sql.SQLException
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
@@ -34,7 +34,7 @@ trait MySqlErrorHandling {
   private def errorHandler: PartialFunction[Throwable, DatabaseError] = {
     case ex: slick.SlickException if selectQueryWasGivenAsUpdate(ex.getMessage) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
-    case ex: SQLSyntaxErrorException if ex.getMessage.contains("Access denied") =>
+    case ex: SQLException if ex.getMessage.contains("Access denied") =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, ex)
     case ex: MySQLTimeoutException if ex.getMessage.contains("cancelled") =>
       DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, ex)
@@ -66,9 +66,9 @@ trait MySqlErrorHandling {
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[DatabaseError, T]] =
-    (errorHandler orElse default) andThen Left.apply
+    errorHandler.orElse(default).andThen(Left.apply(_))
 
   protected def streamErrorHandler[A]: PartialFunction[Throwable, Source[A, NotUsed]] =
-    (errorHandler orElse default) andThen Source.failed
+    errorHandler.orElse(default).andThen(Source.failed(_))
 
 }

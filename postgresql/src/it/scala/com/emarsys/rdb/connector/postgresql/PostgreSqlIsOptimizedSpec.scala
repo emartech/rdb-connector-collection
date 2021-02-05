@@ -2,19 +2,23 @@ package com.emarsys.rdb.connector.postgresql
 
 import java.util.UUID
 
-import com.emarsys.rdb.connector.common.models.Connector
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-import com.emarsys.rdb.connector.postgresql.utils.TestHelper
+import com.emarsys.rdb.connector.postgresql.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
-import org.scalatest.{BeforeAndAfterAll, EitherValues, Matchers, WordSpecLike}
+import com.emarsys.rdb.connector.test.util.EitherValues
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PostgreSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAndAfterAll with EitherValues {
-  implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
-  val awaitTimeout              = 5.seconds
-  val awaitTimeoutLong          = 15.seconds
+class PostgreSqlIsOptimizedSpec
+    extends WordSpecLike
+    with Matchers
+    with BeforeAndAfterAll
+    with EitherValues
+    with BaseDbSpec {
+  val awaitTimeout     = 10.seconds
+  val awaitTimeoutLong = 15.seconds
 
   val uuid       = UUID.randomUUID().toString
   val tableName  = s"is_optimized_table_$uuid"
@@ -29,11 +33,6 @@ class PostgreSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAn
     cleanUpDb()
     connector.close()
   }
-
-  val connector: Connector = Await
-    .result(PostgreSqlConnector.create(TestHelper.TEST_CONNECTION_CONFIG), awaitTimeoutLong)
-    .right
-    .get
 
   def initDb(): Unit = {
     val createTableSql =
@@ -76,28 +75,28 @@ class PostgreSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAn
         "if simple index exists in its own" in {
           val resultE = Await.result(connector.isOptimized(tableName, Seq("a0")), awaitTimeout)
           resultE shouldBe a[Right[_, _]]
-          val result = resultE.right.get
+          val result = resultE.value
           result shouldBe true
         }
 
         "if simple index exists in complex index as first member" in {
           val resultE = Await.result(connector.isOptimized(tableName, Seq("a1")), awaitTimeout)
           resultE shouldBe a[Right[_, _]]
-          val result = resultE.right.get
+          val result = resultE.value
           result shouldBe true
         }
 
         "if complex index exists" in {
           val resultE = Await.result(connector.isOptimized(tableName, Seq("a1", "a2")), awaitTimeout)
           resultE shouldBe a[Right[_, _]]
-          val result = resultE.right.get
+          val result = resultE.value
           result shouldBe true
         }
 
         "if complex index exists but in different order" in {
           val resultE = Await.result(connector.isOptimized(tableName, Seq("a2", "a1")), awaitTimeout)
           resultE shouldBe a[Right[_, _]]
-          val result = resultE.right.get
+          val result = resultE.value
           result shouldBe true
         }
       }
@@ -107,21 +106,21 @@ class PostgreSqlIsOptimizedSpec extends WordSpecLike with Matchers with BeforeAn
         "if simple index does not exists at all" in {
           val resultE = Await.result(connector.isOptimized(tableName, Seq("a3")), awaitTimeout)
           resultE shouldBe a[Right[_, _]]
-          val result = resultE.right.get
+          val result = resultE.value
           result shouldBe false
         }
 
         "if simple index exists in complex index but not as first member" in {
           val resultE = Await.result(connector.isOptimized(tableName, Seq("a2")), awaitTimeout)
           resultE shouldBe a[Right[_, _]]
-          val result = resultE.right.get
+          val result = resultE.value
           result shouldBe false
         }
 
         "if complex index exists only as part of another complex index" in {
           val resultE = Await.result(connector.isOptimized(tableName, Seq("a4", "a5")), awaitTimeout)
           resultE shouldBe a[Right[_, _]]
-          val result = resultE.right.get
+          val result = resultE.value
           result shouldBe false
         }
       }

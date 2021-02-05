@@ -2,15 +2,14 @@ package com.emarsys.rdb.connector.bigquery.stream.sendrequest
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import akka.util.Timeout
 import com.emarsys.rdb.connector.bigquery.GoogleSession
 import com.emarsys.rdb.connector.bigquery.stream.sendrequest.EnrichRequestWithOauth.TokenErrorException
 import org.mockito.Mockito._
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -22,12 +21,11 @@ class EnrichRequestWithOauthSpec
     with BeforeAndAfterAll
     with MockitoSugar {
 
-  override def afterAll = {
+  override def afterAll() = {
     shutdown()
   }
 
-  implicit val materializer = ActorMaterializer()
-  implicit val timeout      = Timeout(1.second)
+  implicit val timeout: Timeout = Timeout(1.second)
 
   import system.dispatcher
 

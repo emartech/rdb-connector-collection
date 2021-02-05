@@ -8,7 +8,7 @@ object Dependencies {
   val supportedScalaVersions = Seq(v2_12, v2_13)
 
   val mssqlVersion     = "6.4.0.jre8"
-  val mysqlVersion     = "8.0.18"
+  val mysqlVersion     = "8.0.23"
   val postgresVersion  = "42.2.14"
   val redshiftVersion  = "1.2.37.1061"
   val snowflakeVersion = "3.12.17"

@@ -3,7 +3,6 @@ package com.emarsys.rdb.connector.mysql
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.stream.scaladsl.Sink
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
@@ -14,8 +13,8 @@ import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithout
 import com.emarsys.rdb.connector.test.util.EitherValues
 import org.scalatest.{AsyncWordSpecLike, BeforeAndAfterAll, BeforeAndAfterEach, Matchers}
 
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 class MySqlRawQueryItSpec
     extends TestKit(ActorSystem("MySqlRawQueryItSpec"))
@@ -32,8 +31,6 @@ class MySqlRawQueryItSpec
 
   val aTableName: String = s"raw_query_tables_table_$uuid"
   val bTableName: String = s"temp_$uuid"
-
-  implicit val materializer: Materializer = ActorMaterializer()
 
   val awaitTimeout = 10.seconds
   val queryTimeout = 10.seconds

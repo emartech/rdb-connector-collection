@@ -1,9 +1,9 @@
 package com.emarsys.rdb.connector.test
 
-import akka.stream.Materializer
-import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
+import akka.actor.ActorSystem
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.common.models.SimpleSelect._
+import com.emarsys.rdb.connector.common.models.{Connector, SimpleSelect}
 import com.emarsys.rdb.connector.test.util.EitherValues
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
@@ -44,7 +44,7 @@ trait SelectWithGroupLimitItSpec extends WordSpecLike with Matchers with BeforeA
   val awaitTimeout = 10.seconds
   val queryTimeout = 10.seconds
 
-  implicit val materializer: Materializer
+  implicit val system: ActorSystem
 
   override def beforeAll(): Unit = {
     initDb()

@@ -5,7 +5,6 @@ import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCateg
 
 trait BigQueryIsOptimized {
   self: BigQueryConnector =>
-  import cats.instances.either._
   import cats.syntax.flatMap._
 
   override def isOptimized(table: String, fields: Seq[String]): ConnectorResponse[Boolean] = {

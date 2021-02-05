@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.redshift
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.redshift.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
@@ -13,7 +12,7 @@ class RedshiftSelectWithGroupLimitItSpec
     extends TestKit(ActorSystem("RedshiftSelectWithGroupLimitItSpec"))
     with SelectWithGroupLimitItSpec
     with BaseDbSpec {
-  implicit override val materializer: Materializer = ActorMaterializer()
+
   override val awaitTimeout                        = 20.seconds
   override val queryTimeout                        = 20.seconds
 
@@ -59,7 +58,7 @@ class RedshiftSelectWithGroupLimitWithSchemaItSpec
     extends TestKit(ActorSystem("RedshiftSelectWithGroupLimitWithSchemaItSpec"))
     with SelectWithGroupLimitItSpec
     with BaseDbSpec {
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   val schema                    = "ittestschema"
   override val connectionConfig = TestHelper.TEST_CONNECTION_CONFIG.copy(connectionParams = s"currentSchema=$schema")

@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.snowflake
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.snowflake.utils.{BaseDbSpec, TestHelper}
 import com.emarsys.rdb.connector.test.SelectWithGroupLimitItSpec
@@ -16,7 +15,7 @@ class SnowflakeSelectWithGroupLimitItSpec
     with BaseDbSpec
     with Matchers {
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override def initDb(): Unit = {
     val createTableSql = s"""CREATE TABLE "$tableName"(ID NUMBER, NAME VARCHAR, DATA VARCHAR)"""

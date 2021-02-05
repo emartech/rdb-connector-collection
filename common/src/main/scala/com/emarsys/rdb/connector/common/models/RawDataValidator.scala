@@ -8,7 +8,6 @@ import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorName,
 import scala.concurrent.ExecutionContext
 
 trait RawDataValidator {
-  import cats.instances.future._
   import cats.syntax.flatMap._
 
   def valid(implicit ec: ExecutionContext): ConnectorResponseET[Unit] = EitherT.rightT(())

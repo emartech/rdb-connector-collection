@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.snowflake
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.Errors.DatabaseError
 import com.emarsys.rdb.connector.common.models.Errors.ErrorCategory.Timeout
@@ -21,8 +20,6 @@ class SnowflakeRawSelectItSpec
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll {
-
-  implicit val materializer: Materializer = ActorMaterializer()
 
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 

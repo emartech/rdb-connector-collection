@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.mssql
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, Materializer}
 import akka.stream.scaladsl.Sink
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, StringValue}
@@ -18,7 +17,7 @@ class MsSqlInsertSpec extends TestKit(ActorSystem("MsSqlInsertSpec")) with Inser
   val aTableName: String = tableName
   val bTableName: String = s"temp_$uuid"
 
-  implicit override val materializer: Materializer = ActorMaterializer()
+
 
   override def afterAll(): Unit = {
     shutdown()

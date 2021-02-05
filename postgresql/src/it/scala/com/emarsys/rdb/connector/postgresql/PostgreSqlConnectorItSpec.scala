@@ -2,7 +2,6 @@ package com.emarsys.rdb.connector.postgresql
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.common.ConnectorResponse
@@ -23,7 +22,7 @@ class PostgreSqlConnectorItSpec
     with BeforeAndAfterAll
     with EitherValues {
 
-  implicit val mat = ActorMaterializer()
+
 
   private val timeoutMessage = "Connection is not available, request timed out after"
 

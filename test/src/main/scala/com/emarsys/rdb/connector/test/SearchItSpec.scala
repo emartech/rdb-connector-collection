@@ -1,13 +1,8 @@
 package com.emarsys.rdb.connector.test
 
-import akka.stream.Materializer
+import akka.actor.ActorSystem
 import com.emarsys.rdb.connector.common.models.Connector
-import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{
-  BooleanValue,
-  IntValue,
-  NullValue,
-  StringValue
-}
+import com.emarsys.rdb.connector.common.models.DataManipulation.FieldValueWrapper.{BooleanValue, IntValue, NullValue, StringValue}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
@@ -48,7 +43,7 @@ trait SearchItSpec extends WordSpecLike with Matchers with BeforeAndAfterAll {
   val intColumn     = "z2"
   val booleanColumn = "z3"
 
-  implicit val materializer: Materializer
+  implicit val system: ActorSystem
 
   override def beforeAll(): Unit = {
     initDb()

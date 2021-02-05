@@ -14,7 +14,7 @@ object Dependencies {
   val snowflakeVersion = "3.12.17"
 
   val akkaVersion              = "2.6.9"
-  val akkaHttpVersion          = "10.2.0"
+  val akkaHttpVersion          = "10.2.3"
   val akkaStreamContribVersion = "0.11"
   val slickVersion             = "3.3.3"
   val catsCoreVersion          = "2.3.1"

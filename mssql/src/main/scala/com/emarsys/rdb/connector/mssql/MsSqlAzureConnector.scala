@@ -49,7 +49,6 @@ object MsSqlAzureConnector extends MsSqlAzureConnectorTrait {
 }
 
 trait MsSqlAzureConnectorTrait extends MsSqlErrorHandling with MsSqlConnectorHelper {
-  import cats.instances.future._
   import cats.syntax.functor._
 
 //  val defaultConfig = MsSqlAzureConnectorConfig(

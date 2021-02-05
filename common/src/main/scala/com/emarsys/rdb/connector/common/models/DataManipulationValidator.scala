@@ -7,8 +7,6 @@ import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCateg
 import scala.concurrent.ExecutionContext
 
 class DataManipulationValidator(validator: RawDataValidator) {
-  import cats.instances.future._
-  import cats.instances.list._
   import cats.syntax.foldable._
 
   private type DeferredValidation = () => ConnectorResponseET[Unit]

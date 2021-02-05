@@ -86,7 +86,6 @@ object PostgreSqlConnector extends PostgreSqlConnectorTrait {
 }
 
 trait PostgreSqlConnectorTrait extends ConnectorCompanion with PostgreSqlErrorHandling {
-  import cats.instances.future._
   import cats.syntax.functor._
 
   override def meta(): MetaData = MetaData("\"", "'", "\\")

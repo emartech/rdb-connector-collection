@@ -34,6 +34,8 @@ class SendRequestWithOauthHandlingSpec
 
   implicit val timeout: Timeout = Timeout(1.second)
 
+  val quotaExceededErrorBody = "Quota exceeded: Your project exceeded quota for free query bytes scanned."
+
   val errorCases = Table(
     ("error", "responseStatus", "message", "errorCategory", "errorName"),
     ("SyntaxError", BadRequest, "Syntax error", C.FatalQueryExecution, N.SqlSyntaxError),
@@ -41,6 +43,7 @@ class SendRequestWithOauthHandlingSpec
     ("NotFoundTable", NotFound, "Not found: Table", C.FatalQueryExecution, N.TableNotFound),
     ("NotFoundDataset", NotFound, "Not found: Dataset", C.FatalQueryExecution, N.TableNotFound),
     ("NotFoundProject", BadRequest, "The project xxx has not enabled", C.FatalQueryExecution, N.TableNotFound),
+    ("QuotaExceeded", Forbidden, quotaExceededErrorBody, C.FatalQueryExecution, N.QueryRejected),
     ("RateLimit", Forbidden, "rateLimitExceeded, Exceeded rate limits", C.RateLimit, N.TooManyQueries),
     (
       "AccessDeniedError",

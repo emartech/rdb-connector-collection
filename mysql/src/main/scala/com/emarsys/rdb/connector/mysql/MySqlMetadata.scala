@@ -1,7 +1,6 @@
 package com.emarsys.rdb.connector.mysql
 
 import cats.data.EitherT
-import cats.implicits._
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName

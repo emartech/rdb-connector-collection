@@ -8,22 +8,22 @@ object Dependencies {
   val supportedScalaVersions = Seq(v2_12, v2_13)
 
   val mssqlVersion     = "6.4.0.jre8"
-  val mysqlVersion     = "8.0.18"
-  val postgresVersion  = "42.2.14"
+  val mysqlVersion     = "8.0.23"
+  val postgresVersion  = "42.2.18"
   val redshiftVersion  = "1.2.37.1061"
-  val snowflakeVersion = "3.12.8"
+  val snowflakeVersion = "3.12.17"
 
   val akkaVersion              = "2.6.9"
   val akkaHttpVersion          = "10.2.0"
   val akkaStreamContribVersion = "0.11"
   val slickVersion             = "3.3.3"
-  val catsCoreVersion          = "2.0.0"
+  val catsCoreVersion          = "2.3.1"
   val jwtVersion               = "4.1.0"
   val enumeratumVersion        = "1.5.15"
 
   val scalatestVersion    = "3.0.8"
-  val mockitoScalaVersion = "1.10.2"
-  val mockitoVersion      = "3.2.4"
+  val mockitoScalaVersion = "1.10.6"
+  val mockitoVersion      = "3.7.7"
 
   private val defaultScalacOptions = Seq(
     "-encoding",

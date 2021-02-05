@@ -12,9 +12,6 @@ import scala.concurrent.Future
 
 trait MsSqlRawDataManipulation {
   self: MsSqlConnector =>
-
-  import cats.instances.future._
-  import cats.instances.list._
   import cats.syntax.traverse._
 
   override def rawUpdate(tableName: String, definitions: Seq[UpdateDefinition]): ConnectorResponse[Int] = {

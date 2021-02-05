@@ -90,7 +90,6 @@ object MsSqlConnector extends MsSqlConnectorTrait {
 }
 
 trait MsSqlConnectorTrait extends ConnectorCompanion with MsSqlErrorHandling with MsSqlConnectorHelper {
-  import cats.instances.future._
   import cats.syntax.functor._
 
   override def meta(): MetaData = MetaData("\"", "'", "'")

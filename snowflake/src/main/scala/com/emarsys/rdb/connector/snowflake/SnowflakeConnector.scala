@@ -57,7 +57,6 @@ class SnowflakeConnector(
 }
 
 object SnowflakeConnector extends ConnectorCompanion {
-  import cats.instances.future._
   import cats.syntax.functor._
 
   case class SnowflakeConnectionConfig(

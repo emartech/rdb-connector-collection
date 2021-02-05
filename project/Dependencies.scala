@@ -22,7 +22,7 @@ object Dependencies {
   val enumeratumVersion        = "1.5.15"
 
   val scalatestVersion    = "3.0.8"
-  val mockitoScalaVersion = "1.10.2"
+  val mockitoScalaVersion = "1.10.6"
   val mockitoVersion      = "3.7.7"
 
   private val defaultScalacOptions = Seq(

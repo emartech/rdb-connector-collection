@@ -130,4 +130,13 @@ object Dependencies {
       "org.typelevel"      %% "cats-core"      % catsCoreVersion
     )
   )
+
+  val Hana = Seq(
+    libraryDependencies ++= Seq(
+      "com.typesafe.slick"    %% "slick"          % slickVersion,
+      "com.typesafe.slick"    %% "slick-hikaricp" % slickVersion,
+      "com.sap.cloud.db.jdbc" % "ngdbc"           % "2.7.9",
+      "org.typelevel"         %% "cats-core"      % catsCoreVersion
+    )
+  )
 }

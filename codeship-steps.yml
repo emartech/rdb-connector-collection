@@ -3,7 +3,7 @@
     - name: Unit test all
       service: rdb-allconnector
       command: sbt +test
-      tag: ^(master|feature|update|snowflake)
+      tag: ^(master|feature|update)
     - type: parallel
       name: It tests
       steps:
@@ -14,6 +14,10 @@
               tag: ^(master|feature|update/redshift-jdbc42)
               service: rdb-allconnector
               command: sbt "project redshift; +it:test"
+            - name: Hana
+              tag: ^(master|feature|update/ngdbc)
+              service: rdb-allconnector
+              command: sbt "project hana; +it:test"
         - type: serial
           name: It tests (2/3)
           steps:

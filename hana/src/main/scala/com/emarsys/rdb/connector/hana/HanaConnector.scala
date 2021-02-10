@@ -2,6 +2,7 @@ package com.emarsys.rdb.connector.hana
 
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
+import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData, PoolConfig}
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.models.Errors.DatabaseError
@@ -121,6 +122,7 @@ trait HanaConnectorTrait extends ConnectorCompanion {
     EitherT(
       checkConnection(db)
         .as[Either[DatabaseError, HanaConnector]](Right(new HanaConnector(db, connectorConfig, poolName)))
+        .recover(ErrorConverter.default.andThen(Left.apply(_)))
     ).leftMap { connectionErrors =>
       db.close()
       connectionErrors

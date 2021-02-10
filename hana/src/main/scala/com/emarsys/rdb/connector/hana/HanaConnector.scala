@@ -7,9 +7,9 @@ import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, Co
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.models.Errors.DatabaseError
 import com.emarsys.rdb.connector.hana.HanaConnector.{HanaCloudConnectionConfig, HanaConnectorConfig}
+import com.emarsys.rdb.connector.hana.HanaProfile.api._
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.config.ConfigValueFactory.fromAnyRef
-import slick.jdbc.HsqldbProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -21,7 +21,10 @@ class HanaConnector(
     protected val connectorConfig: HanaConnectorConfig,
     protected val poolName: String
 )(implicit val executionContext: ExecutionContext)
-    extends Connector {
+    extends Connector
+    with HanaQueryRunner
+    with HanaErrorHandling
+    with HanaTestConnection {
 
   override def close(): Future[Unit] = {
     db.shutdown
@@ -130,7 +133,7 @@ trait HanaConnectorTrait extends ConnectorCompanion {
   }
 
   private def checkConnection(db: Database)(implicit ec: ExecutionContext): Future[Unit] = {
-    db.run(sql"SELECT 1 FROM SYS.DUMMY;".as[String]).void
+    db.run(sql"SELECT 1 FROM SYS.DUMMY;".as[Int]).void
   }
 
   private def createCloudUrl(config: HanaCloudConnectionConfig): String = {

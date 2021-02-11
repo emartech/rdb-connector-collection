@@ -26,7 +26,8 @@ class HanaConnector(
     with HanaQueryRunner
     with HanaErrorHandling
     with HanaTestConnection
-    with HanaSimpleSelect {
+    with HanaSimpleSelect
+    with HanaRawSelect {
 
   override def close(): Future[Unit] = {
     db.shutdown

@@ -80,6 +80,15 @@ class DefaultSqlWriterSpec extends AnyWordSpecLike with Matchers {
 
         Value("VALUE1").toSql shouldEqual "#VALUE1#"
       }
+
+      "use custom writer with same character for symbol and escape" in {
+        val customWriters = new DefaultSqlWriters {
+          implicit override lazy val valueWriter: SqlWriter[Value] = SqlWriter.createValueWriter("'", "'")
+        }
+        import customWriters._
+
+        Value("with single (') quote").toSql shouldEqual "'with single ('') quote'"
+      }
     }
 
     "AllFields" should {

@@ -16,6 +16,7 @@ import scala.util.Try
 
 import java.util.UUID
 
+// TODO: do we need unit tests for this?
 class HanaConnector(
     protected val db: Database,
     protected val connectorConfig: HanaConnectorConfig,
@@ -24,7 +25,8 @@ class HanaConnector(
     extends Connector
     with HanaQueryRunner
     with HanaErrorHandling
-    with HanaTestConnection {
+    with HanaTestConnection
+    with HanaSimpleSelect {
 
   override def close(): Future[Unit] = {
     db.shutdown
@@ -93,7 +95,7 @@ trait HanaConnectorTrait extends ConnectorCompanion {
     createHanaConnector(connectorConfig, poolName, database).value
   }
 
-  private def createDbConfig(
+  private [hana] def createDbConfig(
       config: HanaCloudConnectionConfig,
       connectorConfig: HanaConnectorConfig,
       poolName: String

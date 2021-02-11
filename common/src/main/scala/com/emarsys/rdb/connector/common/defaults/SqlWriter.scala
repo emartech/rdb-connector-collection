@@ -54,8 +54,8 @@ object SqlWriter {
     s"$symbol${escaping(symbol, escape, name)}$symbol"
   }
 
-  def conditionWriter(symbol: String, conditions: Seq[WhereCondition])(
-      implicit w: SqlWriter[WhereCondition]
+  def conditionWriter(symbol: String, conditions: Seq[WhereCondition])(implicit
+      w: SqlWriter[WhereCondition]
   ): String = {
     if (conditions.size == 1) {
       conditions.head.toSql
@@ -70,7 +70,10 @@ object SqlWriter {
     } else {
       val escapedText = if (escape == "") text else text.replace(escape, escape * 2)
       val symbolEscapedText =
-        if (escape == "" || symbol == "") escapedText else escapedText.replace(symbol, s"$escape$symbol")
+        if (escape == "" || symbol == "" || escape == symbol)
+          escapedText
+        else
+          escapedText.replace(symbol, s"$escape$symbol")
       symbolEscapedText
     }
   }

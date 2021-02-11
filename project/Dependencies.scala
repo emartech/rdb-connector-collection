@@ -17,12 +17,12 @@ object Dependencies {
   val akkaHttpVersion          = "10.2.3"
   val akkaStreamContribVersion = "0.11"
   val slickVersion             = "3.3.3"
-  val catsCoreVersion          = "2.3.1"
+  val catsCoreVersion          = "2.4.1"
   val jwtVersion               = "5.0.0"
   val enumeratumVersion        = "1.6.1"
 
   val scalatestVersion        = "3.2.3"
-  val mockitoScalaVersion     = "1.10.6"
+  val mockitoScalaVersion     = "1.16.25"
   val mockitoVersion          = "3.7.7"
   val scalatestMockitoVersion = "3.2.3.0"
 
@@ -59,7 +59,7 @@ object Dependencies {
       "org.scalatestplus"      %% "mockito-3-4"             % scalatestMockitoVersion % Test,
       "com.typesafe.akka"      %% "akka-http-spray-json"    % akkaHttpVersion         % Test,
       "com.typesafe.akka"      %% "akka-stream-testkit"     % akkaVersion             % Test,
-      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6"
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.1"
     )
   )
 

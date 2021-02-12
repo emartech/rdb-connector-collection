@@ -42,12 +42,15 @@ trait SelectDbInitHelper extends BaseDbSpec {
                              |  UNION ALL SELECT 'b$$4' AS "B1", 'b%4' AS "B2", 'b 4' AS "B3", NULL AS "B4" FROM SYS.DUMMY
                              |)""".stripMargin
 
+    val truncateExplainPlanTableSql = "DELETE FROM explain_plan_table"
+
     Await.result(
       for {
         _ <- TestHelper.executeQuery(createATableSql)
         _ <- TestHelper.executeQuery(createBTableSql)
         _ <- TestHelper.executeQuery(insertADataSql)
         _ <- TestHelper.executeQuery(insertBDataSql)
+        _ <- TestHelper.executeQuery(truncateExplainPlanTableSql)
       } yield (),
       20.seconds
     )

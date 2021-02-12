@@ -4,18 +4,17 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.SimpleSelect.FieldName
-
-import scala.annotation.tailrec
-import scala.concurrent.duration.FiniteDuration
-import HanaProfile.api._
+import com.emarsys.rdb.connector.hana.HanaProfile.api._
 import slick.jdbc.{GetResult, PositionedResult}
 
 import java.sql.ResultSet
 import java.util.UUID
+import scala.annotation.tailrec
+import scala.concurrent.duration.FiniteDuration
 
 trait HanaRawSelect { self: HanaConnector =>
-  import com.emarsys.rdb.connector.common.defaults.SqlWriter._
   import HanaWriters._
+  import com.emarsys.rdb.connector.common.defaults.SqlWriter._
 
   private val ignoredResult: GetResult[Vector[AnyRef]] = (_: PositionedResult) => Vector.empty
 
@@ -32,41 +31,11 @@ trait HanaRawSelect { self: HanaConnector =>
     runStreamingQuery(timeout)(limitedQuery)
   }
 
-  override def validateRawSelect(rawSql: String): ConnectorResponse[Unit] = {
-    val modifiedSql = wrapInExplain(removeEndingSemicolons(rawSql))
-    run(sql"#$modifiedSql".as[Vector[AnyRef]](ignoredResult)).map(_.map(_ => ()))
-  }
+  override def validateRawSelect(rawSql: String): ConnectorResponse[Unit] =
+    testQueryWithExplain(removeEndingSemicolons(rawSql))
 
-  override def analyzeRawSelect(rawSql: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
-    val query = createExplainPlanQuery(rawSql)
-
-    run(query).map(_.map(result => Source(result.toList)))
-  }
-
-  private def createExplainPlanQuery(rawSql: String) = {
-    SimpleDBIO[Seq[Seq[String]]] { context =>
-      val id         = UUID.randomUUID().toString
-      val connection = context.connection
-
-      connection.createStatement().execute(s"""EXPLAIN PLAN SET STATEMENT_NAME = '$id' FOR $rawSql""")
-      try {
-        val explainPlanResultSet =
-          connection.createStatement().executeQuery(s"SELECT OPERATOR_NAME, OPERATOR_DETAILS, OPERATOR_PROPERTIES, EXECUTION_ENGINE, DATABASE_NAME, SCHEMA_NAME, TABLE_NAME, TABLE_TYPE, TABLE_SIZE, OUTPUT_SIZE, SUBTREE_COST, OPERATOR_ID, PARENT_OPERATOR_ID, LEVEL, POSITION FROM explain_plan_table WHERE statement_name = '$id'")
-        getResultWithColumnNames(explainPlanResultSet)
-      } finally {
-        connection.createStatement().execute(s"DELETE FROM explain_plan_table WHERE statement_name = '$id'")
-      }
-    }
-  }
-
-  private def getResultWithColumnNames(rs: ResultSet): Seq[Seq[String]] = {
-    val columnIndexes = 1 to rs.getMetaData.getColumnCount
-
-    var rows = Seq(columnIndexes.map(rs.getMetaData.getColumnLabel))
-    while (rs.next()) rows :+= columnIndexes.map(rs.getString)
-
-    rows
-  }
+  override def analyzeRawSelect(rawSql: String): ConnectorResponse[Source[Seq[String], NotUsed]] =
+    explainQuery(removeEndingSemicolons(rawSql)).map(_.map(result => Source(result.toList)))
 
   override def projectedRawSelect(
       rawSql: String,
@@ -78,8 +47,7 @@ trait HanaRawSelect { self: HanaConnector =>
     runProjectedSelectWith(rawSql, fields, limit, allowNullFieldValue, runStreamingQuery(timeout))
 
   override def validateProjectedRawSelect(rawSql: String, fields: Seq[String]): ConnectorResponse[Unit] = {
-    runProjectedSelectWith(rawSql, fields, None, allowNullFieldValue = true, wrapInExplainThenRunOnDb)
-      .map(_.map(_ => ()))
+    runProjectedSelectWith(rawSql, fields, None, allowNullFieldValue = true, testQueryWithExplain)
   }
 
   private def runProjectedSelectWith[R](
@@ -99,14 +67,70 @@ trait HanaRawSelect { self: HanaConnector =>
     queryRunner(limitedQuery)
   }
 
-  private def wrapInExplainThenRunOnDb(query: String) =
-    run(sql"#${wrapInExplain(query)}".as[Vector[AnyRef]](ignoredResult))
+  private def testQueryWithExplain(query: String) = {
+    val id = UUID.randomUUID().toString
 
-  private def wrapInExplain(sqlWithoutSemicolon: String) = {
-    s"EXPLAIN PLAN FOR $sqlWithoutSemicolon"
+    val explainAction = for {
+      _ <- sql"#${wrapInExplain(query, id)}".as(ignoredResult)
+      _ <- sql"DELETE FROM explain_plan_table WHERE statement_name = $id".asUpdate
+    } yield ()
+
+    run(explainAction)
   }
 
-  private def wrapInExplainWithId(sqlWithoutSemicolon: String, id: String) = {
+  private def explainQuery(query: String) = {
+    val id = UUID.randomUUID().toString
+
+    val explainAction = for {
+      _           <- sql"#${wrapInExplain(query, id)}".as(ignoredResult)
+      explainPlan <- selectExplainResultAction(id)
+      _           <- sql"DELETE FROM explain_plan_table WHERE statement_name = $id".asUpdate
+    } yield explainPlan
+
+    run(explainAction)
+  }
+
+  private def selectExplainResultAction(id: String) = {
+    SimpleDBIO { context =>
+      val connection = context.connection
+      val selectExplainResultQuery =
+        s"""SELECT
+           |	OPERATOR_NAME,
+           |	OPERATOR_DETAILS,
+           |	OPERATOR_PROPERTIES,
+           |	EXECUTION_ENGINE,
+           |	DATABASE_NAME,
+           |	SCHEMA_NAME,
+           |	TABLE_NAME,
+           |	TABLE_TYPE,
+           |	TABLE_SIZE,
+           |	OUTPUT_SIZE,
+           |	SUBTREE_COST,
+           |	OPERATOR_ID,
+           |	PARENT_OPERATOR_ID,
+           |	LEVEL,
+           |	POSITION
+           |FROM explain_plan_table
+           |WHERE statement_name = '$id'""".stripMargin
+
+      val explainPlanResultSet = connection.createStatement().executeQuery(selectExplainResultQuery)
+      getResultWithColumnNames(explainPlanResultSet)
+    }
+
+  }
+
+  private def getResultWithColumnNames(rs: ResultSet): Seq[Seq[String]] = {
+    val columnIndexes = 1 to rs.getMetaData.getColumnCount
+
+    val rowsBuilder = Seq.newBuilder[Seq[String]]
+
+    rowsBuilder += columnIndexes.map(rs.getMetaData.getColumnLabel)
+    while (rs.next()) rowsBuilder += columnIndexes.map(rs.getString)
+
+    rowsBuilder.result()
+  }
+
+  private def wrapInExplain(sqlWithoutSemicolon: String, id: String) = {
     s"""EXPLAIN PLAN SET STATEMENT_NAME = '$id' FOR $sqlWithoutSemicolon"""
   }
 

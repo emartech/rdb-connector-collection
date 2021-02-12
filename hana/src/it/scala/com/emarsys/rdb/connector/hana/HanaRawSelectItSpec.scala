@@ -7,9 +7,9 @@ import com.emarsys.rdb.connector.test.RawSelectItSpec
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-
-import scala.concurrent.ExecutionContextExecutor
 import com.emarsys.rdb.connector.test._
+
+import scala.concurrent.{Await, ExecutionContextExecutor}
 
 class HanaRawSelectItSpec
     extends TestKit(ActorSystem("HanaRawSelectItSpec"))
@@ -98,6 +98,17 @@ class HanaRawSelectItSpec
 
       result should equal(expectedResponse)
     }
+
+    "cleanup explain_plan_table after analyze/validate queries" in {
+      getConnectorResult(connector.analyzeRawSelect(simpleSelect), awaitTimeout)
+      Await.result(connector.validateRawSelect(simpleSelect), awaitTimeout)
+      Await.result(connector.validateProjectedRawSelect(simpleSelect, Seq("A1")), awaitTimeout)
+
+      val result = getConnectorResult(connector.rawSelect("SELECT * FROM explain_plan_table", None, awaitTimeout), awaitTimeout)
+
+      result should equal(Seq.empty)
+    }
+
   }
 
 }

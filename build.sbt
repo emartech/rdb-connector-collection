@@ -59,7 +59,8 @@ lazy val hana      = connector("hana", Dependencies.Hana).settings(doNotPublish)
 lazy val ItTest = config("it") extend Test
 lazy val itTestSettings = Defaults.itSettings ++ Seq(
   fork := true,
-  testForkedParallel := true
+  testForkedParallel := true,
+  testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oD")
 ) ++ scalafmtConfigSettings
 
 def connector(projectId: String, additionalSettings: sbt.Def.SettingsDefinition*): Project =
@@ -75,6 +76,7 @@ def connector(projectId: String, additionalSettings: sbt.Def.SettingsDefinition*
     .settings(additionalSettings: _*)
     .settings(meta: _*)
     .settings(publishSettings: _*)
+    .settings(Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oD"))
 
 lazy val meta =
   Seq(

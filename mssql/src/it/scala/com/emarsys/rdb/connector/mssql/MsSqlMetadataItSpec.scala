@@ -47,8 +47,6 @@ class MsSqlMetadataItSpec extends MetadataItSpec with BaseDbSpec {
     val dropSchemaTableSql      = s"""DROP TABLE IF EXISTS [$tableName];"""
     val dropOtherSchemaTableSql = s"""DROP TABLE IF EXISTS ${otherSchema}.[$tableNameInOtherSchema];"""
     val dropOtherSchemaSql      = s"""DROP SCHEMA IF EXISTS [$otherSchema];"""
-    val dropViewSql2            = s"""IF OBJECT_ID('${viewName}_2', 'V') IS NOT NULL DROP VIEW [${viewName}_2];"""
-    val dropTableSql2           = s"""IF OBJECT_ID('${tableName}_2', 'U') IS NOT NULL DROP TABLE [${tableName}_2];"""
     val dropFieldsTableSql      = s"""DROP TABLE IF EXISTS [$fieldsTable];"""
     Await.result(
       for {
@@ -56,8 +54,6 @@ class MsSqlMetadataItSpec extends MetadataItSpec with BaseDbSpec {
         _ <- TestHelper.executeQuery(dropSchemaTableSql)
         _ <- TestHelper.executeQuery(dropOtherSchemaTableSql)
         _ <- TestHelper.executeQuery(dropOtherSchemaSql)
-        _ <- TestHelper.executeQuery(dropViewSql2)
-        _ <- TestHelper.executeQuery(dropTableSql2)
         _ <- TestHelper.executeQuery(dropFieldsTableSql)
       } yield (),
       awaitTimeout

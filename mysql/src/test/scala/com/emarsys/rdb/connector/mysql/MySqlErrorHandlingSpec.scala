@@ -1,16 +1,16 @@
 package com.emarsys.rdb.connector.mysql
 
-import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionException}
-import java.util.concurrent.{RejectedExecutionException, TimeoutException}
-
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
 import com.mysql.cj.exceptions.MysqlErrorNumbers._
 import com.mysql.cj.jdbc.exceptions.MySQLTimeoutException
-import org.scalatest.{EitherValues, PartialFunctionValues}
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.prop.TableDrivenPropertyChecks
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor4}
 import org.scalatest.wordspec.AnyWordSpecLike
+import org.scalatest.{EitherValues, PartialFunctionValues}
 import slick.SlickException
+
+import java.sql._
+import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 class MySqlErrorHandlingSpec
     extends AnyWordSpecLike
@@ -53,15 +53,11 @@ class MySqlErrorHandlingSpec
   private val wrongValueCountException =
     new SQLException("whatever", SQL_STATE_INSERT_VALUE_LIST_NO_MATCH_COL_LIST, ER_WRONG_VALUE_COUNT)
 
-  private val mySqlErrorCases = Table(
+  // format: off
+  private val mySqlErrorCases: TableFor4[String, Exception, C, N] = Table(
     ("error", "exception", "errorCategory", "errorName"),
     ("SlickException with wrong update statement", slickExceptionWrongUpdate, C.FatalQueryExecution, N.SqlSyntaxError),
-    (
-      "access denied exception (SQLSyntaxErrorException)",
-      accessDeniedExceptionSyntaxError,
-      C.FatalQueryExecution,
-      N.AccessDeniedError
-    ),
+    ("access denied exception (SQLSyntaxErrorException)", accessDeniedExceptionSyntaxError, C.FatalQueryExecution, N.AccessDeniedError),
     ("access denied exception (SQLException)", accessDeniedExceptionSQLE, C.FatalQueryExecution, N.AccessDeniedError),
     ("query timeout exception", queryTimeoutException, C.Timeout, N.QueryTimeout),
     ("connection time out exception", connectionTimeoutException, C.Timeout, N.ConnectionTimeout),
@@ -77,20 +73,25 @@ class MySqlErrorHandlingSpec
     ("wrong value count", wrongValueCountException, C.FatalQueryExecution, N.SqlSyntaxError)
   )
 
-  val sqlErrorCases = Table(
+  private val sqlErrorCases: TableFor4[String, Exception, C, N] = Table(
     ("error", "exception", "errorCategory", "errorName"),
     ("rejected with no active threads", new RejectedExecutionException("active threads = 0"), C.RateLimit, N.StuckPool),
     ("any sql syntax error", new SQLSyntaxErrorException("nope"), C.FatalQueryExecution, N.SqlSyntaxError),
     ("comm link failure", new SQLException("Communications link failure"), C.Transient, N.CommunicationsLinkFailure),
-    ("transient connection times out", new SQLTransientConnectionException("timed out"), C.Timeout, N.ConnectionTimeout)
+    ("transient connection times out", new SQLTransientConnectionException("timed out"), C.Timeout, N.ConnectionTimeout),
+    ("execution aborted by timeout", new SQLTimeoutException("execution aborted by timeout", "", 613), C.Timeout, N.QueryTimeout),
+    ("transaction rollback", new SQLTransactionRollbackException("", "", 129), C.Transient, N.TransientDbError),
+    ("non transient connection error", new SQLNonTransientConnectionException("", "", 0), C.FatalQueryExecution, N.ConnectionConfigError),
+    ("invalid authorization", new SQLInvalidAuthorizationSpecException("", "", 0), C.FatalQueryExecution, N.AccessDeniedError),
   )
 
-  val commonErrorCases = Table(
+  private val commonErrorCases: TableFor4[String, Exception, C, N] = Table(
     ("error", "exception", "errorCategory", "errorName"),
     ("RejectedExecution", new RejectedExecutionException("this one is not stuck"), C.RateLimit, N.TooManyQueries),
     ("timeout exception", new TimeoutException("Something timed out."), C.Timeout, N.CompletionTimeout),
     ("every other exception", new RuntimeException("Explosion"), C.Unknown, N.Unknown)
   )
+  // format: on
 
   "MySqlErrorHandling" should {
 
@@ -102,13 +103,12 @@ class MySqlErrorHandlingSpec
       handleNotExistingTable(table).valueAt(e).left.value shouldBe expectedDatabaseError
     }
 
-    forAll(mySqlErrorCases ++ sqlErrorCases ++ commonErrorCases) {
-      case (error, exception, errorCategory, errorName) =>
-        s"convert $error to ${errorCategory}#$errorName" in new MySqlErrorHandling {
-          val expectedDatabaseError = DatabaseError(errorCategory, errorName, exception)
+    forAll(mySqlErrorCases ++ sqlErrorCases ++ commonErrorCases) { case (error, exception, errorCategory, errorName) =>
+      s"convert $error to ${errorCategory}#$errorName" in new MySqlErrorHandling {
+        val expectedDatabaseError = DatabaseError(errorCategory, errorName, exception)
 
-          eitherErrorHandler().valueAt(exception).left.value shouldBe expectedDatabaseError
-        }
+        eitherErrorHandler().valueAt(exception).left.value shouldBe expectedDatabaseError
+      }
     }
 
     "compose a meaningful error message of unknown SQLExceptions" in new MySqlErrorHandling {

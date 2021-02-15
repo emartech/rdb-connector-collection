@@ -1,9 +1,9 @@
 package com.emarsys.rdb.connector.common.defaults
 
-import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransactionRollbackException, SQLTransientConnectionException}
-import java.util.concurrent.{RejectedExecutionException, TimeoutException}
-
 import com.emarsys.rdb.connector.common.models.Errors._
+
+import java.sql._
+import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 object ErrorConverter {
   val common: PartialFunction[Throwable, DatabaseError] = {
@@ -24,6 +24,12 @@ object ErrorConverter {
       DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, e)
     case e: SQLTransientConnectionException if e.getMessage.contains("timed out") =>
       DatabaseError(ErrorCategory.Timeout, ErrorName.ConnectionTimeout, e)
+    case e: SQLTimeoutException =>
+      DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, e)
+    case e: SQLNonTransientConnectionException =>
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.ConnectionConfigError, e)
+    case e: SQLInvalidAuthorizationSpecException =>
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, e)
     case e: SQLException =>
       DatabaseError(
         ErrorCategory.Unknown,

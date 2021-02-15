@@ -1,7 +1,6 @@
-package com.emarsys.rdb.connector.mssql
+package com.emarsys.rdb.connector.hana
 
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
-import com.microsoft.sqlserver.jdbc.SQLServerException
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor4}
 import org.scalatest.wordspec.AnyWordSpecLike
@@ -10,43 +9,21 @@ import org.scalatest.{EitherValues, PartialFunctionValues}
 import java.sql._
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
-class MsSqlErrorHandlingSpec
+class HanaErrorHandlingSpec
     extends AnyWordSpecLike
     with Matchers
-    with EitherValues
     with TableDrivenPropertyChecks
+    with EitherValues
     with PartialFunctionValues {
 
-  private val explainPermissionDenied =
-    new SQLException(
-      "EXPLAIN/SHOW can not be issued; lacking privileges for underlying table",
-      "HY000",
-      0,
-      new Exception()
-    )
-  private val showplanException      = new SQLServerException("Error1", "S0004", 0, new Exception())
-  private val permissionDenied       = new SQLServerException("Error1", "S0005", 0, new Exception())
-  private val invalidObject          = new SQLServerException("Error1", "S0002", 0, new Exception())
-  private val duplicateKeyError      = new SQLServerException("Error1", "23000", 0, new Exception())
-  private val sqlSyntaxError         = new SQLServerException("Error1", "S0001", 0, new Exception())
-  private val queryCancelledError    = new SQLServerException("Error1", "HY008", 0, new Exception())
-  private val lackingPrivilegesError = new SQLException("lacking privileges")
-  private val invalidUserOrPassword = new SQLException(
-    new SQLServerException("Login failed for user", "S0001", 18456, new Exception())
-  )
-
   // format: off
-  val mssqlErrorCases: TableFor4[String, Exception, C, N] = Table(
+  private val hanaErrorCases: TableFor4[String, Exception, C, N] = Table(
     ("error", "exception", "errorCategory", "errorName"),
-    ("query cancelled", queryCancelledError, C.Timeout, N.QueryTimeout),
-    ("sql syntax error", sqlSyntaxError, C.FatalQueryExecution, N.SqlSyntaxError),
-    ("duplicate key in object", duplicateKeyError, C.FatalQueryExecution, N.SqlSyntaxError),
-    ("invalid object name", invalidObject, C.FatalQueryExecution, N.TableNotFound),
-    ("permission denied", permissionDenied, C.FatalQueryExecution, N.AccessDeniedError),
-    ("showplan permission denied", showplanException, C.FatalQueryExecution, N.AccessDeniedError),
-    ("explain permission denied", explainPermissionDenied, C.FatalQueryExecution, N.AccessDeniedError),
-    ("lacking privileges error", lackingPrivilegesError, C.FatalQueryExecution, N.AccessDeniedError),
-    ("invalid user or password used", invalidUserOrPassword, C.FatalQueryExecution, N.AccessDeniedError)
+    ("invalid table name", new SQLException("invalid table name", "", 259), C.FatalQueryExecution, N.TableNotFound),
+    ("general error", new SQLException("general error", "", 2), C.Transient, N.TransientDbError),
+    ("fatal error", new SQLException("fatal error", "", 3), C.Transient, N.TransientDbError),
+    ("invalid license", new SQLException("invalid license", "", 19), C.FatalQueryExecution, N.QueryRejected),
+    ("exceed max num of concurrent transactions", new SQLException("exceed max num of concurrent transactions", "", 142), C.RateLimit, N.TooManyQueries),
   )
 
   private val sqlErrorCases: TableFor4[String, Exception, C, N] = Table(
@@ -69,17 +46,17 @@ class MsSqlErrorHandlingSpec
   )
   // format: on
 
-  "ErrorHandling" should {
+  "HanaErrorHandling" should {
 
-    forAll(mssqlErrorCases ++ sqlErrorCases ++ commonErrorCases) { case (error, exception, errorCategory, errorName) =>
-      s"convert $error to ${errorCategory}#$errorName" in new MsSqlErrorHandling {
+    forAll(hanaErrorCases ++ sqlErrorCases ++ commonErrorCases) { case (error, exception, errorCategory, errorName) =>
+      s"convert $error to ${errorCategory}#$errorName" in new HanaErrorHandling {
         val expectedDatabaseError = DatabaseError(errorCategory, errorName, exception)
 
         eitherErrorHandler().valueAt(exception).left.value shouldBe expectedDatabaseError
       }
     }
 
-    "compose a meaningful error message of unknown SQLExceptions" in new MsSqlErrorHandling {
+    "compose a meaningful error message of unknown SQLExceptions" in new HanaErrorHandling {
       val e = new SQLException("We have no idea", "random-sql-state", 999)
       val expectedDatabaseError =
         DatabaseError(C.Unknown, N.Unknown, "[random-sql-state] - [999] - We have no idea", Some(e), None)
@@ -87,19 +64,10 @@ class MsSqlErrorHandlingSpec
       eitherErrorHandler().valueAt(e).left.value shouldBe expectedDatabaseError
     }
 
-    "not convert DatabaseErrors" in new MsSqlErrorHandling {
+    "not convert DatabaseErrors" in new HanaErrorHandling {
       val databaseError = DatabaseError(C.Unknown, N.Unknown, "whatever", None, None)
 
       eitherErrorHandler().valueAt(databaseError).left.value shouldBe databaseError
-    }
-  }
-
-  "#onDuplicateKey" should {
-
-    "return default value when duplicate key error happens" in new MsSqlErrorHandling {
-      private val defaultValue = "default_value"
-
-      onDuplicateKey(defaultValue).valueAt(duplicateKeyError) shouldBe defaultValue
     }
   }
 }

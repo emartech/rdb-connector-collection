@@ -1,14 +1,14 @@
 package com.emarsys.rdb.connector.postgresql
 
-import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransientConnectionException}
-import java.util.concurrent.{RejectedExecutionException, TimeoutException}
-
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
-import org.scalatest.prop.TableDrivenPropertyChecks
-import org.scalatest.{EitherValues, PartialFunctionValues}
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor4}
 import org.scalatest.wordspec.AnyWordSpecLike
+import org.scalatest.{EitherValues, PartialFunctionValues}
 import slick.SlickException
+
+import java.sql._
+import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 class PostgreSqlErrorHandlingSpec
     extends AnyWordSpecLike
@@ -29,7 +29,8 @@ class PostgreSqlErrorHandlingSpec
   private val invalidPasswordException           = new SQLException("msg", "28P01")
   private val cancellingStatementException       = new SQLException("canceling statement...", "40001")
 
-  private val postgresTestCases = Table(
+  // format: off
+  private val postgresTestCases: TableFor4[String, Exception, C, N] = Table(
     ("error", "exception", "errorCategory", "errorName"),
     ("SlickException with wrong update statement", slickExceptionWrongUpdate, C.FatalQueryExecution, N.SqlSyntaxError),
     ("unknown SlickExceptions", slickExceptionUnknown, C.Unknown, N.Unknown),
@@ -44,20 +45,25 @@ class PostgreSqlErrorHandlingSpec
     ("canceling statement due to conflict with recovery", cancellingStatementException, C.Transient, N.TransientDbError)
   )
 
-  private val sqlErrorCases = Table(
+  private val sqlErrorCases: TableFor4[String, Exception, C, N] = Table(
     ("error", "exception", "errorCategory", "errorName"),
     ("rejected with no active threads", new RejectedExecutionException("active threads = 0"), C.RateLimit, N.StuckPool),
     ("any sql syntax error", new SQLSyntaxErrorException("nope"), C.FatalQueryExecution, N.SqlSyntaxError),
     ("comm link failure", new SQLException("Communications link failure"), C.Transient, N.CommunicationsLinkFailure),
-    ("transient connection times out", new SQLTransientConnectionException("timed out"), C.Timeout, N.ConnectionTimeout)
+    ("transient connection times out", new SQLTransientConnectionException("timed out"), C.Timeout, N.ConnectionTimeout),
+    ("execution aborted by timeout", new SQLTimeoutException("execution aborted by timeout", "", 613), C.Timeout, N.QueryTimeout),
+    ("transaction rollback", new SQLTransactionRollbackException("", "", 129), C.Transient, N.TransientDbError),
+    ("non transient connection error", new SQLNonTransientConnectionException("", "", 0), C.FatalQueryExecution, N.ConnectionConfigError),
+    ("invalid authorization", new SQLInvalidAuthorizationSpecException("", "", 0), C.FatalQueryExecution, N.AccessDeniedError),
   )
 
-  private val commonErrorCases = Table(
+  private val commonErrorCases: TableFor4[String, Exception, C, N] = Table(
     ("error", "exception", "errorCategory", "errorName"),
     ("RejectedExecution", new RejectedExecutionException("this one is not stuck"), C.RateLimit, N.TooManyQueries),
     ("timeout exception", new TimeoutException("Something timed out."), C.Timeout, N.CompletionTimeout),
     ("every other exception", new RuntimeException("Explosion"), C.Unknown, N.Unknown)
   )
+  // format: on
 
   "PostgreSqlErrorHandling" should {
 

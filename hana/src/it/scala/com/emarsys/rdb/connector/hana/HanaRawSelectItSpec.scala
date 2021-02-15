@@ -3,11 +3,10 @@ package com.emarsys.rdb.connector.hana
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.emarsys.rdb.connector.hana.utils.SelectDbInitHelper
-import com.emarsys.rdb.connector.test.RawSelectItSpec
+import com.emarsys.rdb.connector.test.{RawSelectItSpec, _}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-import com.emarsys.rdb.connector.test._
 
 import scala.concurrent.{Await, ExecutionContextExecutor}
 
@@ -104,7 +103,8 @@ class HanaRawSelectItSpec
       Await.result(connector.validateRawSelect(simpleSelect), awaitTimeout)
       Await.result(connector.validateProjectedRawSelect(simpleSelect, Seq("A1")), awaitTimeout)
 
-      val result = getConnectorResult(connector.rawSelect("SELECT * FROM explain_plan_table", None, awaitTimeout), awaitTimeout)
+      val result =
+        getConnectorResult(connector.rawSelect("SELECT * FROM explain_plan_table", None, awaitTimeout), awaitTimeout)
 
       result should equal(Seq.empty)
     }

@@ -1,8 +1,7 @@
 package com.emarsys.rdb.connector.common.defaults
 
-import java.sql.{SQLException, SQLSyntaxErrorException, SQLTransactionRollbackException, SQLTransientConnectionException}
+import java.sql.{SQLException, SQLInvalidAuthorizationSpecException, SQLNonTransientConnectionException, SQLSyntaxErrorException, SQLTimeoutException, SQLTransactionRollbackException, SQLTransientConnectionException}
 import java.util.concurrent.{RejectedExecutionException, TimeoutException}
-
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
 import org.scalatest.PartialFunctionValues
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor4}
@@ -11,16 +10,19 @@ import org.scalatest.wordspec.AnyWordSpecLike
 
 class ErrorConverterSpec extends AnyWordSpecLike with Matchers with PartialFunctionValues with TableDrivenPropertyChecks {
 
-  val sqlErrorCases: TableFor4[String, Exception, C, N] = Table(
+  private val sqlErrorCases: TableFor4[String, Exception, C, N] = Table(
     ("error", "exception", "errorCategory", "errorName"),
     ("rejected with no active threads", new RejectedExecutionException("active threads = 0"), C.RateLimit, N.StuckPool),
     ("any sql syntax error", new SQLSyntaxErrorException("nope"), C.FatalQueryExecution, N.SqlSyntaxError),
     ("comm link failure", new SQLException("Communications link failure"), C.Transient, N.CommunicationsLinkFailure),
     ("transient connection times out", new SQLTransientConnectionException("timed out"), C.Timeout, N.ConnectionTimeout),
-    ("deadlock", new SQLTransactionRollbackException("Any transaction rollback exception"), C.Transient, N.TransientDbError)
+    ("execution aborted by timeout", new SQLTimeoutException("execution aborted by timeout", "", 613), C.Timeout, N.QueryTimeout),
+    ("transaction rollback", new SQLTransactionRollbackException("", "", 129), C.Transient, N.TransientDbError),
+    ("non transient connection error", new SQLNonTransientConnectionException("", "", 0), C.FatalQueryExecution, N.ConnectionConfigError),
+    ("invalid authorization", new SQLInvalidAuthorizationSpecException("", "", 0), C.FatalQueryExecution, N.AccessDeniedError),
   )
 
-  val commonErrorCases: TableFor4[String, Exception, C, N] = Table(
+  private val commonErrorCases: TableFor4[String, Exception, C, N] = Table(
     ("error", "exception", "errorCategory", "errorName"),
     ("RejectedExecution", new RejectedExecutionException("this one is not stuck"), C.RateLimit, N.TooManyQueries),
     ("timeout exception", new TimeoutException("Something timed out."), C.Timeout, N.CompletionTimeout),

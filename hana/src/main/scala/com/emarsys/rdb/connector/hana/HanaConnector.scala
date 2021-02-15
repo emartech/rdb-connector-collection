@@ -27,7 +27,8 @@ class HanaConnector(
     with HanaErrorHandling
     with HanaTestConnection
     with HanaSimpleSelect
-    with HanaRawSelect {
+    with HanaRawSelect
+    with HanaMetadata {
 
   override def close(): Future[Unit] = {
     db.shutdown
@@ -50,7 +51,7 @@ class HanaConnector(
          |"threadAwaitingConnections": ${poolProxy.getThreadsAwaitingConnection},
          |"totalConnections": ${poolProxy.getTotalConnections}
          |}""".stripMargin
-    }.getOrElse(super.innerMetrics)
+    }.getOrElse(super.innerMetrics())
   }
 }
 
@@ -96,7 +97,7 @@ trait HanaConnectorTrait extends ConnectorCompanion {
     createHanaConnector(connectorConfig, poolName, database).value
   }
 
-  private [hana] def createDbConfig(
+  private[hana] def createDbConfig(
       config: HanaCloudConnectionConfig,
       connectorConfig: HanaConnectorConfig,
       poolName: String

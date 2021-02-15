@@ -68,6 +68,20 @@ trait MetadataItSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAl
         fieldModels shouldBe tableFields
       }
 
+      "list view fields" in {
+        val tableFields =
+          Seq("PersonID", "LastName", "FirstName").map(_.toLowerCase()).map(FieldModel(_, ""))
+
+        val resultE = Await.result(connector.listFields(viewName), awaitTimeout)
+
+        resultE shouldBe a[Right[_, _]]
+        val result = resultE.value
+
+        val fieldModels = result.map(f => f.copy(name = f.name.toLowerCase, columnType = ""))
+
+        fieldModels shouldBe tableFields
+      }
+
       "failed if table not found" in {
         val table  = "TABLENAME"
         val result = Await.result(connector.listFields(table), awaitTimeout)

@@ -7,16 +7,16 @@ import org.scalatest.EitherValues
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpecLike
 
-class HanaConnectorItSpec extends AsyncWordSpecLike with Matchers with EitherValues {
+class HanaCloudConnectorItSpec extends AsyncWordSpecLike with Matchers with EitherValues {
 
   val timeoutMessage = "Connection is not available, request timed out after"
 
   "HanaConnector" when {
 
-    val testConnectorConfig = TestHelper.TEST_CONNECTOR_CONFIG
-    val testConnection      = TestHelper.TEST_CONNECTION_CONFIG
+    val testConnection      = TestHelper.TEST_CLOUD_CONNECTION_CONFIG
+    val testConnectorConfig = TestHelper.TEST_CLOUD_CONNECTOR_CONFIG
 
-    "create connector" should {
+    "create cloud connector" should {
       "connect successfully" in {
         withClue("We should have received back a connector") {
           HanaConnector.createHanaCloudConnector(testConnection, testConnectorConfig).map { connector =>

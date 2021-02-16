@@ -12,6 +12,6 @@ trait BaseDbSpec extends EitherValues {
 
   lazy val connector: Connector =
     Await
-      .result(HanaConnector.createHanaCloudConnector(TestHelper.TEST_CONNECTION_CONFIG, TestHelper.TEST_CONNECTOR_CONFIG), 5.seconds)
+      .result(HanaConnector.createHanaCloudConnector(TestHelper.TEST_CLOUD_CONNECTION_CONFIG, TestHelper.TEST_CLOUD_CONNECTOR_CONFIG), 5.seconds)
       .value
 }

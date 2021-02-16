@@ -1,15 +1,15 @@
 package com.emarsys.rdb.connector.hana
 
 import cats.data.EitherT
-import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
-import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.Models.{CommonConnectionReadableData, ConnectionConfig, MetaData, PoolConfig}
-import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
+import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.models.Errors.DatabaseError
-import com.emarsys.rdb.connector.hana.HanaConnector.{HanaCloudConnectionConfig, HanaConnectorConfig}
+import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
+import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
+import com.emarsys.rdb.connector.hana.HanaConnector.{HanaCloudConnectionConfig, HanaConnectorConfig, HanaOnPremiseConnectionConfig}
 import com.emarsys.rdb.connector.hana.HanaProfile.api._
-import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.config.ConfigValueFactory.fromAnyRef
+import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -69,7 +69,26 @@ object HanaConnector extends HanaConnectorTrait {
     protected def getSecretFieldsForId = List(dbPassword)
 
     override def toCommonFormat: CommonConnectionReadableData = {
-      CommonConnectionReadableData("hana", instanceId, schema, dbUser)
+      CommonConnectionReadableData("hana-cloud", instanceId, schema, dbUser)
+    }
+  }
+
+  case class HanaOnPremiseConnectionConfig(
+      host: String,
+      port: Int,
+      dbName: String,
+      dbUser: String,
+      dbPassword: String,
+      certificate: String,
+      schema: String,
+      connectionParams: String
+  ) extends ConnectionConfig {
+
+    protected def getPublicFieldsForId = List(host, port.toString, dbName, dbUser, schema, connectionParams)
+    protected def getSecretFieldsForId = List(dbPassword, certificate)
+
+    override def toCommonFormat: CommonConnectionReadableData = {
+      CommonConnectionReadableData("hana-on-premise", s"$host:$port", s"$dbName/$schema", dbUser)
     }
   }
 
@@ -91,35 +110,65 @@ trait HanaConnectorTrait extends ConnectorCompanion {
       connectorConfig: HanaConnectorConfig
   )(implicit ec: ExecutionContext): ConnectorResponse[HanaConnector] = {
     val poolName = UUID.randomUUID.toString
-    val dbConfig = createDbConfig(config, connectorConfig, poolName)
+    val dbConfig = createCloudDbConfig(config, connectorConfig, poolName)
     val database = Database.forConfig("", dbConfig)
 
     createHanaConnector(connectorConfig, poolName, database).value
   }
 
-  private[hana] def createDbConfig(
+  def createHanaOnPremiseConnector(
+      config: HanaOnPremiseConnectionConfig,
+      connectorConfig: HanaConnectorConfig
+  )(implicit ec: ExecutionContext): ConnectorResponse[HanaConnector] = {
+    val poolName = UUID.randomUUID.toString
+    val dbConfig = createOnPremiseDbConfig(config, connectorConfig, poolName)
+    val database = Database.forConfig("", dbConfig)
+
+    createHanaConnector(connectorConfig, poolName, database).value
+  }
+
+  private[hana] def createCloudDbConfig(
       config: HanaCloudConnectionConfig,
       connectorConfig: HanaConnectorConfig,
       poolName: String
   ): Config = {
     val jdbcUrl = createCloudUrl(config)
-    ConfigFactory
-      .load()
-      .getConfig(connectorConfig.configPath)
-      .withValue("maxConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
-      .withValue("minConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
-      .withValue("numThreads", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
-      .withValue("queueSize", fromAnyRef(connectorConfig.poolConfig.queueSize))
-      .withValue("poolName", fromAnyRef(poolName))
-      .withValue("registerMbeans", fromAnyRef(true))
+    createDbConfig(connectorConfig, poolName)
       .withValue("jdbcUrl", fromAnyRef(jdbcUrl))
       .withValue("username", fromAnyRef(config.dbUser))
       .withValue("password", fromAnyRef(config.dbPassword))
-      .withValue("driver", fromAnyRef("com.sap.db.jdbc.Driver"))
       .withValue("properties.currentSchema", fromAnyRef(config.schema))
-      .withValue("properties.encrypt", fromAnyRef(true))
-      .withValue("properties.validateCertificate", fromAnyRef(connectorConfig.validateCertificate))
   }
+
+  private def createOnPremiseDbConfig(
+      config: HanaOnPremiseConnectionConfig,
+      connectorConfig: HanaConnectorConfig,
+      poolName: String
+  ): Config = {
+    val jdbcUrl = createOnPremiseUrl(config)
+    createDbConfig(connectorConfig, poolName)
+      .withValue("jdbcUrl", fromAnyRef(jdbcUrl))
+      .withValue("username", fromAnyRef(config.dbUser))
+      .withValue("password", fromAnyRef(config.dbPassword))
+      .withValue("properties.databaseName", fromAnyRef(config.dbName))
+      .withValue("properties.currentSchema", fromAnyRef(config.schema))
+     .withValue(
+       "properties.sslTrustStore", fromAnyRef(config.certificate.replaceAll("\n", ""))
+     )
+  }
+
+  private def createDbConfig(connectorConfig: HanaConnectorConfig, poolName: String): Config = ConfigFactory
+    .load()
+    .getConfig(connectorConfig.configPath)
+    .withValue("maxConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+    .withValue("minConnections", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+    .withValue("numThreads", fromAnyRef(connectorConfig.poolConfig.maxPoolSize))
+    .withValue("queueSize", fromAnyRef(connectorConfig.poolConfig.queueSize))
+    .withValue("poolName", fromAnyRef(poolName))
+    .withValue("registerMbeans", fromAnyRef(true))
+    .withValue("driver", fromAnyRef("com.sap.db.jdbc.Driver"))
+    .withValue("properties.encrypt", fromAnyRef(true))
+    .withValue("properties.validateCertificate", fromAnyRef(connectorConfig.validateCertificate))
 
   private def createHanaConnector(
       connectorConfig: HanaConnectorConfig,
@@ -142,6 +191,10 @@ trait HanaConnectorTrait extends ConnectorCompanion {
 
   private def createCloudUrl(config: HanaCloudConnectionConfig): String = {
     s"jdbc:sap://${config.instanceId}.hanacloud.ondemand.com:443/${safeConnectionParams(config.connectionParams)}"
+  }
+
+  private def createOnPremiseUrl(config: HanaOnPremiseConnectionConfig): String = {
+    s"jdbc:sap://${config.host}:${config.port}/${safeConnectionParams(config.connectionParams)}"
   }
 
   private def safeConnectionParams(connectionParams: String): String = {

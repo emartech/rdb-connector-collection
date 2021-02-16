@@ -19,4 +19,13 @@ trait HanaSimpleSelect {
     runStreamingQuery(timeout)(select.toSql)
   }
 
+  override def runSelectWithGroupLimit(
+      select: SimpleSelect,
+      groupLimit: Int,
+      references: Seq[String],
+      timeout: FiniteDuration
+  ): ConnectorResponse[Source[Seq[String], NotUsed]] = {
+    val sql = select.toSql(selectWithGroupLimitWriter(groupLimit, references))
+    runStreamingQuery(timeout)(sql).map(_.map(_.map(_.dropRight(1))))
+  }
 }

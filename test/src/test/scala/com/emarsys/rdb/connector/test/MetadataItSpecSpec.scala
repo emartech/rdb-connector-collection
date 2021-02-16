@@ -51,6 +51,17 @@ class MetadataItSpecSpec extends MetadataItSpec with MockitoSugar {
       )
     )
   )
+  when(connector.listFields(viewName)).thenReturn(
+    Future(
+      Right(
+        Seq(
+          FieldModel("PersonID", "PersonIDType"),
+          FieldModel("lastname", "LastNameType"),
+          FieldModel("FirstName", "FirstNameType")
+        )
+      )
+    )
+  )
   when(connector.listFields("TABLENAME")).thenReturn(Future(Left(tableNotFoundError)))
   when(connector.listTablesWithFields()).thenReturn(
     Future(

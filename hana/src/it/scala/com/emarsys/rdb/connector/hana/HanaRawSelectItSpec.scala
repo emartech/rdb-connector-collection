@@ -2,7 +2,7 @@ package com.emarsys.rdb.connector.hana
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import com.emarsys.rdb.connector.hana.utils.SelectDbInitHelper
+import com.emarsys.rdb.connector.hana.utils.{SelectDbInitHelper, TestHelper}
 import com.emarsys.rdb.connector.test.{RawSelectItSpec, _}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
@@ -29,6 +29,8 @@ class HanaRawSelectItSpec
   }
 
   implicit override val executionContext: ExecutionContextExecutor = system.dispatcher
+
+  private val schema = TestHelper.TEST_CLOUD_CONNECTION_CONFIG.schema
 
   override val simpleSelect            = s"""SELECT * FROM "$aTableName";"""
   override val badSimpleSelect         = s"""SELECT * ForM "$aTableName""""
@@ -82,7 +84,7 @@ class HanaRawSelectItSpec
           "",
           "HEX",
           "",
-          "IT_TEST",
+          schema,
           s"$aTableName",
           "COLUMN TABLE",
           "7.0",

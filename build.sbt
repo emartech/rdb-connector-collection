@@ -54,7 +54,7 @@ lazy val mysql     = connector("mysql", Dependencies.Mysql)
 lazy val postgres  = connector("postgresql", Dependencies.Postgresql)
 lazy val redshift  = connector("redshift", Dependencies.Redshift)
 lazy val snowflake = connector("snowflake", Dependencies.Snowflake)
-lazy val hana      = connector("hana", Dependencies.Hana).settings(doNotPublish)
+lazy val hana      = connector("hana", Dependencies.Hana)
 
 lazy val ItTest = config("it") extend Test
 lazy val itTestSettings = Defaults.itSettings ++ Seq(

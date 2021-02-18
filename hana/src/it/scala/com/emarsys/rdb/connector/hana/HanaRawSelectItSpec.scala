@@ -84,7 +84,7 @@ class HanaRawSelectItSpec
           "",
           "HEX",
           "",
-          schema,
+          schema.getOrElse(fail("This test requires a schema to be set for the connection")),
           s"$aTableName",
           "COLUMN TABLE",
           "7.0",

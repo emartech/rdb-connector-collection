@@ -1,13 +1,9 @@
 package com.emarsys.rdb.connector.hana
 
-import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
-import com.emarsys.rdb.connector.common.defaults.SqlWriter._
-import com.emarsys.rdb.connector.common.models.SimpleSelect.TableName
-import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
-import HanaProfile.api._
-import HanaWriters._
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
+import com.emarsys.rdb.connector.common.models.TableSchemaDescriptors.{FieldModel, FullTableModel, TableModel}
+import com.emarsys.rdb.connector.hana.HanaProfile.api._
 import slick.dbio.DBIOAction
 import slick.jdbc.GetResult
 

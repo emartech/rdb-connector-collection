@@ -26,6 +26,15 @@ class HanaCloudConnectorItSpec extends AsyncWordSpecLike with Matchers with Eith
         }
       }
 
+      "connect successfully without the schema specified explicitly" in {
+        withClue("We should have received back a connector") {
+          HanaConnector.createHanaCloudConnector(testConnection.copy(schema = None), testConnectorConfig).map { connector =>
+            connector.value.close()
+            succeed
+          }
+        }
+      }
+
       "fail to connect when the instance id is invalid" in {
         val conn = testConnection.copy(instanceId = "wrong")
         val expectedError =

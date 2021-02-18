@@ -22,7 +22,7 @@ object TestHelper {
     instanceId = config.getString("cloud-dbconf.instance-id"),
     dbUser = config.getString("cloud-dbconf.user"),
     dbPassword = config.getString("cloud-dbconf.password"),
-    schema = config.getString("cloud-dbconf.schema"),
+    schema = Some(config.getString("cloud-dbconf.schema")),
     connectionParams = config.getString("cloud-dbconf.connectionParams")
   )
 
@@ -38,7 +38,7 @@ object TestHelper {
     dbName = config.getString("on-premise-dbconf.db"),
     dbUser = config.getString("on-premise-dbconf.user"),
     dbPassword = config.getString("on-premise-dbconf.password"),
-    schema = config.getString("on-premise-dbconf.schema"),
+    schema = Some(config.getString("on-premise-dbconf.schema")),
     certificate = config.getString("on-premise-dbconf.certificate"),
     connectionParams = config.getString("on-premise-dbconf.connectionParams")
   )

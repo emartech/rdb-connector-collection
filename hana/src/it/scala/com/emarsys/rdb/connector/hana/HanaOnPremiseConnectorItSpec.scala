@@ -21,6 +21,15 @@ class HanaOnPremiseConnectorItSpec extends AsyncWordSpecLike with Matchers with 
           }
         }
       }
+
+      "connect successfully without the schema specified explicitly" in {
+        withClue("We should have received back a connector") {
+          HanaConnector.createHanaOnPremiseConnector(testConnection.copy(schema = None), testConnectorConfig).map { connector =>
+            connector.value.close()
+            succeed
+          }
+        }
+      }
     }
   }
 }

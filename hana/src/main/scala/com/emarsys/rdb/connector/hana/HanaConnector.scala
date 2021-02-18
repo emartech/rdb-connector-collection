@@ -6,7 +6,11 @@ import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.models.Errors.DatabaseError
 import com.emarsys.rdb.connector.common.models.{Connector, ConnectorCompanion}
 import com.emarsys.rdb.connector.common.{ConnectorResponse, ConnectorResponseET}
-import com.emarsys.rdb.connector.hana.HanaConnector.{HanaCloudConnectionConfig, HanaConnectorConfig, HanaOnPremiseConnectionConfig}
+import com.emarsys.rdb.connector.hana.HanaConnector.{
+  HanaCloudConnectionConfig,
+  HanaConnectorConfig,
+  HanaOnPremiseConnectionConfig
+}
 import com.emarsys.rdb.connector.hana.HanaProfile.api._
 import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import com.typesafe.config.{Config, ConfigFactory}
@@ -57,19 +61,21 @@ class HanaConnector(
 
 object HanaConnector extends HanaConnectorTrait {
 
+  val UNDEFINED_SCHEMA = "schema is not defined"
+
   case class HanaCloudConnectionConfig(
       instanceId: String,
       dbUser: String,
       dbPassword: String,
-      schema: String,
+      schema: Option[String],
       connectionParams: String
   ) extends ConnectionConfig {
 
-    protected def getPublicFieldsForId = List(instanceId, schema, dbUser, connectionParams)
+    protected def getPublicFieldsForId = List(instanceId, schema.getOrElse(UNDEFINED_SCHEMA), dbUser, connectionParams)
     protected def getSecretFieldsForId = List(dbPassword)
 
     override def toCommonFormat: CommonConnectionReadableData = {
-      CommonConnectionReadableData("hana-cloud", instanceId, schema, dbUser)
+      CommonConnectionReadableData("hana-cloud", instanceId, schema.getOrElse(UNDEFINED_SCHEMA), dbUser)
     }
   }
 
@@ -80,15 +86,21 @@ object HanaConnector extends HanaConnectorTrait {
       dbUser: String,
       dbPassword: String,
       certificate: String,
-      schema: String,
+      schema: Option[String],
       connectionParams: String
   ) extends ConnectionConfig {
 
-    protected def getPublicFieldsForId = List(host, port.toString, dbName, dbUser, schema, connectionParams)
+    protected def getPublicFieldsForId =
+      List(host, port.toString, dbName, dbUser, schema.getOrElse(UNDEFINED_SCHEMA), connectionParams)
     protected def getSecretFieldsForId = List(dbPassword, certificate)
 
     override def toCommonFormat: CommonConnectionReadableData = {
-      CommonConnectionReadableData("hana-on-premise", s"$host:$port", s"$dbName/$schema", dbUser)
+      CommonConnectionReadableData(
+        "hana-on-premise",
+        s"$host:$port",
+        s"$dbName/${schema.getOrElse(UNDEFINED_SCHEMA)}",
+        dbUser
+      )
     }
   }
 
@@ -133,11 +145,14 @@ trait HanaConnectorTrait extends ConnectorCompanion {
       poolName: String
   ): Config = {
     val jdbcUrl = createCloudUrl(config)
-    createDbConfig(connectorConfig, poolName)
+    val conf = createDbConfig(connectorConfig, poolName)
       .withValue("jdbcUrl", fromAnyRef(jdbcUrl))
       .withValue("username", fromAnyRef(config.dbUser))
       .withValue("password", fromAnyRef(config.dbPassword))
-      .withValue("properties.currentSchema", fromAnyRef(config.schema))
+
+    config.schema.fold(conf) { schema =>
+      conf.withValue("properties.currentSchema", fromAnyRef(schema))
+    }
   }
 
   private def createOnPremiseDbConfig(
@@ -146,15 +161,19 @@ trait HanaConnectorTrait extends ConnectorCompanion {
       poolName: String
   ): Config = {
     val jdbcUrl = createOnPremiseUrl(config)
-    createDbConfig(connectorConfig, poolName)
+    val conf = createDbConfig(connectorConfig, poolName)
       .withValue("jdbcUrl", fromAnyRef(jdbcUrl))
       .withValue("username", fromAnyRef(config.dbUser))
       .withValue("password", fromAnyRef(config.dbPassword))
       .withValue("properties.databaseName", fromAnyRef(config.dbName))
-      .withValue("properties.currentSchema", fromAnyRef(config.schema))
-     .withValue(
-       "properties.sslTrustStore", fromAnyRef(config.certificate.replaceAll("\n", ""))
-     )
+      .withValue(
+        "properties.sslTrustStore",
+        fromAnyRef(config.certificate.replaceAll("\n", ""))
+      )
+
+    config.schema.fold(conf) { schema =>
+      conf.withValue("properties.currentSchema", fromAnyRef(schema))
+    }
   }
 
   private def createDbConfig(connectorConfig: HanaConnectorConfig, poolName: String): Config = ConfigFactory

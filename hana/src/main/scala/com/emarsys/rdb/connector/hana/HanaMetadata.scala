@@ -23,10 +23,10 @@ trait HanaMetadata {
 
   override def listTables(): ConnectorResponse[Seq[TableModel]] = {
     val getTablesQuery =
-      sql"""SELECT TABLE_NAME, false as "IS_VIEW" from public.tables WHERE SCHEMA_NAME in (SELECT CURRENT_SCHEMA FROM DUMMY)"""
+      sql"""SELECT TABLE_NAME, FALSE AS "IS_VIEW" FROM PUBLIC.TABLES WHERE SCHEMA_NAME IN (SELECT CURRENT_SCHEMA FROM DUMMY)"""
         .as[TableModel]
     val getViewsQuery =
-      sql"""select VIEW_NAME, true as "IS_VIEW" from public.views where SCHEMA_NAME in (select CURRENT_SCHEMA from dummy)"""
+      sql"""SELECT VIEW_NAME, TRUE AS "IS_VIEW" FROM PUBLIC.VIEWS WHERE SCHEMA_NAME IN (SELECT CURRENT_SCHEMA FROM DUMMY)"""
         .as[TableModel]
 
     val query = for {
@@ -41,7 +41,7 @@ trait HanaMetadata {
     val getTableColumnsQuery = sql"""SELECT
                      |  COLUMN_NAME,
                      |  DATA_TYPE_NAME
-                     |FROM public.TABLE_COLUMNS
+                     |FROM PUBLIC.TABLE_COLUMNS
                      |WHERE (SCHEMA_NAME IN (SELECT CURRENT_SCHEMA FROM DUMMY))
                      |  AND TABLE_NAME = $tableName
                      |ORDER BY POSITION
@@ -50,7 +50,7 @@ trait HanaMetadata {
     val getViewColumnsQuery = sql"""SELECT
                      |  COLUMN_NAME,
                      |  DATA_TYPE_NAME
-                     |FROM public.VIEW_COLUMNS
+                     |FROM PUBLIC.VIEW_COLUMNS
                      |WHERE (SCHEMA_NAME IN (SELECT CURRENT_SCHEMA FROM DUMMY))
                      |  AND VIEW_NAME = $tableName
                      |ORDER BY POSITION
@@ -80,13 +80,13 @@ trait HanaMetadata {
 
   override def listTablesWithFields(): ConnectorResponse[Seq[FullTableModel]] = {
     val getAllColumnsQuery =
-      sql""" SELECT TABLE_NAME as "TABLE_NAME", false as "IS_VIEW", COLUMN_NAME, DATA_TYPE_NAME 
-         |   FROM public.TABLE_COLUMNS WHERE (SCHEMA_NAME IN (SELECT CURRENT_SCHEMA FROM DUMMY))
-         |   
+      sql""" SELECT TABLE_NAME AS "TABLE_NAME", FALSE AS "IS_VIEW", COLUMN_NAME, DATA_TYPE_NAME
+         |   FROM PUBLIC.TABLE_COLUMNS WHERE (SCHEMA_NAME IN (SELECT CURRENT_SCHEMA FROM DUMMY))
+         |
          | UNION ALL
-         | 
-         | SELECT VIEW_NAME as "TABLE_NAME", true as "IS_VIEW", COLUMN_NAME, DATA_TYPE_NAME 
-         |   FROM public.VIEW_COLUMNS WHERE (SCHEMA_NAME IN (SELECT CURRENT_SCHEMA FROM DUMMY))""".stripMargin
+         |
+         | SELECT VIEW_NAME AS "TABLE_NAME", TRUE AS "IS_VIEW", COLUMN_NAME, DATA_TYPE_NAME
+         |   FROM PUBLIC.VIEW_COLUMNS WHERE (SCHEMA_NAME IN (SELECT CURRENT_SCHEMA FROM DUMMY))""".stripMargin
         .as[(String, Boolean, String, String)]
 
     val query = getAllColumnsQuery.map { results =>

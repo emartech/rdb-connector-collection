@@ -12,6 +12,8 @@ import com.emarsys.rdb.connector.mysql.CertificateUtil.createTrustStoreTempUrl
 import com.emarsys.rdb.connector.mysql.MySqlConnector.{MySqlConnectionConfig, MySqlConnectorConfig}
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.config.ConfigValueFactory.fromAnyRef
+import enumeratum.{Enum, EnumEntry}
+import enumeratum.EnumEntry.UpperSnakecase
 import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -97,10 +99,20 @@ object MySqlConnector extends MySqlConnectorTrait {
 
   case class MySqlConnectorConfig(
       configPath: String,
-      verifyServerCertificate: Boolean,
+      sslMode: MySqlConnectorConfig.SSLMode,
       poolConfig: PoolConfig
   )
 
+  object MySqlConnectorConfig {
+    sealed trait SSLMode extends EnumEntry with UpperSnakecase
+    object SSLMode extends Enum[SSLMode] {
+      val values = findValues
+
+      case object Required       extends SSLMode
+      case object VerifyCA       extends SSLMode
+      case object VerifyIdentity extends SSLMode
+    }
+  }
 }
 
 trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
@@ -137,8 +149,8 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
       )
   }
 
-  private def createMySqlConnector(connectorConfig: MySqlConnectorConfig, poolName: String, db: Database)(
-      implicit ec: ExecutionContext
+  private def createMySqlConnector(connectorConfig: MySqlConnectorConfig, poolName: String, db: Database)(implicit
+      ec: ExecutionContext
   ): ConnectorResponseET[MySqlConnector] = {
     EitherT(
       isSslUsedForConnection(db)
@@ -149,13 +161,11 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
           )
         )
         .recover(eitherErrorHandler())
-    ).onError {
-      case _ =>
-        EitherT.liftF(db.shutdown.recover {
-          case _ =>
-            // we don't have logging here to log the shutdownError
-            ()
-        })
+    ).onError { case _ =>
+      EitherT.liftF(db.shutdown.recover { case _ =>
+        // we don't have logging here to log the shutdownError
+        ()
+      })
     }
   }
 
@@ -183,8 +193,7 @@ trait MySqlConnectorTrait extends ConnectorCompanion with MySqlErrorHandling {
       .withValue("jdbcUrl", fromAnyRef(jdbcUrl))
       .withValue("username", fromAnyRef(config.dbUser))
       .withValue("password", fromAnyRef(config.dbPassword))
-      .withValue("properties.useSSL", fromAnyRef(true))
-      .withValue("properties.verifyServerCertificate", fromAnyRef(connectorConfig.verifyServerCertificate))
+      .withValue("properties.sslMode", fromAnyRef(connectorConfig.sslMode.entryName))
       .withValue("properties.trustCertificateKeyStoreUrl", fromAnyRef(trustStoreUrl))
   }
 

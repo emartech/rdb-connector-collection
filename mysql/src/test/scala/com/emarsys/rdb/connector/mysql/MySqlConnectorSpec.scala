@@ -6,6 +6,7 @@ import java.util.UUID
 import com.emarsys.rdb.connector.common.Models.{MetaData, PoolConfig}
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
 import com.emarsys.rdb.connector.mysql.MySqlConnector.{MySqlConnectionConfig, MySqlConnectorConfig}
+import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig.SSLMode
 import com.zaxxer.hikari.HikariPoolMXBean
 import javax.management.{MBeanServer, ObjectName}
 import org.scalatest.matchers.should.Matchers
@@ -21,7 +22,7 @@ class MySqlConnectorSpec extends AnyWordSpecLike with Matchers with MockitoSugar
     val defaultConfig =
       MySqlConnectorConfig(
         configPath = "mysqldb",
-        verifyServerCertificate = true,
+        sslMode = SSLMode.VerifyCA,
         poolConfig = PoolConfig(2, 100)
       )
 

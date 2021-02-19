@@ -7,6 +7,7 @@ import akka.testkit.TestKit
 import cats.data.EitherT
 import com.emarsys.rdb.connector.common.ConnectorResponse
 import com.emarsys.rdb.connector.common.models.Errors._
+import com.emarsys.rdb.connector.mysql.MySqlConnector.MySqlConnectorConfig.SSLMode
 import com.emarsys.rdb.connector.mysql.utils.TestHelper
 import com.emarsys.rdb.connector.test.CustomMatchers.beDatabaseErrorEqualWithoutCause
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
@@ -84,7 +85,7 @@ class MySqlConnectorItSpec
             None
           )
 
-        MySqlConnector.create(conn, testConnectorConfig.copy(verifyServerCertificate = true)).map { result =>
+        MySqlConnector.create(conn, testConnectorConfig.copy(sslMode = SSLMode.VerifyCA)).map { result =>
           result.left.value should beDatabaseErrorEqualWithoutCause(expectedError)
         }
       }

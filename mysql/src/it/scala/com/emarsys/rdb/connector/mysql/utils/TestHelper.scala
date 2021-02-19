@@ -27,7 +27,7 @@ object TestHelper {
 
   lazy val TEST_CONNECTOR_CONFIG = MySqlConnectorConfig(
     configPath = "mysqldb",
-    sslMode = SSLMode.VerifyCA,
+    sslMode = SSLMode.Required,
     poolConfig = PoolConfig(2, 100)
   )
 

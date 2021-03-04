@@ -20,7 +20,6 @@ import scala.util.Try
 
 import java.util.UUID
 
-// TODO: do we need unit tests for this?
 class HanaConnector(
     protected val db: Database,
     protected val connectorConfig: HanaConnectorConfig,

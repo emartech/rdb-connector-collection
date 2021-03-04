@@ -81,7 +81,7 @@ object Errors {
       message: String,
       cause: Option[Throwable] = None,
       context: Option[Context] = None
-  ) extends Exception(message) {
+  ) extends Exception(message, cause.orNull) {
     override def toString: String = {
       s"DatabaseError($errorCategory,$errorName,$message,$cause,$context)"
     }

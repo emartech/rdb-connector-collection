@@ -10,7 +10,7 @@ object Dependencies {
   val mssqlVersion     = "6.4.0.jre8"
   val mysqlVersion     = "8.0.23"
   val postgresVersion  = "42.2.18"
-  val redshiftVersion  = "1.2.37.1061"
+  val redshiftVersion  = "2.0.0.3"
   val snowflakeVersion = "3.12.17"
 
   val akkaVersion              = "2.6.12"

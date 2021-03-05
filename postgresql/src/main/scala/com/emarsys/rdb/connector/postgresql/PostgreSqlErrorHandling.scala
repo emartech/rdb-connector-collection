@@ -10,20 +10,19 @@ import org.postgresql.util.{PSQLException, PSQLState}
 
 trait PostgreSqlErrorHandling {
 
-  private val PSQL_STATE_QUERY_CANCELLED    = "57014"
-  private val PSQL_STATE_RELATION_NOT_FOUND = "42P01"
-
-  private val PSQL_STATE_SYNTAX_ERROR                = "42601"
-  private val PSQL_STATE_COLUMN_NOT_FOUND            = "42703"
   private val PSQL_STATE_INVALID_TEXT_REPRESENTATION = "22P02"
-  private val syntaxErrors =
-    Seq(PSQL_STATE_SYNTAX_ERROR, PSQL_STATE_COLUMN_NOT_FOUND, PSQL_STATE_INVALID_TEXT_REPRESENTATION)
+  private val syntaxErrors = Seq(
+    PSQLState.SYNTAX_ERROR.getState,
+    PSQLState.UNDEFINED_COLUMN.getState,
+    PSQL_STATE_INVALID_TEXT_REPRESENTATION
+  )
 
   private val PSQL_INSUFFICIENT_PRIVILEGE        = "42501"
-  private val PSQL_AUTHORIZATION_NAME_IS_INVALID = "28000"
-  private val PSQL_INVALID_PASSWORD              = "28P01"
-  private val accessDeniedErrors =
-    Seq(PSQL_INSUFFICIENT_PRIVILEGE, PSQL_AUTHORIZATION_NAME_IS_INVALID, PSQL_INVALID_PASSWORD)
+  private val accessDeniedErrors = Seq(
+    PSQL_INSUFFICIENT_PRIVILEGE,
+    PSQLState.INVALID_AUTHORIZATION_SPECIFICATION.getState,
+    PSQLState.INVALID_PASSWORD.getState
+  )
 
   private val PSQL_CANCELLING_STATEMENT_DUE_TO_RECOVERY = "40001"
   private val transientErrors =
@@ -32,7 +31,7 @@ trait PostgreSqlErrorHandling {
   private def errorHandler(): PartialFunction[Throwable, DatabaseError] = {
     case ex: slick.SlickException if selectQueryWasGivenAsUpdate(ex.getMessage) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
-    case ex: SQLException if ex.getSQLState == PSQL_STATE_QUERY_CANCELLED =>
+    case ex: SQLException if ex.getSQLState == PSQLState.QUERY_CANCELED.getState =>
       DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, ex)
     case ex: SQLException if syntaxErrors.contains(ex.getSQLState) =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
@@ -40,7 +39,7 @@ trait PostgreSqlErrorHandling {
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.AccessDeniedError, ex)
     case ex: SQLException if transientErrors.contains(ex.getSQLState) =>
       DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, ex)
-    case ex: SQLException if ex.getSQLState == PSQL_STATE_RELATION_NOT_FOUND =>
+    case ex: SQLException if ex.getSQLState == PSQLState.UNDEFINED_TABLE.getState =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, ex)
     case ex: PSQLException if ex.getSQLState == PSQLState.DATETIME_OVERFLOW.getState =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)

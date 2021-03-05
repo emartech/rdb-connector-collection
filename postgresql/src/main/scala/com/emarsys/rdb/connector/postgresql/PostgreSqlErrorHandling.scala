@@ -6,6 +6,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.defaults.ErrorConverter.default
 import com.emarsys.rdb.connector.common.models.Errors._
+import org.postgresql.util.{PSQLException, PSQLState}
 
 trait PostgreSqlErrorHandling {
 
@@ -41,6 +42,8 @@ trait PostgreSqlErrorHandling {
       DatabaseError(ErrorCategory.Transient, ErrorName.TransientDbError, ex)
     case ex: SQLException if ex.getSQLState == PSQL_STATE_RELATION_NOT_FOUND =>
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.TableNotFound, ex)
+    case ex: PSQLException if ex.getSQLState == PSQLState.DATETIME_OVERFLOW.getState =>
+      DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.SqlSyntaxError, ex)
   }
 
   private def selectQueryWasGivenAsUpdate(message: String) =

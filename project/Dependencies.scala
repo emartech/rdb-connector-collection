@@ -9,7 +9,7 @@ object Dependencies {
 
   val mssqlVersion     = "6.4.0.jre8"
   val mysqlVersion     = "8.0.23"
-  val postgresVersion  = "42.2.18"
+  val postgresVersion  = "42.2.19"
   val redshiftVersion  = "1.2.37.1061"
   val snowflakeVersion = "3.12.17"
 
@@ -17,14 +17,14 @@ object Dependencies {
   val akkaHttpVersion          = "10.2.3"
   val akkaStreamContribVersion = "0.11"
   val slickVersion             = "3.3.3"
-  val catsCoreVersion          = "2.4.1"
+  val catsCoreVersion          = "2.4.2"
   val jwtVersion               = "5.0.0"
   val enumeratumVersion        = "1.6.1"
 
   val scalatestVersion        = "3.2.6"
-  val mockitoScalaVersion     = "1.16.25"
-  val mockitoVersion          = "3.7.7"
-  val scalatestMockitoVersion = "3.2.3.0"
+  val mockitoScalaVersion     = "1.16.32"
+  val mockitoVersion          = "3.8.0"
+  val scalatestMockitoVersion = "3.2.6.0"
 
   private val defaultScalacOptions = Seq(
     "-encoding",
@@ -59,7 +59,7 @@ object Dependencies {
       "org.scalatestplus"      %% "mockito-3-4"             % scalatestMockitoVersion % Test,
       "com.typesafe.akka"      %% "akka-http-spray-json"    % akkaHttpVersion         % Test,
       "com.typesafe.akka"      %% "akka-stream-testkit"     % akkaVersion             % Test,
-      "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.1"
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.2"
     )
   )
 

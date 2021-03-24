@@ -10,21 +10,15 @@ import slick.dbio.{DBIOAction, NoStream}
 import slick.jdbc.{GetResult, PositionedResult}
 
 import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
 
 trait HanaQueryRunner { self: HanaConnector =>
   protected def run[A](dbio: DBIOAction[A, NoStream, Nothing]): ConnectorResponse[A] =
     db.run(dbio).map(Right(_)).recover(eitherErrorHandler())
 
-  protected def runStreamingQuery(
-      timeout: FiniteDuration
-  )(query: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
+  protected def runStreamingQuery(query: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     val sql = sql"#$query"
       .as(resultConverter)
       .transactionally
-      .withStatementParameters(
-        statementInit = _.setQueryTimeout(timeout.toSeconds.toInt)
-      )
     val publisher = db.stream(sql)
     val dbSource = Source
       .fromPublisher(publisher)

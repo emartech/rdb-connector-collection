@@ -28,7 +28,7 @@ trait HanaRawSelect { self: HanaConnector =>
       wrapInLimit(query, l)
     }
 
-    runStreamingQuery(timeout)(limitedQuery)
+    runStreamingQuery(limitedQuery)
   }
 
   override def validateRawSelect(rawSql: String): ConnectorResponse[Unit] =
@@ -44,7 +44,7 @@ trait HanaRawSelect { self: HanaConnector =>
       timeout: FiniteDuration,
       allowNullFieldValue: Boolean
   ): ConnectorResponse[Source[Seq[String], NotUsed]] =
-    runProjectedSelectWith(rawSql, fields, limit, allowNullFieldValue, runStreamingQuery(timeout))
+    runProjectedSelectWith(rawSql, fields, limit, allowNullFieldValue, runStreamingQuery)
 
   override def validateProjectedRawSelect(rawSql: String, fields: Seq[String]): ConnectorResponse[Unit] = {
     runProjectedSelectWith(rawSql, fields, None, allowNullFieldValue = true, testQueryWithExplain)

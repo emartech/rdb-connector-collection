@@ -1,11 +1,12 @@
 package com.emarsys.rdb.connector.hana
 
+import java.sql.SQLException
+
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.emarsys.rdb.connector.common.defaults.ErrorConverter
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory, ErrorName}
-
-import java.sql.SQLException
+import com.sap.db.jdbc.exceptions.SQLNonTransientConnectionExceptionSapDB
 
 trait HanaErrorHandling {
   import ErrorConverter._
@@ -27,6 +28,9 @@ trait HanaErrorHandling {
       DatabaseError(ErrorCategory.FatalQueryExecution, ErrorName.QueryRejected, ex)
     case ex: SQLException if ex.getErrorCode == EXCEED_MAX_CONCURRENT_TRANSACTIONS =>
       DatabaseError(ErrorCategory.RateLimit, ErrorName.TooManyQueries, ex)
+    case ex: SQLNonTransientConnectionExceptionSapDB
+        if ex.getSQLState == "08006" && ex.getMessage == "Data receive failed [null]." =>
+      DatabaseError(ErrorCategory.Timeout, ErrorName.QueryTimeout, ex)
   }
 
   protected def eitherErrorHandler[T](): PartialFunction[Throwable, Either[DatabaseError, T]] =

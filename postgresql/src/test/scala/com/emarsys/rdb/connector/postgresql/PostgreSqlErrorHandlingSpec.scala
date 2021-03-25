@@ -1,14 +1,15 @@
 package com.emarsys.rdb.connector.postgresql
 
+import java.sql._
+import java.util.concurrent.{RejectedExecutionException, TimeoutException}
+
 import com.emarsys.rdb.connector.common.models.Errors.{DatabaseError, ErrorCategory => C, ErrorName => N}
+import org.postgresql.util.{PSQLException, PSQLState}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor4}
 import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatest.{EitherValues, PartialFunctionValues}
 import slick.SlickException
-
-import java.sql._
-import java.util.concurrent.{RejectedExecutionException, TimeoutException}
 
 class PostgreSqlErrorHandlingSpec
     extends AnyWordSpecLike
@@ -19,15 +20,16 @@ class PostgreSqlErrorHandlingSpec
 
   private val slickExceptionWrongUpdate          = new SlickException("Update statements should not return a ResultSet")
   private val slickExceptionUnknown              = new SlickException("Unknown")
-  private val queryTimeoutException              = new SQLException("msg", "57014")
-  private val syntaxErrorException               = new SQLException("msg", "42601")
-  private val columnNotFoundException            = new SQLException("msg", "42703")
+  private val queryTimeoutException              = new SQLException("msg", PSQLState.QUERY_CANCELED.getState)
+  private val syntaxErrorException               = new SQLException("msg", PSQLState.SYNTAX_ERROR.getState)
+  private val columnNotFoundException            = new SQLException("msg", PSQLState.UNDEFINED_COLUMN.getState)
   private val invalidTextRepresentationException = new SQLException("msg", "22P02")
   private val permissionDeniedException          = new SQLException("msg", "42501")
-  private val tableNotFoundException             = new SQLException("msg", "42P01")
-  private val invalidAuthorizationException      = new SQLException("msg", "28000")
-  private val invalidPasswordException           = new SQLException("msg", "28P01")
+  private val tableNotFoundException             = new SQLException("msg", PSQLState.UNDEFINED_TABLE.getState)
+  private val invalidAuthorizationException      = new SQLException("msg", PSQLState.INVALID_AUTHORIZATION_SPECIFICATION.getState)
+  private val invalidPasswordException           = new SQLException("msg", PSQLState.INVALID_PASSWORD.getState)
   private val cancellingStatementException       = new SQLException("canceling statement...", "40001")
+  private val dateOutOfRange                     = new PSQLException("ERROR: date out of range for timestamp", PSQLState.DATETIME_OVERFLOW)
 
   // format: off
   private val postgresTestCases: TableFor4[String, Exception, C, N] = Table(
@@ -42,7 +44,8 @@ class PostgreSqlErrorHandlingSpec
     ("table not found error", tableNotFoundException, C.FatalQueryExecution, N.TableNotFound),
     ("invalid authorization error", invalidAuthorizationException, C.FatalQueryExecution, N.AccessDeniedError),
     ("invalid password error", invalidPasswordException, C.FatalQueryExecution, N.AccessDeniedError),
-    ("canceling statement due to conflict with recovery", cancellingStatementException, C.Transient, N.TransientDbError)
+    ("canceling statement due to conflict with recovery", cancellingStatementException, C.Transient, N.TransientDbError),
+    ("data out of range", dateOutOfRange, C.FatalQueryExecution, N.SqlSyntaxError)
   )
 
   private val sqlErrorCases: TableFor4[String, Exception, C, N] = Table(

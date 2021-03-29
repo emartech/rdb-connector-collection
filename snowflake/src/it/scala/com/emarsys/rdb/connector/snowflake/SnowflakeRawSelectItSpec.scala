@@ -55,9 +55,9 @@ class SnowflakeRawSelectItSpec
 
       result shouldEqual Seq(
         Seq("step", "id", "parent", "operation", "objects", "alias", "expressions", "partitionsTotal", "partitionsAssigned", "bytesAssigned"),
-        Seq(null, null, null, "GlobalStats", null, null, null, "1", "1", "1024"),
+        Seq(null, null, null, "GlobalStats", null, null, null, "1", "1", "1536"),
         Seq("1", "0", null, "Result", null, null, s""""$aTableName".A1, "$aTableName".A2, "$aTableName".A3""", null, null, null),
-        Seq("1", "1", "0", "TableScan", s"""$dbName.$schema."$aTableName"""", null, "A1, A2, A3", "1", "1", "1024")
+        Seq("1", "1", "0", "TableScan", s"""$dbName.$schema."$aTableName"""", null, "A1, A2, A3", "1", "1", "1536")
       )
     }
   }

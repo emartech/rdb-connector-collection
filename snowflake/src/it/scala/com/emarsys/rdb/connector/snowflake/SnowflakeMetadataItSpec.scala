@@ -13,11 +13,6 @@ class SnowflakeMetadataItSpec extends MetadataItSpec with BaseDbSpec {
 
   val fieldsTable = "fields_table"
 
-  override def beforeAll(): Unit = {
-    cleanUpDb()
-    initDb()
-  }
-
   def initDb(): Unit = {
     val createTableSql =
       s"""CREATE TABLE "$tableName" (
@@ -53,11 +48,11 @@ class SnowflakeMetadataItSpec extends MetadataItSpec with BaseDbSpec {
   }
 
   def cleanUpDb(): Unit = {
-    val dropViewSql        = s"""DROP VIEW IF EXISTS "$viewName";"""
-    val dropTableSql       = s"""DROP TABLE IF EXISTS "$tableName";"""
-    val dropOtherTableSql  = s"""DROP TABLE IF EXISTS "$otherSchema"."$tableNameInOtherSchema";"""
-    val dropOtherSchemaSql = s"""DROP SCHEMA IF EXISTS "$otherSchema";"""
-    val dropFieldsTableSql = s"""DROP TABLE IF EXISTS "$fieldsTable";"""
+    val dropViewSql        = s"""DROP VIEW "$viewName";"""
+    val dropTableSql       = s"""DROP TABLE "$tableName";"""
+    val dropOtherTableSql  = s"""DROP TABLE "$otherSchema"."$tableNameInOtherSchema";"""
+    val dropOtherSchemaSql = s"""DROP SCHEMA "$otherSchema";"""
+    val dropFieldsTableSql = s"""DROP TABLE "$fieldsTable";"""
     Await.result(
       for {
         _ <- TestHelper.executeQuery(dropViewSql)

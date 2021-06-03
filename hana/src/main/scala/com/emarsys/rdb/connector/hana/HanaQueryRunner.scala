@@ -16,9 +16,7 @@ trait HanaQueryRunner { self: HanaConnector =>
     db.run(dbio).map(Right(_)).recover(eitherErrorHandler())
 
   protected def runStreamingQuery(query: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
-    val sql = sql"#$query"
-      .as(resultConverter)
-      .transactionally
+    val sql = sql"#$query".as(resultConverter)
     val publisher = db.stream(sql)
     val dbSource = Source
       .fromPublisher(publisher)

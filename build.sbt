@@ -26,7 +26,8 @@ lazy val connectorCollection = project
   .settings(
     publishArtifact := false,
     publish / skip := true,
-    crossScalaVersions := Nil
+    crossScalaVersions := Nil,
+    updateOptions := updateOptions.value.withCachedResolution(true)
   )
 
 lazy val common = Project(id = "common", base = file("common"))

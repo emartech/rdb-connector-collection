@@ -20,4 +20,4 @@ RUN sbt update
 # These are needed for dynver to create proper versioning
 COPY . .
 
-RUN sbt +clean +compile +test:compile +it:compile
+RUN sbt analyse update

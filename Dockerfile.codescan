@@ -1,7 +1,5 @@
 FROM openlaw/scala-builder:0.10.0-alpine
 
-ENV SBT_OPTS="${SBT_OPTS} -Dsbt.io.jdktimestamps=true -Xmx2G -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -Xss2M"
-
 WORKDIR /workspace/source/
 COPY . .
 

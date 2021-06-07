@@ -31,14 +31,8 @@ lazy val connectorCollection = project
   )
 
 def analyse = Command.command("analyse") { state =>
-  val extracted = Project.extract(state)
-  import extracted._
-  appendWithSession(
-    Seq(
-      updateOptions := updateOptions.value.withCachedResolution(true),
-      useCoursier := false,
-      crossPaths := false
-    ),
+  Project.extract(state).appendWithSession(
+    Seq(crossPaths := false, useCoursier := false),
     state
   )
 }

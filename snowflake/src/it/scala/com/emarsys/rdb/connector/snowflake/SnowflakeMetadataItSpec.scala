@@ -69,7 +69,7 @@ class SnowflakeMetadataItSpec extends MetadataItSpec with BaseDbSpec {
 
     "#listTablesWithFields" should {
       "list fields with column type" in {
-        val createTableSql = s"""CREATE TABLE "$fieldsTable" (
+        val createTableSql = s"""CREATE OR REPLACE TABLE "$fieldsTable" (
                                 |    "PersonID" INTEGER,
                                 |    "LastName" varchar(255),
                                 |    "FirstName" text,

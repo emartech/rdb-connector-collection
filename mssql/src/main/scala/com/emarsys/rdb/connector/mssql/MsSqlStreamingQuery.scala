@@ -19,7 +19,6 @@ trait MsSqlStreamingQuery {
   )(query: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     val sql = sql"#$query"
       .as(resultConverter)
-      .transactionally
       .withStatementParameters(
         statementInit = _.setQueryTimeout(timeout.toSeconds.toInt)
       )

@@ -13,7 +13,7 @@ object Dependencies {
   val redshiftVersion  = "1.2.43.1067"
   val snowflakeVersion = "3.13.4"
 
-  val akkaVersion              = "2.6.13"
+  val akkaVersion              = "2.6.15"
   val akkaHttpVersion          = "10.2.4"
   val akkaStreamContribVersion = "0.11"
   val slickVersion             = "3.3.3"

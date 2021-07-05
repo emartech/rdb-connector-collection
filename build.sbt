@@ -26,8 +26,16 @@ lazy val connectorCollection = project
   .settings(
     publishArtifact := false,
     publish / skip := true,
-    crossScalaVersions := Nil
+    crossScalaVersions := Nil,
+    commands += analyse
   )
+
+def analyse = Command.command("analyse") { state =>
+  Project.extract(state).appendWithSession(
+    Seq(crossPaths := false, useCoursier := false),
+    state
+  )
+}
 
 lazy val common = Project(id = "common", base = file("common"))
   .settings(

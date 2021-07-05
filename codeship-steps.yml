@@ -15,7 +15,7 @@
               service: rdb-allconnector
               command: sbt "project redshift; +it:test"
             - name: Hana
-              tag: ^(master|feature|update/ngdbc)
+              tag: skip
               service: rdb-allconnector
               command: sbt "project hana; +it:test"
         - type: serial

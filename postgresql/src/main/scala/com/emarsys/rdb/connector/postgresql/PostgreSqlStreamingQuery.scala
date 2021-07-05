@@ -19,7 +19,6 @@ trait PostgreSqlStreamingQuery {
   )(query: String): ConnectorResponse[Source[Seq[String], NotUsed]] = {
     val sql = sql"#$query"
       .as(resultConverter)
-      .transactionally
       .withStatementParameters(
         fetchSize = connectorConfig.streamChunkSize,
         statementInit = _.setQueryTimeout(timeout.toSeconds.toInt)

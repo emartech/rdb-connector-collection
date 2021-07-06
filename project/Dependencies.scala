@@ -18,7 +18,7 @@ object Dependencies {
   val akkaStreamContribVersion = "0.11"
   val slickVersion             = "3.3.3"
   val catsCoreVersion          = "2.6.1"
-  val jwtVersion               = "5.0.0"
+  val jwtVersion               = "6.0.0"
   val enumeratumVersion        = "1.6.1"
 
   val scalatestVersion        = "3.2.9"
@@ -77,7 +77,7 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-http-core"       % akkaHttpVersion,
       "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
-      "com.pauldijou"     %% "jwt-core"             % jwtVersion,
+      "com.github.jwt-scala"     %% "jwt-core"             % jwtVersion,
       "org.typelevel"     %% "cats-core"            % catsCoreVersion,
       "com.typesafe.akka" %% "akka-stream-contrib"  % akkaStreamContribVersion
     )

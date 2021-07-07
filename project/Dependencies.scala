@@ -19,7 +19,7 @@ object Dependencies {
   val slickVersion             = "3.3.3"
   val catsCoreVersion          = "2.6.1"
   val jwtVersion               = "8.0.2"
-  val enumeratumVersion        = "1.6.1"
+  val enumeratumVersion        = "1.7.0"
 
   val scalatestVersion        = "3.2.9"
   val mockitoScalaVersion     = "1.16.37"

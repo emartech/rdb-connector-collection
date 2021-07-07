@@ -18,7 +18,7 @@ object Dependencies {
   val akkaStreamContribVersion = "0.11"
   val slickVersion             = "3.3.3"
   val catsCoreVersion          = "2.6.1"
-  val jwtVersion               = "6.0.0"
+  val jwtVersion               = "8.0.2"
   val enumeratumVersion        = "1.6.1"
 
   val scalatestVersion        = "3.2.9"

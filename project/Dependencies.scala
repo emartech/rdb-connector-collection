@@ -135,7 +135,7 @@ object Dependencies {
     libraryDependencies ++= Seq(
       "com.typesafe.slick"    %% "slick"          % slickVersion,
       "com.typesafe.slick"    %% "slick-hikaricp" % slickVersion,
-      "com.sap.cloud.db.jdbc" % "ngdbc"           % "2.7.14",
+      "com.sap.cloud.db.jdbc" % "ngdbc"           % "2.7.15",
       "org.typelevel"         %% "cats-core"      % catsCoreVersion
     )
   )
